@@ -25,7 +25,7 @@ class ActivityLog extends BaseController
         $date = $this->request->getGet('date') ?? '';
 
         $builder = $this->logModel->builder();
-        $builder->select('activity_logs.*, users.nama_lengkap as user_name, users.username')
+        $builder->select('activity_logs.*, users.username as user_name')
                 ->join('users', 'users.id = activity_logs.user_id', 'left');
 
         // Apply filters

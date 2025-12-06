@@ -62,7 +62,7 @@ class ActivityLogModel extends Model
      */
     public function getWithUser(int $limit = 50, int $offset = 0)
     {
-        return $this->select('activity_logs.*, users.nama_lengkap as user_name, users.username')
+        return $this->select('activity_logs.*, users.username as user_name')
             ->join('users', 'users.id = activity_logs.user_id', 'left')
             ->orderBy('activity_logs.created_at', 'DESC')
             ->findAll($limit, $offset);
@@ -73,7 +73,7 @@ class ActivityLogModel extends Model
      */
     public function getByModule(string $module, int $limit = 50)
     {
-        return $this->select('activity_logs.*, users.nama_lengkap as user_name')
+        return $this->select('activity_logs.*, users.username as user_name')
             ->join('users', 'users.id = activity_logs.user_id', 'left')
             ->where('module', $module)
             ->orderBy('created_at', 'DESC')
@@ -95,7 +95,7 @@ class ActivityLogModel extends Model
      */
     public function getToday()
     {
-        return $this->select('activity_logs.*, users.nama_lengkap as user_name')
+        return $this->select('activity_logs.*, users.username as user_name')
             ->join('users', 'users.id = activity_logs.user_id', 'left')
             ->where('DATE(activity_logs.created_at)', date('Y-m-d'))
             ->orderBy('activity_logs.created_at', 'DESC')
