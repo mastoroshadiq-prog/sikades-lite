@@ -1,0 +1,5 @@
+Modul Perencanaan: Untuk memasukkan data RPJMDesa (Rencana Pembangunan Jangka Menengah Desa) dan RKPDesa (Rencana Kerja Pemerintah Desa), termasuk data visi-misi desa dan rincian kegiatan serta anggarannya.
+Modul Penganggaran: Memfasilitasi penyusunan Anggaran Pendapatan dan Belanja Desa (APBDesa) secara terstruktur, mencakup pendapatan dan belanja desa.
+Modul Penatausahaan/Pelaksanaan: Mencatat semua transaksi penerimaan dan pengeluaran desa secara real-time, termasuk pengajuan SPP (Surat Perintah Pembayaran) dan pencairan dana, yang otomatis masuk ke BKU (Buku Kas Umum).
+Modul Pelaporan: Menghasilkan berbagai laporan keuangan desa secara otomatis, seperti Laporan Realisasi APBDesa, Laporan Pertanggungjawaban (LPJ), dan laporan lainnya.
+Modul Pertanggungjawaban: Bagian dari siklus akhir yang memastikan seluruh kegiatan telah dipertanggungjawabkan sesuai ketentuan. 

@@ -6,6 +6,22 @@
             </a>
             
             <div class="nav-item">
+                <div class="px-3 py-2 text-muted small fw-bold">PERENCANAAN</div>
+            </div>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'perencanaan') !== false && strpos(uri_string(), 'rpjm') === false && strpos(uri_string(), 'rkp') === false) ? 'active' : '' ?>" href="<?= base_url('/perencanaan') ?>">
+                <i class="fas fa-project-diagram"></i> Dashboard Perencanaan
+            </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'perencanaan/rpjm') !== false) ? 'active' : '' ?>" href="<?= base_url('/perencanaan/rpjm') ?>">
+                <i class="fas fa-map"></i> RPJM Desa
+            </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'perencanaan/rkp') !== false) ? 'active' : '' ?>" href="<?= base_url('/perencanaan/rkp') ?>">
+                <i class="fas fa-calendar-alt"></i> RKP Desa
+            </a>
+            
+            <div class="nav-item">
                 <div class="px-3 py-2 text-muted small fw-bold">DATA ENTRI</div>
             </div>
             

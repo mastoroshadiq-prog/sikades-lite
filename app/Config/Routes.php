@@ -29,6 +29,36 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     // Dashboard
     $routes->get('/dashboard', 'Dashboard::index');
     
+    // Perencanaan Routes (NEW - Planning Module)
+    $routes->group('perencanaan', function($routes) {
+        $routes->get('/', 'Perencanaan::index');
+        
+        // RPJM Desa
+        $routes->get('rpjm', 'Perencanaan::rpjm');
+        $routes->get('rpjm/create', 'Perencanaan::rpjmCreate');
+        $routes->post('rpjm/save', 'Perencanaan::rpjmSave');
+        $routes->get('rpjm/edit/(:num)', 'Perencanaan::rpjmEdit/$1');
+        $routes->post('rpjm/update/(:num)', 'Perencanaan::rpjmUpdate/$1');
+        $routes->get('rpjm/detail/(:num)', 'Perencanaan::rpjmDetail/$1');
+        $routes->delete('rpjm/delete/(:num)', 'Perencanaan::rpjmDelete/$1');
+        
+        // RKP Desa
+        $routes->get('rkp', 'Perencanaan::rkp');
+        $routes->get('rkp/create', 'Perencanaan::rkpCreate');
+        $routes->post('rkp/save', 'Perencanaan::rkpSave');
+        $routes->get('rkp/edit/(:num)', 'Perencanaan::rkpEdit/$1');
+        $routes->post('rkp/update/(:num)', 'Perencanaan::rkpUpdate/$1');
+        $routes->get('rkp/detail/(:num)', 'Perencanaan::rkpDetail/$1');
+        $routes->delete('rkp/delete/(:num)', 'Perencanaan::rkpDelete/$1');
+        
+        // Kegiatan
+        $routes->get('kegiatan/create/(:num)', 'Perencanaan::kegiatanCreate/$1');
+        $routes->post('kegiatan/save', 'Perencanaan::kegiatanSave');
+        $routes->get('kegiatan/edit/(:num)', 'Perencanaan::kegiatanEdit/$1');
+        $routes->post('kegiatan/update/(:num)', 'Perencanaan::kegiatanUpdate/$1');
+        $routes->delete('kegiatan/delete/(:num)', 'Perencanaan::kegiatanDelete/$1');
+    });
+    
     // Master Data Routes
     $routes->group('master', function($routes) {
         // Data Desa
