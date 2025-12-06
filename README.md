@@ -24,9 +24,13 @@ Siskeudes Lite adalah aplikasi web modern untuk manajemen keuangan desa yang dik
 - 💳 **Pencatatan Pajak** - Tracking PPN dan PPh otomatis
 - 👥 **Manajemen User** - CRUD user dengan role-based access
 - 📊 **Dashboard Interaktif** - Visualisasi data dengan charts
+- 📄 **Export PDF** - Generate laporan dalam format PDF profesional
+- 📊 **Export Excel** - Export data ke spreadsheet Excel
+- 📝 **Activity Logging** - Tracking semua aktivitas pengguna
 - 🎨 **UI/UX Premium** - Design modern dengan purple gradient theme
 
 ---
+
 
 ## 🚀 **Status Pengembangan**
 
@@ -37,15 +41,25 @@ Siskeudes Lite adalah aplikasi web modern untuk manajemen keuangan desa yang dik
    ├─ SPP Module               100% ✅
    ├─ BKU Module               100% ✅
    └─ Pajak Module             100% ✅
+✅ Phase 4: Advanced Features  100% COMPLETE
+   ├─ Reporting System         100% ✅
+   │  ├─ BKU Report            100% ✅
+   │  ├─ APBDes Report         100% ✅
+   │  ├─ LRA Report            100% ✅
+   │  ├─ SPP Report            100% ✅
+   │  └─ Tax Report            100% ✅
+   ├─ PDF Export               100% ✅
+   ├─ Excel Export             100% ✅
+   └─ Activity Logging         100% ✅
 
 Overall Progress: ████████████████████ 100%
 
 Status: 🟢 PRODUCTION READY!
 ```
 
-**Development Timeline:** December 5-6, 2025 (17 hours)  
-**Current Version:** 1.0.0  
-**Last Update:** December 6, 2025
+**Development Timeline:** December 5-6, 2025 (22 hours)  
+**Current Version:** 1.5.0 (Full Featured)  
+**Last Update:** December 6, 2025 - 22:00 WIB
 
 ---
 
@@ -55,6 +69,8 @@ Status: 🟢 PRODUCTION READY!
 - **PHP** 8.2
 - **CodeIgniter** 4.6.3
 - **MariaDB** 10.6
+- **DOMPDF** 2.0 (PDF Generation)
+- **PhpSpreadsheet** 1.29 (Excel Export)
 
 ### **Frontend:**
 - **Bootstrap** 5.3.2
@@ -108,17 +124,18 @@ docker-compose up -d
 ```
 siskeudes-lite/
 ├── app/
-│   ├── Controllers/        # 9 Controllers (Auth, Dashboard, Master, APBDes, SPP, BKU, Pajak)
-│   ├── Models/            # 8 Models dengan relasi lengkap
-│   ├── Views/             # 20 Views dengan layout system
-│   ├── Filters/           # Auth & Role filters
-│   ├── Config/            # Konfigurasi aplikasi
-│   └── Database/          # Migrations & Seeders
-├── public/                # Assets & entry point
-├── writable/              # Logs, cache, sessions
-├── docker-compose.yml     # Docker configuration
-├── Dockerfile            # Custom PHP image
-└── Documentation/         # 14 comprehensive docs
+│   ├── Controllers/        # 10 Controllers (Auth, Dashboard, Master, APBDes, SPP, BKU, Pajak, Report, ActivityLog)
+│   ├── Models/             # 9 Models dengan relasi lengkap
+│   ├── Views/              # 25+ Views dengan layout system
+│   ├── Libraries/          # PDF & Excel Export Libraries
+│   ├── Filters/            # Auth & Role filters
+│   ├── Config/             # Konfigurasi aplikasi
+│   └── Database/           # Migrations & Seeders
+├── public/                 # Assets & entry point
+├── writable/               # Logs, cache, sessions
+├── docker-compose.yml      # Docker configuration
+├── Dockerfile              # Custom PHP image
+└── Documentation/          # Comprehensive docs
 ```
 
 ---
@@ -168,7 +185,27 @@ siskeudes-lite/
 - Quick "Mark as Paid" button
 - Summary: Total PPN, PPh, Belum Bayar
 
-### **6. Master Data** ✅
+### **6. Report System** ✅ (NEW!)
+- **5 Report Types:**
+  - BKU Report (Buku Kas Umum)
+  - APBDes Report (Anggaran)
+  - LRA Report (Realisasi Anggaran)
+  - Tax Report (PPN & PPh)
+  - SPP Report (per document)
+- **Export Formats:**
+  - HTML (Preview & Print)
+  - PDF (Professional documents)
+  - Excel (Data analysis)
+- Print-ready layouts with signatures
+
+### **7. Activity Logging** ✅ (NEW!)
+- Track semua aktivitas user
+- Filter by module, date, action
+- View detailed changes (before/after)
+- IP address tracking
+- Admin-only access
+
+### **8. Master Data** ✅
 - **Users:** CRUD dengan role assignment
 - **Data Desa:** Informasi umum desa
 - **Rekening:** Chart of Accounts 4 level (43 entries)
@@ -185,6 +222,7 @@ siskeudes-lite/
 - ✅ Role-based access control
 - ✅ Input validation (client & server-side)
 - ✅ Self-delete protection
+- ✅ Activity logging & audit trail
 
 ---
 
@@ -202,12 +240,14 @@ siskeudes-lite/
 | **Pajak Entry** | ✅ | ✅ | ❌ |
 | **User Management** | ✅ | ❌ | ❌ |
 | **Reports** | ✅ | ✅ | ✅ |
+| **PDF/Excel Export** | ✅ | ✅ | ✅ |
+| **Activity Logs** | ✅ | ❌ | ❌ |
 
 ---
 
 ## 📊 **Database Schema**
 
-### **9 Tabel Utama:**
+### **10 Tabel Utama:**
 1. **users** - User accounts dengan 3 role
 2. **data_umum_desa** - Data desa
 3. **ref_rekening** - Chart of Accounts (43 entries)
@@ -216,8 +256,9 @@ siskeudes-lite/
 6. **spp_rincian** - SPP line items
 7. **bku** - Cash book transactions
 8. **pajak** - Tax records
+9. **activity_logs** - User activity tracking
 
-**Schema详detail:** Lihat [create_tables.sql](create_tables.sql)
+**Schema detail:** Lihat [create_tables.sql](create_tables.sql)
 
 ---
 
@@ -228,6 +269,9 @@ siskeudes-lite/
 
 ### **Dashboard**
 ![Dashboard](docs/screenshots/dashboard.png)
+
+### **Report System**
+![Reports](docs/screenshots/reports.png)
 
 ### **SPP Workflow**
 ![SPP](docs/screenshots/spp.png)
@@ -270,8 +314,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Developer Team**
 - Development Period: December 5-6, 2025
-- Total Time: 17 hours
-- Lines of Code: 9,000+
+- Total Time: 22 hours
+- Lines of Code: 12,000+
 
 ---
 
@@ -283,6 +327,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **DataTables** - Interactive tables
 - **SweetAlert2** - Beautiful alerts
 - **Font Awesome** - Icon library
+- **DOMPDF** - PDF Generation
+- **PhpSpreadsheet** - Excel Export
 
 ---
 
@@ -294,22 +340,23 @@ Untuk pertanyaan atau dukungan:
 
 ---
 
-## 🎯 **Roadmap**
+## 🎯 **Changelog**
 
-### **Version 1.0** ✅ (Current)
+### **Version 1.5.0** ✅ (Current - Dec 6, 2025)
+- ✅ PDF Export with DOMPDF
+- ✅ Excel Export with PhpSpreadsheet
+- ✅ Activity Logging System
+- ✅ Complete Report Views (BKU, APBDes, LRA, SPP, Pajak)
+- ✅ View composition pattern fix
+
+### **Version 1.0.0** (Dec 5, 2025)
 - ✅ Complete APBDes module
 - ✅ Complete SPP workflow
 - ✅ Complete BKU with running balance
 - ✅ Complete Pajak recording
 
-### **Version 1.1** (Future)
-- [ ] PDF Report generation
-- [ ] Excel export functionality
+### **Future Roadmap (v2.0)**
 - [ ] Email notifications
-- [ ] Activity logging
-- [ ] Advanced reporting
-
-### **Version 2.0** (Later)
 - [ ] Multi-village support
 - [ ] Year-end closing
 - [ ] Budget proposal module
@@ -326,4 +373,4 @@ If you find this project useful, please give it a ⭐ on GitHub!
 
 **Made with ❤️ for Indonesian Villages**
 
-**Status:** 🟢 **Production Ready** | **Version:** 1.0.0 | **Last Update:** Dec 6, 2025
+**Status:** 🟢 **Production Ready** | **Version:** 1.5.0 | **Last Update:** Dec 6, 2025

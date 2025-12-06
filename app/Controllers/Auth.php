@@ -3,6 +3,7 @@
 namespace App\Controllers;
 
 use App\Models\UserModel;
+use App\Models\ActivityLogModel;
 
 class Auth extends BaseController
 {
@@ -72,6 +73,7 @@ class Auth extends BaseController
         $this->session->set($sessionData);
 
         // Log login activity
+        ActivityLogModel::log('login', 'auth', 'User logged in: ' . $username . ' (Role: ' . $user['role'] . ')');
         log_message('info', 'User logged in: ' . $username . ' (Role: ' . $user['role'] . ')');
 
         // Check for redirect URL
@@ -87,9 +89,12 @@ class Auth extends BaseController
     public function logout()
     {
         $username = $this->session->get('username');
+        $userId = $this->session->get('user_id');
 
         // Log logout activity
         if ($username) {
+            // Log before destroying session
+            ActivityLogModel::log('logout', 'auth', 'User logged out: ' . $username);
             log_message('info', 'User logged out: ' . $username);
         }
 

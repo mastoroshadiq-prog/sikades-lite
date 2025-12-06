@@ -13,15 +13,15 @@
                 <i class="fas fa-file-invoice-dollar"></i> Penganggaran (APBDes)
             </a>
             
-            <a class="nav-link <?= (strpos(uri_string(), 'penatausahaan/spp') !== false) ? 'active' : '' ?>" href="<?= base_url('/penatausahaan/spp') ?>">
+            <a class="nav-link <?= (strpos(uri_string(), 'spp') !== false) ? 'active' : '' ?>" href="<?= base_url('/spp') ?>">
                 <i class="fas fa-file-invoice"></i> SPP
             </a>
             
-            <a class="nav-link <?= (strpos(uri_string(), 'penatausahaan/bku') !== false) ? 'active' : '' ?>" href="<?= base_url('/penatausahaan/bku') ?>">
+            <a class="nav-link <?= (strpos(uri_string(), 'bku') !== false) ? 'active' : '' ?>" href="<?= base_url('/bku') ?>">
                 <i class="fas fa-book"></i> Buku Kas Umum (BKU)
             </a>
             
-            <a class="nav-link <?= (strpos(uri_string(), 'penatausahaan/pajak') !== false) ? 'active' : '' ?>" href="<?= base_url('/penatausahaan/pajak') ?>">
+            <a class="nav-link <?= (strpos(uri_string(), 'pajak') !== false) ? 'active' : '' ?>" href="<?= base_url('/pajak') ?>">
                 <i class="fas fa-receipt"></i> Pajak
             </a>
             
@@ -29,12 +29,16 @@
                 <div class="px-3 py-2 text-muted small fw-bold">LAPORAN</div>
             </div>
             
-            <a class="nav-link <?= (strpos(uri_string(), 'laporan/bku') !== false) ? 'active' : '' ?>" href="<?= base_url('/laporan/bku') ?>">
-                <i class="fas fa-file-alt"></i> Laporan BKU
+            <a class="nav-link <?= (strpos(uri_string(), 'report') !== false) ? 'active' : '' ?>" href="<?= base_url('/report') ?>">
+                <i class="fas fa-file-alt"></i> Semua Laporan
             </a>
             
-            <a class="nav-link <?= (strpos(uri_string(), 'laporan/realisasi') !== false) ? 'active' : '' ?>" href="<?= base_url('/laporan/realisasi') ?>">
-                <i class="fas fa-chart-bar"></i> Laporan Realisasi
+            <a class="nav-link <?= (strpos(uri_string(), 'report/bku') !== false) ? 'active' : '' ?>" href="<?= base_url('/report/bku') ?>">
+                <i class="fas fa-book"></i> Laporan BKU
+            </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'report/lra') !== false) ? 'active' : '' ?>" href="<?= base_url('/report/lra') ?>">
+                <i class="fas fa-chart-line"></i> Realisasi Anggaran
             </a>
             
             <?php if (isset($user['role']) && in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
@@ -54,6 +58,10 @@
             <?php if (isset($user['role']) && $user['role'] == 'Administrator'): ?>
             <a class="nav-link <?= (strpos(uri_string(), 'master/users') !== false) ? 'active' : '' ?>" href="<?= base_url('/master/users') ?>">
                 <i class="fas fa-users"></i> Manajemen User
+            </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'activity-log') !== false) ? 'active' : '' ?>" href="<?= base_url('/activity-log') ?>">
+                <i class="fas fa-history"></i> Activity Log
             </a>
             <?php endif; ?>
         </nav>

@@ -117,13 +117,28 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('pajak/save', 'Penatausahaan::savePajak');
     });
     
-    // Laporan Routes (Reporting)
+    // Modern Report Routes (Phase 4)
+    $routes->group('report', function($routes) {
+        $routes->get('/', 'Report::index');
+        $routes->get('bku', 'Report::bku');
+        $routes->get('apbdes', 'Report::apbdes');
+        $routes->get('lra', 'Report::lra');
+        $routes->get('spp/(:num)', 'Report::spp/$1');
+        $routes->get('pajak', 'Report::pajak');
+    });
+    
+    // Legacy Laporan Routes (Compatibility)
     $routes->group('laporan', function($routes) {
         $routes->get('bku', 'Laporan::bku');
         $routes->get('bku/pdf', 'Laporan::bkuPdf');
         $routes->get('realisasi', 'Laporan::realisasi');
         $routes->get('realisasi/pdf', 'Laporan::realisasiPdf');
     });
+    
+    // Activity Log Routes
+    $routes->get('activity-log', 'ActivityLog::index');
+    $routes->get('activity-log/summary', 'ActivityLog::summary');
+    $routes->post('activity-log/clear', 'ActivityLog::clearOld');
     
     // Settings
     $routes->get('/profile', 'User::profile');
