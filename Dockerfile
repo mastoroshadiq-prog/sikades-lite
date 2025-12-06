@@ -15,7 +15,9 @@ RUN apt-get update && apt-get install -y \
     libjpeg62-turbo-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install intl mysqli pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && a2enmod rewrite
+    && a2enmod rewrite \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -31,24 +33,18 @@ RUN sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/sites-availa
     && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
     && sed -i 's|/var/www/|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/apache2.conf
 
-# Copy composer files first for caching
-COPY composer.json composer.lock ./
-
-# Install dependencies
-RUN composer install --no-dev --optimize-autoloader --no-interaction || true
-
-# Copy application files
-COPY . .
-
-# Set permissions for writable directory
+# Create writable directories
 RUN mkdir -p /var/www/html/writable/logs \
     /var/www/html/writable/cache \
     /var/www/html/writable/session \
-    /var/www/html/writable/uploads \
-    && chown -R www-data:www-data /var/www/html/writable \
-    && chmod -R 775 /var/www/html/writable
+    /var/www/html/writable/uploads
+
+# Copy entrypoint script
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+# Use custom entrypoint
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
