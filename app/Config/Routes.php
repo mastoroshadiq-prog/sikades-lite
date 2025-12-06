@@ -59,6 +59,41 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('report', 'Apbdes::report');
     });
     
+    // SPP Routes (Payment Request)
+    $routes->group('spp', function($routes) {
+        $routes->get('/', 'Spp::index');
+        $routes->get('create', 'Spp::create');
+        $routes->post('save', 'Spp::save');
+        $routes->get('edit/(:num)', 'Spp::edit/$1');
+        $routes->post('update/(:num)', 'Spp::update/$1');
+        $routes->get('detail/(:num)', 'Spp::detail/$1');
+        $routes->post('verify/(:num)', 'Spp::verify/$1');
+        $routes->post('approve/(:num)', 'Spp::approve/$1');
+        $routes->delete('delete/(:num)', 'Spp::delete/$1');
+    });
+    
+    // BKU Routes (Buku Kas Umum)
+    $routes->group('bku', function($routes) {
+        $routes->get('/', 'Bku::index');
+        $routes->get('create', 'Bku::create');
+        $routes->post('save', 'Bku::save');
+        $routes->get('edit/(:num)', 'Bku::edit/$1');
+        $routes->post('update/(:num)', 'Bku::update/$1');
+        $routes->delete('delete/(:num)', 'Bku::delete/$1');
+        $routes->get('report', 'Bku::report');
+    });
+    
+    // Pajak Routes (Tax Recording)
+    $routes->group('pajak', function($routes) {
+        $routes->get('/', 'Pajak::index');
+        $routes->get('create', 'Pajak::create');
+        $routes->post('save', 'Pajak::save');
+        $routes->get('edit/(:num)', 'Pajak::edit/$1');
+        $routes->post('update/(:num)', 'Pajak::update/$1');
+        $routes->delete('delete/(:num)', 'Pajak::delete/$1');
+        $routes->post('bayar/(:num)', 'Pajak::bayar/$1');
+    });
+    
     // Penatausahaan Routes (Administration)
     $routes->group('penatausahaan', function($routes) {
         // SPP (Payment Request)

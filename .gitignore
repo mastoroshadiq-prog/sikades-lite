@@ -61,6 +61,7 @@ writable/uploads/*
 !writable/uploads/index.html
 
 writable/debugbar/*
+!writable/debugbar/index.html
 
 php_errors.log
 
@@ -86,22 +87,40 @@ phpunit
 vendor/
 
 #-------------------------
-# IDE Files
+# IDE / Development Files
 #-------------------------
+
+# Modules Testing
+_modules/*
+
+# phpenv local config
+.php-version
+
+# Jetbrains editors (PHPStorm, etc)
 .idea/
-*.swp
-*.swo
-*~
-.project
-.settings/
-.buildpath
-*.sublime-project
+*.iml
+
+# NetBeans
+/nbproject/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+/nbactions.xml
+/nb-configuration.xml
+/.nb-gradle/
+
+# Sublime Text
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
 *.sublime-workspace
+*.sublime-project
+.phpintel
+/api/
+
+# Visual Studio Code
 .vscode/
 
-#-------------------------
-# Docker
-#-------------------------
-db_data/
-*.zip
-ci4.zip
+/results/
+/phpunit*.xml

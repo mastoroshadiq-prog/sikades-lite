@@ -1,0 +1,49 @@
+#--------------------------------------------------------------------
+# ENVIRONMENT
+#--------------------------------------------------------------------
+
+CI_ENVIRONMENT = development
+
+#--------------------------------------------------------------------
+# APP
+#--------------------------------------------------------------------
+
+app.baseURL = 'http://localhost:8080/'
+app.indexPage = ''
+app.defaultLocale = id
+app.defaultTimezone = Asia/Jakarta
+app.sessionDriver = 'CodeIgniter\Session\Handlers\FileHandler'
+app.sessionCookieName = 'siskeudes_session'
+app.sessionExpiration = 7200
+app.sessionSavePath = NULL
+app.sessionMatchIP = false
+
+#--------------------------------------------------------------------
+# DATABASE
+#--------------------------------------------------------------------
+
+database.default.hostname = db
+database.default.database = siskeudes
+database.default.username = siskeudes_user
+database.default.password = siskeudes_pass
+database.default.DBDriver = MySQLi
+database.default.DBPrefix =
+database.default.port = 3306
+database.default.charset = utf8mb4
+database.default.DBCollat = utf8mb4_general_ci
+
+#--------------------------------------------------------------------
+# ENCRYPTION
+#--------------------------------------------------------------------
+
+# encryption.key =
+
+#--------------------------------------------------------------------
+# SESSION
+#--------------------------------------------------------------------
+
+# session.driver = 'CodeIgniter\Session\Handlers\FileHandler'
+# session.cookieName = 'ci_session'
+# session.expiration = 7200
+# session.savePath = NULL
+# session.matchIP = false

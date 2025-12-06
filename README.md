@@ -1,161 +1,68 @@
-# 🏛️ Siskeudes Lite
+# CodeIgniter 4 Application Starter
 
-**Sistem Keuangan Desa Berbasis Web** - *Permendagri No. 20 Tahun 2018 Compliant*
+## What is CodeIgniter?
 
-[![Phase 1](https://img.shields.io/badge/Phase%201-Complete-brightgreen)](PHASE_1_COMPLETE.md)
-[![CodeIgniter](https://img.shields.io/badge/CodeIgniter-4.x-orange)](https://codeigniter.com/)
-[![PHP](https://img.shields.io/badge/PHP-8.2-blue)](https://www.php.net/)
-[![MariaDB](https://img.shields.io/badge/MariaDB-10.6-blue)](https://mariadb.org/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-blue)](https://www.docker.com/)
+CodeIgniter is a PHP full-stack web framework that is light, fast, flexible and secure.
+More information can be found at the [official site](https://codeigniter.com).
 
-Aplikasi manajemen keuangan desa yang meniru logika bisnis dasar "Siskeudes" (Sistem Keuangan Desa Indonesia). Fokus pada transparansi, akuntabilitas, dan kemudahan penggunaan.
+This repository holds a composer-installable app starter.
+It has been built from the
+[development repository](https://github.com/codeigniter4/CodeIgniter4).
 
----
+More information about the plans for version 4 can be found in [CodeIgniter 4](https://forum.codeigniter.com/forumdisplay.php?fid=28) on the forums.
 
-## 📋 Fitur Utama
+You can read the [user guide](https://codeigniter.com/user_guide/)
+corresponding to the latest version of the framework.
 
-### ✅ **Implemented (Phase 1)**
-- ✅ **Authentication & Authorization** - Login/Logout dengan 3 role (Admin, Operator, Kepala Desa)
-- ✅ **User Management** - CRUD users dengan role-based access
-- ✅ **Master Data Management** - Data desa & referensi rekening
-- ✅ **Database Schema** - 8 core tables dengan foreign keys
-- ✅ **Chart of Accounts** - 43 kode rekening standar Permendagri
-- ✅ **Docker Infrastructure** - Containerized untuk deployment mudah
+## Installation & updates
 
-### 🔄 **In Development (Phase 2)**
-- ⏳ **Penganggaran (APBDes)** - Manajemen Anggaran Pendapatan dan Belanja Desa
-- ⏳ **Dashboard UI** - Widget keuangan interaktif
+`composer create-project codeigniter4/appstarter` then `composer update` whenever
+there is a new release of the framework.
 
-### ⏳ **Planned (Phase 3-4)**
-- ⏳ **Penatausahaan (BKU)** - Buku Kas Umum (Cash Flow Management)
-- ⏳ **SPP Management** - Surat Permintaan Pembayaran
-- ⏳ **Pelaporan** - Laporan Realisasi Anggaran (PDF)
+When updating, check the release notes to see if there are any changes you might need to apply
+to your `app` folder. The affected files can be copied or merged from
+`vendor/codeigniter4/framework/app`.
 
-## 🛠️ Technology Stack
+## Setup
 
-| Komponen | Teknologi |
-|----------|-----------|
-| Backend Framework | CodeIgniter 4 |
-| Language | PHP 8.2 |
-| Database | MariaDB 10.6 |
-| Frontend | Bootstrap 5 |
-| JavaScript | jQuery + DataTables |
-| Environment | Docker + Docker Compose |
+Copy `env` to `.env` and tailor for your app, specifically the baseURL
+and any database settings.
 
-## 🚀 Quick Start
+## Important Change with index.php
 
-> **📖 Detailed Guide:** See [QUICK_START.md](QUICK_START.md) for step-by-step instructions
+`index.php` is no longer in the root of the project! It has been moved inside the *public* folder,
+for better security and separation of components.
 
-### Prerequisites
+This means that you should configure your web server to "point" to your project's *public* folder, and
+not to the project root. A better practice would be to configure a virtual host to point there. A poor practice would be to point your web server to the project root and expect to enter *public/...*, as the rest of your logic and the
+framework are exposed.
 
-- Docker Desktop
-- Git (optional)
+**Please** read the user guide for a better explanation of how CI4 works!
 
-### Installation
+## Repository Management
 
-1. **Clone or download this repository**
-```bash
-git clone <repository-url>
-cd sikades_lite
-```
+We use GitHub issues, in our main repository, to track **BUGS** and to track approved **DEVELOPMENT** work packages.
+We use our [forum](http://forum.codeigniter.com) to provide SUPPORT and to discuss
+FEATURE REQUESTS.
 
-2. **Start Docker containers**
-```powershell
-.\start.ps1
-# OR
-docker compose up -d
-```
+This repository is a "distribution" one, built by our release preparation script.
+Problems with it can be raised on our forum, or as issues in the main repository.
 
-3. **Initialize database**
-```powershell
-docker exec -it siskeudes_app php spark migrate
-docker exec -it siskeudes_app php spark db:seed RefRekeningSeeder
-docker exec -it siskeudes_app php spark db:seed UserSeeder
-```
+## Server Requirements
 
-4. **Access application**
-- **Web Application**: http://localhost:8080
-- **PHPMyAdmin**: http://localhost:8081
-  - Server: `db`
-  - Username: `siskeudes_user`
-  - Password: `siskeudes_pass`
+PHP version 8.1 or higher is required, with the following extensions installed:
 
-### Database Setup
+- [intl](http://php.net/manual/en/intl.requirements.php)
+- [mbstring](http://php.net/manual/en/mbstring.installation.php)
 
-```bash
-# Access the app container
-docker exec -it siskeudes_app bash
+> [!WARNING]
+> - The end of life date for PHP 7.4 was November 28, 2022.
+> - The end of life date for PHP 8.0 was November 26, 2023.
+> - If you are still using PHP 7.4 or 8.0, you should upgrade immediately.
+> - The end of life date for PHP 8.1 will be December 31, 2025.
 
-# Run migrations
-php spark migrate
+Additionally, make sure that the following extensions are enabled in your PHP:
 
-# Run seeders
-php spark db:seed RefRekeningSeeder
-```
-
-## 👥 User Roles
-
-1. **Administrator** - Master data management, user management
-2. **Operator Desa** - Input APBDes, SPP, transaksi BKU, pajak
-3. **Kepala Desa** - Dashboard view, approve posting
-
-## 📊 Database Schema
-
-### Master Data
-- `users` - User management
-- `ref_rekening` - Chart of Accounts (4 levels)
-- `data_umum_desa` - Village general data
-
-### Budgeting Module
-- `apbdes` - Budget planning
-
-### Administration Module
-- `spp` - Payment requests
-- `spp_rincian` - SPP details
-- `bku` - General cash book
-- `pajak` - Tax records
-
-## 📁 Project Structure
-
-```
-sikades_lite/
-├── app/
-│   ├── Config/          # Configuration files
-│   ├── Controllers/     # Application controllers
-│   ├── Models/          # Database models
-│   ├── Views/           # View templates
-│   ├── Filters/         # Request filters
-│   └── Database/
-│       ├── Migrations/  # Database migrations
-│       └── Seeds/       # Database seeders
-├── public/              # Public assets
-├── writable/            # Writable directories
-│   ├── cache/
-│   ├── logs/
-│   ├── session/
-│   └── uploads/
-├── docker-compose.yml   # Docker configuration
-└── .env                 # Environment variables
-
-```
-
-## 🔒 Security
-
-- Session-based authentication
-- CSRF protection
-- XSS filtering
-- SQL injection prevention
-- Role-based access control (RBAC)
-
-## 📝 License
-
-This project is developed for educational purposes and compliance with Permendagri No. 20 Tahun 2018.
-
-## 🆘 Support
-
-For issues and questions, please refer to the documentation in `context/` directory.
-
----
-
-**Version**: 1.0.0 (Phase 1)
-**Last Updated**: December 2025
+- json (enabled by default - don't turn it off)
+- [mysqlnd](http://php.net/manual/en/mysqlnd.install.php) if you plan to use MySQL
+- [libcurl](http://php.net/manual/en/curl.requirements.php) if you plan to use the HTTP\CURLRequest library
