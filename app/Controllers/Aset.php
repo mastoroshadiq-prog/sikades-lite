@@ -5,18 +5,32 @@ namespace App\Controllers;
 use App\Models\AsetInventarisModel;
 use App\Models\AsetKategoriModel;
 use App\Models\BkuModel;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
 class Aset extends BaseController
 {
     protected $asetModel;
     protected $kategoriModel;
     protected $bkuModel;
+    protected $user;
 
-    public function __construct()
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
+        parent::initController($request, $response, $logger);
+        
         $this->asetModel = new AsetInventarisModel();
         $this->kategoriModel = new AsetKategoriModel();
         $this->bkuModel = new BkuModel();
+        
+        // Get user data from session
+        $this->user = [
+            'id' => $this->session->get('user_id'),
+            'username' => $this->session->get('username'),
+            'role' => $this->session->get('role'),
+            'kode_desa' => $this->session->get('kode_desa'),
+        ];
     }
 
     /**
