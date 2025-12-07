@@ -57,6 +57,10 @@
                 <i class="fas fa-chart-line"></i> Realisasi Anggaran
             </a>
             
+            <a class="nav-link <?= (strpos(uri_string(), 'lpj') !== false) ? 'active' : '' ?>" href="<?= base_url('/lpj') ?>">
+                <i class="fas fa-file-signature"></i> Laporan LPJ
+            </a>
+            
             <?php if (isset($user['role']) && in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
             <div class="nav-item">
                 <div class="px-3 py-2 text-muted small fw-bold">PENGATURAN</div>
@@ -68,6 +72,10 @@
             
             <a class="nav-link <?= (strpos(uri_string(), 'master/rekening') !== false) ? 'active' : '' ?>" href="<?= base_url('/master/rekening') ?>">
                 <i class="fas fa-list-alt"></i> Referensi Rekening
+            </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'tutup-buku') !== false) ? 'active' : '' ?>" href="<?= base_url('/tutup-buku') ?>">
+                <i class="fas fa-book-reader"></i> Tutup Buku
             </a>
             <?php endif; ?>
             

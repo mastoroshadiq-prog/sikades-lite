@@ -93,6 +93,15 @@ class PdfExport
     }
 
     /**
+     * Generate LPJ PDF Report
+     */
+    public function generateLpjReport(array $data): void
+    {
+        $html = $this->getLpjTemplate($data);
+        $this->generate($html, 'LPJ_Semester_' . $data['semester'] . '_' . $data['tahun'], 'portrait');
+    }
+
+    /**
      * BKU PDF Template
      */
     private function getBkuTemplate(array $data): string
@@ -661,5 +670,147 @@ class PdfExport
         elseif ($x < 1000000000) return $this->terbilang($x / 1000000) . " juta" . $this->terbilang($x % 1000000);
         elseif ($x < 1000000000000) return $this->terbilang($x / 1000000000) . " milyar" . $this->terbilang($x % 1000000000);
         else return $this->terbilang($x / 1000000000000) . " trilyun" . $this->terbilang($x % 1000000000000);
+    }
+
+    /**
+     * LPJ PDF Template
+     */
+    private function getLpjTemplate(array $data): string
+    {
+        $desa = $data['desa'] ?? [];
+        $semester = $data['semester'] ?? 1;
+        $tahun = $data['tahun'] ?? date('Y');
+        
+        $pendapatanData = $data['pendapatan'] ?? [];
+        $belanjaData = $data['belanja'] ?? [];
+        
+        // Build pendapatan rows
+        $pendapatanRows = '';
+        $totalAnggaranP = 0;
+        $totalRealisasiP = 0;
+        foreach ($pendapatanData as $idx => $item) {
+            $totalAnggaranP += $item['anggaran'] ?? 0;
+            $totalRealisasiP += $item['realisasi'] ?? 0;
+            $persen = ($item['anggaran'] > 0) ? (($item['realisasi'] / $item['anggaran']) * 100) : 0;
+            $pendapatanRows .= '<tr>
+                <td>' . htmlspecialchars($item['kode_akun']) . '</td>
+                <td>' . htmlspecialchars($item['nama_akun']) . '</td>
+                <td style="text-align:right">Rp ' . number_format($item['anggaran'] ?? 0, 0, ',', '.') . '</td>
+                <td style="text-align:right">Rp ' . number_format($item['realisasi'] ?? 0, 0, ',', '.') . '</td>
+                <td style="text-align:center">' . number_format($persen, 2) . '%</td>
+            </tr>';
+        }
+        
+        // Build belanja rows
+        $belanjaRows = '';
+        $totalAnggaranB = 0;
+        $totalRealisasiB = 0;
+        foreach ($belanjaData as $idx => $item) {
+            $totalAnggaranB += $item['anggaran'] ?? 0;
+            $totalRealisasiB += $item['realisasi'] ?? 0;
+            $persen = ($item['anggaran'] > 0) ? (($item['realisasi'] / $item['anggaran']) * 100) : 0;
+            $belanjaRows .= '<tr>
+                <td>' . htmlspecialchars($item['kode_akun']) . '</td>
+                <td>' . htmlspecialchars($item['nama_akun']) . '</td>
+                <td style="text-align:right">Rp ' . number_format($item['anggaran'] ?? 0, 0, ',', '.') . '</td>
+                <td style="text-align:right">Rp ' . number_format($item['realisasi'] ?? 0, 0, ',', '.') . '</td>
+                <td style="text-align:center">' . number_format($persen, 2) . '%</td>
+            </tr>';
+        }
+        
+        $surplusDefisitAnggaran = $totalAnggaranP - $totalAnggaranB;
+        $surplusDefisitRealisasi = $totalRealisasiP - $totalRealisasiB;
+        
+        $semesterText = $semester == 1 ? 'Semester I (Januari - Juni)' : 'Semester II (Juli - Desember)';
+
+        return '<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 9pt; }
+                h2, h3 { margin: 5px 0; text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                th, td { border: 1px solid #000; padding: 4px; font-size: 8pt; }
+                th { background-color: #f0f0f0; }
+                .section-header { background-color: #d0d0d0; font-weight: bold; }
+                .subtotal { background-color: #e8e8e8; font-weight: bold; }
+            </style>
+        </head>
+        <body>
+            <div style="text-align:center;margin-bottom:20px">
+                <h2>PEMERINTAH DESA ' . strtoupper($desa['nama_desa'] ?? 'NAMA DESA') . '</h2>
+                <h3>LAPORAN PERTANGGUNGJAWABAN REALISASI PELAKSANAAN APBDes</h3>
+                <p>' . $semesterText . ' Tahun Anggaran ' . $tahun . '</p>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th width="12%">Kode Rekening</th>
+                        <th width="40%">Uraian</th>
+                        <th width="18%">Anggaran (Rp)</th>
+                        <th width="18%">Realisasi (Rp)</th>
+                        <th width="12%">%</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- PENDAPATAN -->
+                    <tr class="section-header">
+                        <td colspan="5">A. PENDAPATAN</td>
+                    </tr>
+                    ' . ($pendapatanRows ?: '<tr><td colspan="5" style="text-align:center">Tidak ada data</td></tr>') . '
+                    <tr class="subtotal">
+                        <td colspan="2" style="text-align:right">JUMLAH PENDAPATAN</td>
+                        <td style="text-align:right">Rp ' . number_format($totalAnggaranP, 0, ',', '.') . '</td>
+                        <td style="text-align:right">Rp ' . number_format($totalRealisasiP, 0, ',', '.') . '</td>
+                        <td style="text-align:center">' . ($totalAnggaranP > 0 ? number_format(($totalRealisasiP / $totalAnggaranP) * 100, 2) : 0) . '%</td>
+                    </tr>
+                    
+                    <!-- BELANJA -->
+                    <tr class="section-header">
+                        <td colspan="5">B. BELANJA</td>
+                    </tr>
+                    ' . ($belanjaRows ?: '<tr><td colspan="5" style="text-align:center">Tidak ada data</td></tr>') . '
+                    <tr class="subtotal">
+                        <td colspan="2" style="text-align:right">JUMLAH BELANJA</td>
+                        <td style="text-align:right">Rp ' . number_format($totalAnggaranB, 0, ',', '.') . '</td>
+                        <td style="text-align:right">Rp ' . number_format($totalRealisasiB, 0, ',', '.') . '</td>
+                        <td style="text-align:center">' . ($totalAnggaranB > 0 ? number_format(($totalRealisasiB / $totalAnggaranB) * 100, 2) : 0) . '%</td>
+                    </tr>
+                    
+                    <!-- SURPLUS/DEFISIT -->
+                    <tr style="background:#d0d0f0;font-weight:bold">
+                        <td colspan="2" style="text-align:right">SURPLUS / (DEFISIT)</td>
+                        <td style="text-align:right">Rp ' . number_format($surplusDefisitAnggaran, 0, ',', '.') . '</td>
+                        <td style="text-align:right">Rp ' . number_format($surplusDefisitRealisasi, 0, ',', '.') . '</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div style="margin-top:40px">
+                <p style="margin-bottom:20px"><strong>Keterangan:</strong></p>
+                <p>Demikian laporan pertanggungjawaban realisasi pelaksanaan APBDes ' . $semesterText . ' Tahun Anggaran ' . $tahun . ' yang kami sampaikan.</p>
+            </div>
+            
+            <div style="margin-top:50px">
+                <table style="width:100%;border:none">
+                    <tr>
+                        <td style="width:50%;text-align:center;border:none">
+                            <p>Mengetahui,<br><strong>Kepala Desa</strong></p>
+                            <br><br><br><br>
+                            <p><u><strong>' . ($desa['nama_kepala_desa'] ?? '.......................') . '</strong></u></p>
+                        </td>
+                        <td style="width:50%;text-align:center;border:none">
+                            <p>' . ($desa['nama_desa'] ?? 'Nama Desa') . ', ' . date('d F Y') . '<br><strong>Bendahara Desa</strong></p>
+                            <br><br><br><br>
+                            <p><u><strong>' . ($desa['nama_bendahara'] ?? '.......................') . '</strong></u></p>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </body>
+        </html>';
     }
 }

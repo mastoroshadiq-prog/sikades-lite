@@ -87,6 +87,11 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('update/(:num)', 'Apbdes::update/$1');
         $routes->delete('delete/(:num)', 'Apbdes::delete/$1');
         $routes->get('report', 'Apbdes::report');
+        
+        // Import from RKP Kegiatan
+        $routes->get('import', 'Apbdes::importFromKegiatan');
+        $routes->post('import/process', 'Apbdes::processImport');
+        $routes->get('linked', 'Apbdes::linkedKegiatan');
     });
     
     // SPP Routes (Payment Request)
@@ -169,6 +174,19 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('activity-log', 'ActivityLog::index');
     $routes->get('activity-log/summary', 'ActivityLog::summary');
     $routes->post('activity-log/clear', 'ActivityLog::clearOld');
+    
+    // Tutup Buku Routes (Year-End Closing)
+    $routes->get('tutup-buku', 'TutupBuku::index');
+    $routes->get('tutup-buku/preview/(:num)', 'TutupBuku::preview/$1');
+    $routes->post('tutup-buku/process', 'TutupBuku::process');
+    $routes->get('tutup-buku/detail/(:num)', 'TutupBuku::detail/$1');
+    $routes->post('tutup-buku/reopen', 'TutupBuku::reopen');
+    $routes->get('tutup-buku/summary/(:num)', 'TutupBuku::getSummary/$1');
+    
+    // LPJ Routes (Laporan Pertanggungjawaban)
+    $routes->get('lpj', 'Lpj::index');
+    $routes->get('lpj/semester/(:num)', 'Lpj::semester/$1');
+    $routes->get('lpj/pdf/(:num)', 'Lpj::exportPdf/$1');
     
     // Settings
     $routes->get('/profile', 'User::profile');
