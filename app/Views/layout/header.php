@@ -72,7 +72,55 @@
             margin-right: 10px;
         }
         
+        /* Collapsible Sidebar Styles */
+        .sidebar-section {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar .section-toggle {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            margin: 2px 10px;
+            border-radius: 8px;
+            color: #374151;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        
+        .sidebar .section-toggle:hover {
+            background: rgba(102, 126, 234, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .sidebar .section-toggle .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 12px;
+        }
+        
+        .sidebar .section-toggle.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+        
+        .sidebar .submenu {
+            padding-left: 15px;
+            border-left: 2px solid rgba(102, 126, 234, 0.2);
+            margin-left: 25px;
+        }
+        
+        .sidebar .submenu .nav-link {
+            padding: 8px 15px;
+            margin: 2px 5px;
+            font-size: 0.9rem;
+        }
+        
+        .sidebar .submenu .nav-link i {
+            font-size: 0.85rem;
+            width: 18px;
+        }
+        
         .content-wrapper {
+
             padding: 30px;
             margin-left: 250px;
         }
