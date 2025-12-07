@@ -119,6 +119,39 @@
                 </div>
             </div>
             
+            <!-- DEMOGRAFI - Sistem Data Kependudukan -->
+            <?php 
+            $demografiActive = strpos(uri_string(), 'demografi') !== false;
+            ?>
+            <div class="sidebar-section">
+                <a class="nav-link section-toggle <?= $demografiActive ? '' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" href="#menuDemografi" role="button"
+                   hx-boost="false">
+                    <i class="fas fa-users"></i> 
+                    <span>Demografi</span>
+                    <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
+                </a>
+                <div class="collapse <?= $demografiActive ? 'show' : '' ?>" id="menuDemografi">
+                    <div class="submenu">
+                        <a class="nav-link <?= (uri_string() === 'demografi' || uri_string() === 'demografi/') ? 'active' : '' ?>" href="<?= base_url('/demografi') ?>">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'demografi/keluarga') !== false) ? 'active' : '' ?>" href="<?= base_url('/demografi/keluarga') ?>">
+                            <i class="fas fa-home"></i> Kartu Keluarga
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'demografi/penduduk') !== false) ? 'active' : '' ?>" href="<?= base_url('/demografi/penduduk') ?>">
+                            <i class="fas fa-user"></i> Data Penduduk
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'demografi/mutasi') !== false) ? 'active' : '' ?>" href="<?= base_url('/demografi/mutasi') ?>">
+                            <i class="fas fa-exchange-alt"></i> Mutasi
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'demografi/import') !== false) ? 'active' : '' ?>" href="<?= base_url('/demografi/import') ?>">
+                            <i class="fas fa-file-import"></i> Import Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
             <!-- LAPORAN - Collapsible -->
             <?php 
             $laporanActive = strpos(uri_string(), 'report') !== false || strpos(uri_string(), 'lpj') !== false;

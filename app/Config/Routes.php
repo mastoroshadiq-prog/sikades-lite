@@ -237,6 +237,50 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     // Settings
     $routes->get('/profile', 'User::profile');
     $routes->post('/profile/update', 'User::updateProfile');
+    
+    // ===========================================
+    // DEMOGRAFI - Sistem Data Kependudukan
+    // ===========================================
+    $routes->group('demografi', function($routes) {
+        // Dashboard
+        $routes->get('/', 'Demografi::index');
+        
+        // Keluarga (KK)
+        $routes->get('keluarga', 'Demografi::keluarga');
+        $routes->get('keluarga/create', 'Demografi::createKeluarga');
+        $routes->post('keluarga/save', 'Demografi::saveKeluarga');
+        $routes->get('keluarga/detail/(:num)', 'Demografi::detailKeluarga/$1');
+        $routes->get('keluarga/edit/(:num)', 'Demografi::editKeluarga/$1');
+        $routes->post('keluarga/update/(:num)', 'Demografi::updateKeluarga/$1');
+        $routes->delete('keluarga/delete/(:num)', 'Demografi::deleteKeluarga/$1');
+        
+        // Penduduk
+        $routes->get('penduduk', 'Demografi::penduduk');
+        $routes->get('penduduk/create', 'Demografi::createPenduduk');
+        $routes->get('penduduk/create/(:num)', 'Demografi::createPenduduk/$1');
+        $routes->post('penduduk/save', 'Demografi::savePenduduk');
+        $routes->get('penduduk/detail/(:num)', 'Demografi::detailPenduduk/$1');
+        $routes->get('penduduk/edit/(:num)', 'Demografi::editPenduduk/$1');
+        $routes->post('penduduk/update/(:num)', 'Demografi::updatePenduduk/$1');
+        
+        // Mutasi
+        $routes->get('mutasi', 'Demografi::mutasi');
+        $routes->get('mutasi/kematian', 'Demografi::catatKematian');
+        $routes->get('mutasi/kematian/(:num)', 'Demografi::catatKematian/$1');
+        $routes->post('mutasi/kematian/save', 'Demografi::saveKematian');
+        $routes->get('mutasi/pindah', 'Demografi::catatPindah');
+        $routes->get('mutasi/pindah/(:num)', 'Demografi::catatPindah/$1');
+        $routes->post('mutasi/pindah/save', 'Demografi::savePindah');
+        
+        // Import/Export
+        $routes->get('import', 'Demografi::import');
+        $routes->post('import/process', 'Demografi::processImport');
+        $routes->get('import/template', 'Demografi::downloadTemplate');
+        
+        // API
+        $routes->get('api/search', 'Demografi::searchPenduduk');
+        $routes->get('blt-eligible', 'Demografi::bltEligible');
+    });
 });
 
 /*
