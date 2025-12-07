@@ -128,8 +128,37 @@ class Bku extends BaseController
         $data['saldo_kumulatif'] = $previousBalance + $debet - $kredit;
 
         $this->bkuModel->insert($data);
+        $newBkuId = $this->bkuModel->getInsertID();
+
+        // ===============================================
+        // SIPADES INTEGRATION: Detect Belanja Modal (5.3.x)
+        // ===============================================
+        $refRekeningId = $this->request->getPost('ref_rekening_id');
+        $isBelanjModal = $this->checkIsBelanjModal($refRekeningId);
+
+        if ($isBelanjModal) {
+            // Redirect to BKU list with asset creation prompt
+            return redirect()->to('/bku')
+                ->with('success', 'Transaksi BKU berhasil ditambahkan')
+                ->with('show_asset_prompt', true)
+                ->with('bku_id', $newBkuId)
+                ->with('bku_uraian', $data['uraian'])
+                ->with('bku_nilai', max($debet, $kredit));
+        }
 
         return redirect()->to('/bku')->with('success', 'Transaksi BKU berhasil ditambahkan');
+    }
+
+    /**
+     * Check if rekening code starts with 5.3 (Belanja Modal)
+     */
+    private function checkIsBelanjModal($refRekeningId): bool
+    {
+        $rekening = $this->rekeningModel->find($refRekeningId);
+        if ($rekening && isset($rekening['kode_akun'])) {
+            return strpos($rekening['kode_akun'], '5.3') === 0;
+        }
+        return false;
     }
 
     /**

@@ -137,4 +137,49 @@
     </div>
 </div>
 
+<!-- SIPADES: Asset Registration Modal -->
+<?php if (session()->getFlashdata('show_asset_prompt')): ?>
+<div class="modal fade" id="assetPromptModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-warehouse me-2"></i>Terdeteksi Belanja Modal
+                </h5>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="fas fa-box-open text-primary fa-3x"></i>
+                    </div>
+                </div>
+                <h5 class="mb-2">Transaksi Belanja Modal Berhasil Dicatat</h5>
+                <p class="text-muted mb-3">
+                    <strong>"<?= esc(session()->getFlashdata('bku_uraian')) ?>"</strong><br>
+                    Nilai: <span class="text-success fw-bold">Rp <?= number_format(session()->getFlashdata('bku_nilai'), 0, ',', '.') ?></span>
+                </p>
+                <div class="alert alert-info text-start">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Apakah ingin mendaftarkan transaksi ini sebagai <strong>Inventaris Aset Desa</strong> di SIPADES?
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <a href="<?= base_url('/aset/create?bku_id=' . session()->getFlashdata('bku_id')) ?>" class="btn btn-primary btn-lg px-4">
+                    <i class="fas fa-check me-2"></i>Ya, Daftarkan Aset
+                </a>
+                <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Tidak
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var assetModal = new bootstrap.Modal(document.getElementById('assetPromptModal'));
+    assetModal.show();
+});
+</script>
+<?php endif; ?>
+
 <?= view('layout/htmx_layout_end', get_defined_vars()) ?>
