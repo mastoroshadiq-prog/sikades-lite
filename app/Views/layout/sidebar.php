@@ -92,6 +92,33 @@
                 </div>
             </div>
             
+            <!-- SIPADES - Sistem Pengelolaan Aset Desa -->
+            <?php 
+            $asetActive = strpos(uri_string(), 'aset') !== false;
+            ?>
+            <div class="sidebar-section">
+                <a class="nav-link section-toggle <?= $asetActive ? '' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" href="#menuAset" role="button"
+                   hx-boost="false">
+                    <i class="fas fa-warehouse"></i> 
+                    <span>SIPADES</span>
+                    <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
+                </a>
+                <div class="collapse <?= $asetActive ? 'show' : '' ?>" id="menuAset">
+                    <div class="submenu">
+                        <a class="nav-link <?= (uri_string() === 'aset' || uri_string() === 'aset/') ? 'active' : '' ?>" href="<?= base_url('/aset') ?>">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard Aset
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'aset/list') !== false) ? 'active' : '' ?>" href="<?= base_url('/aset/list') ?>">
+                            <i class="fas fa-list"></i> Daftar Inventaris
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'aset/create') !== false) ? 'active' : '' ?>" href="<?= base_url('/aset/create') ?>">
+                            <i class="fas fa-plus"></i> Tambah Aset
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
             <!-- LAPORAN - Collapsible -->
             <?php 
             $laporanActive = strpos(uri_string(), 'report') !== false || strpos(uri_string(), 'lpj') !== false;

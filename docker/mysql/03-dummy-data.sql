@@ -27,6 +27,9 @@ INSERT INTO data_umum_desa (kode_desa, nama_desa, kecamatan, kabupaten, provinsi
 ('3201010001', 'Sukamaju', 'Cipayung', 'Bogor', 'Jawa Barat', 'H. Ahmad Sudrajat, S.Sos', '196512151990031001', 2025, NOW(), NOW())
 ON DUPLICATE KEY UPDATE nama_desa = VALUES(nama_desa);
 
+-- Update users to use same kode_desa as dummy data
+UPDATE users SET kode_desa = '3201010001' WHERE kode_desa IS NOT NULL OR kode_desa != '3201010001';
+
 -- ===========================================
 -- 2. REFERENSI REKENING (Chart of Accounts)
 -- ===========================================

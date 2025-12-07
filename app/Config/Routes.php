@@ -208,6 +208,22 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('lpj/semester/(:num)', 'Lpj::semester/$1');
     $routes->get('lpj/pdf/(:num)', 'Lpj::exportPdf/$1');
     
+    // ===========================================
+    // SIPADES - Sistem Pengelolaan Aset Desa
+    // ===========================================
+    $routes->group('aset', function($routes) {
+        $routes->get('/', 'Aset::index');
+        $routes->get('list', 'Aset::list');
+        $routes->get('create', 'Aset::create');
+        $routes->post('store', 'Aset::store');
+        $routes->get('detail/(:num)', 'Aset::detail/$1');
+        $routes->get('edit/(:num)', 'Aset::edit/$1');
+        $routes->post('update/(:num)', 'Aset::update/$1');
+        $routes->delete('delete/(:num)', 'Aset::delete/$1');
+        $routes->get('json', 'Aset::getJsonData'); // For WebGIS
+        $routes->get('print-kir', 'Aset::printKir');
+    });
+    
     // Backup Routes (Database Backup & Restore)
     $routes->get('backup', 'Backup::index');
     $routes->post('backup/create', 'Backup::create');
