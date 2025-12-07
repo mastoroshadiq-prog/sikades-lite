@@ -27,6 +27,9 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Select2 for searchable dropdowns -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
     <!-- Custom JavaScript -->
     <script>
         // Sidebar toggle for mobile
@@ -54,6 +57,16 @@
                 },
                 pageLength: 25,
                 responsive: true
+            });
+            
+            // Initialize Select2 for all searchable dropdowns
+            $('.select2-search').select2({
+                theme: 'bootstrap-5',
+                placeholder: function() {
+                    return $(this).data('placeholder') || '-- Pilih --';
+                },
+                allowClear: true,
+                width: '100%'
             });
         });
         

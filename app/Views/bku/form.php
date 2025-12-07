@@ -70,8 +70,8 @@
                         <!-- Rekening -->
                         <div class="col-md-6 mb-3">
                             <label for="ref_rekening_id" class="form-label">Rekening <span class="text-danger">*</span></label>
-                            <select name="ref_rekening_id" id="ref_rekening_id" class="form-select" required>
-                                <option value="">-- Pilih Rekening --</option>
+                            <select name="ref_rekening_id" id="ref_rekening_id" class="form-select select2-search" required data-placeholder="-- Cari Rekening --">
+                                <option value=""></option>
                                 <?php foreach ($rekening as $rek): ?>
                                     <?php $indent = str_repeat('—', $rek['level'] - 1); ?>
                                     <option value="<?= $rek['id'] ?>" 
@@ -80,13 +80,14 @@
                                     </option>
                                 <?php endforeach; ?>
                             </select>
+                            <small class="text-muted"><i class="fas fa-search me-1"></i>Ketik untuk mencari rekening</small>
                         </div>
                         
                         <!-- SPP (Optional) -->
                         <div class="col-md-6 mb-3">
                             <label for="spp_id" class="form-label">Link ke SPP <small class="text-muted">(Opsional)</small></label>
-                            <select name="spp_id" id="spp_id" class="form-select">
-                                <option value="">-- Tidak ada --</option>
+                            <select name="spp_id" id="spp_id" class="form-select select2-search" data-placeholder="-- Tidak ada / Pilih SPP --">
+                                <option value=""></option>
                                 <?php foreach ($spp_list as $spp): ?>
                                     <option value="<?= $spp['id'] ?>" 
                                             <?= isset($bku) && $bku['spp_id'] == $spp['id'] ? 'selected' : '' ?>>
