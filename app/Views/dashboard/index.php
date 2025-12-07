@@ -103,25 +103,42 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
 <div class="row g-4 mb-4">
     <!-- Pendapatan vs Belanja Chart -->
     <div class="col-lg-8">
-        <div class="card h-100 border-0 shadow-sm">
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-white">
                 <h5 class="mb-0"><i class="fas fa-chart-bar me-2 text-primary"></i>Pendapatan vs Belanja per Bulan</h5>
             </div>
             <div class="card-body">
-                <canvas id="pendapatanBelanjaChart" height="80"></canvas>
+                <?php 
+                $hasMonthlyData = !empty($monthlyData['pendapatan']) && array_sum($monthlyData['pendapatan']) > 0;
+                ?>
+                <?php if ($hasMonthlyData): ?>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="pendapatanBelanjaChart"></canvas>
+                </div>
+                <?php else: ?>
+                <div class="text-center py-5 text-muted">
+                    <i class="fas fa-chart-bar fa-4x mb-3 d-block opacity-50"></i>
+                    <h6>Belum Ada Data Transaksi</h6>
+                    <p class="mb-0">Chart akan muncul setelah ada transaksi BKU</p>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
     
     <!-- Realisasi Anggaran Chart -->
     <div class="col-lg-4">
-        <div class="card h-100 border-0 shadow-sm">
+        <div class="card border-0 shadow-sm">
             <div class="card-header bg-white">
                 <h5 class="mb-0"><i class="fas fa-chart-pie me-2 text-success"></i>Realisasi Anggaran</h5>
             </div>
             <div class="card-body d-flex align-items-center justify-content-center">
                 <div style="max-width: 250px;">
-                    <canvas id="realisasiChart"></canvas>
+                    <?php if (($stats['total_anggaran'] ?? 0) > 0): ?>
+                    <div style="height: 200px; position: relative;">
+                        <canvas id="realisasiChart"></canvas>
+                    </div>
+                    <?php endif; ?>
                     <div class="text-center mt-3">
                         <h4 class="text-success mb-0"><?= $stats['persentase_realisasi'] ?? 0 ?>%</h4>
                         <small class="text-muted">Terrealisasi</small>
@@ -310,106 +327,112 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
     // Monthly data from controller
     const monthlyData = <?= json_encode($monthlyData ?? ['labels' => [], 'pendapatan' => [], 'belanja' => []]) ?>;
     
-    // Pendapatan vs Belanja Bar Chart
-    const ctxBar = document.getElementById('pendapatanBelanjaChart').getContext('2d');
-    new Chart(ctxBar, {
-        type: 'bar',
-        data: {
-            labels: monthlyData.labels,
-            datasets: [{
-                label: 'Pendapatan',
-                data: monthlyData.pendapatan,
-                backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                borderColor: 'rgba(16, 185, 129, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }, {
-                label: 'Belanja',
-                data: monthlyData.belanja,
-                backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                borderColor: 'rgba(239, 68, 68, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-                legend: {
-                    position: 'top',
-                }
+    // Pendapatan vs Belanja Bar Chart - only if canvas exists
+    const barCanvas = document.getElementById('pendapatanBelanjaChart');
+    if (barCanvas) {
+        const ctxBar = barCanvas.getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: monthlyData.labels,
+                datasets: [{
+                    label: 'Pendapatan',
+                    data: monthlyData.pendapatan,
+                    backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }, {
+                    label: 'Belanja',
+                    data: monthlyData.belanja,
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            if (value >= 1000000) {
-                                return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
-                            } else if (value >= 1000) {
-                                return 'Rp ' + (value / 1000).toFixed(0) + ' Rb';
-                            }
-                            return 'Rp ' + value.toLocaleString('id-ID');
-                        }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
                     }
-                }
-            }
-        }
-    });
-    
-    // Realisasi Anggaran Doughnut Chart
-    const totalAnggaran = <?= $stats['total_anggaran'] ?? 0 ?>;
-    const totalRealisasi = <?= $stats['total_realisasi'] ?? 0 ?>;
-    const sisaAnggaran = Math.max(0, totalAnggaran - totalRealisasi);
-    
-    const ctxDoughnut = document.getElementById('realisasiChart').getContext('2d');
-    new Chart(ctxDoughnut, {
-        type: 'doughnut',
-        data: {
-            labels: ['Terealisasi', 'Sisa Anggaran'],
-            datasets: [{
-                data: [totalRealisasi, sisaAnggaran],
-                backgroundColor: [
-                    'rgba(16, 185, 129, 0.9)',
-                    'rgba(229, 231, 235, 0.9)'
-                ],
-                borderColor: [
-                    'rgba(16, 185, 129, 1)',
-                    'rgba(229, 231, 235, 1)'
-                ],
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            cutout: '65%',
-            plugins: {
-                legend: {
-                    position: 'bottom',
                 },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            let label = context.label || '';
-                            if (label) {
-                                label += ': ';
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                if (value >= 1000000) {
+                                    return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
+                                } else if (value >= 1000) {
+                                    return 'Rp ' + (value / 1000).toFixed(0) + ' Rb';
+                                }
+                                return 'Rp ' + value.toLocaleString('id-ID');
                             }
-                            label += 'Rp ' + context.parsed.toLocaleString('id-ID');
-                            
-                            if (totalAnggaran > 0) {
-                                const percentage = ((context.parsed / totalAnggaran) * 100).toFixed(1);
-                                label += ' (' + percentage + '%)';
-                            }
-                            
-                            return label;
                         }
                     }
                 }
             }
-        }
-    });
+        });
+    }
+    
+    // Realisasi Anggaran Doughnut Chart - only if canvas exists
+    const doughnutCanvas = document.getElementById('realisasiChart');
+    if (doughnutCanvas) {
+        const totalAnggaran = <?= $stats['total_anggaran'] ?? 0 ?>;
+        const totalRealisasi = <?= $stats['total_realisasi'] ?? 0 ?>;
+        const sisaAnggaran = Math.max(0, totalAnggaran - totalRealisasi);
+        
+        const ctxDoughnut = doughnutCanvas.getContext('2d');
+        new Chart(ctxDoughnut, {
+            type: 'doughnut',
+            data: {
+                labels: ['Terealisasi', 'Sisa Anggaran'],
+                datasets: [{
+                    data: [totalRealisasi, sisaAnggaran],
+                    backgroundColor: [
+                        'rgba(16, 185, 129, 0.9)',
+                        'rgba(229, 231, 235, 0.9)'
+                    ],
+                    borderColor: [
+                        'rgba(16, 185, 129, 1)',
+                        'rgba(229, 231, 235, 1)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += 'Rp ' + context.parsed.toLocaleString('id-ID');
+                                
+                                if (totalAnggaran > 0) {
+                                    const percentage = ((context.parsed / totalAnggaran) * 100).toFixed(1);
+                                    label += ' (' + percentage + '%)';
+                                }
+                                
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
     
     // Format currency in stat cards
     document.getElementById('totalAnggaran').innerHTML = formatRupiah(<?= $stats['total_anggaran'] ?? 0 ?>);
