@@ -230,7 +230,8 @@
                 </div>
                 <div class="card-body text-center">
                     <?php if ($aset['foto']): ?>
-                        <img src="<?= base_url('writable/' . $aset['foto']) ?>" 
+                        <?php $fotoFilename = basename($aset['foto']); ?>
+                        <img src="<?= base_url('/assets/image/' . $fotoFilename) ?>" 
                              class="img-fluid rounded" 
                              style="max-height: 300px; cursor: pointer;"
                              onclick="openImageModal(this.src)"

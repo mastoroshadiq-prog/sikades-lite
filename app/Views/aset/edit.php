@@ -164,7 +164,8 @@
                     <div class="card-body">
                         <?php if ($aset['foto']): ?>
                         <div class="mb-3 text-center">
-                            <img src="<?= base_url('writable/' . $aset['foto']) ?>" 
+                            <?php $fotoFilename = basename($aset['foto']); ?>
+                            <img src="<?= base_url('/assets/image/' . $fotoFilename) ?>" 
                                  class="img-fluid rounded" style="max-height: 200px;">
                             <p class="text-muted small mt-2">Foto saat ini</p>
                         </div>

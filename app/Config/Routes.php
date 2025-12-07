@@ -24,6 +24,9 @@ $routes->get('/login', 'Auth::login');
 $routes->post('/login', 'Auth::attemptLogin');
 $routes->get('/logout', 'Auth::logout');
 
+// Asset Images (serve from writable folder)
+$routes->get('/assets/image/(:any)', 'Assets::image/$1');
+
 // Protected Routes (Require Authentication)
 $routes->group('', ['filter' => 'auth'], function($routes) {
     // Dashboard

@@ -109,9 +109,14 @@
                                 <td>
                                     <div class="d-flex align-items-center">
                                         <?php if ($aset['foto']): ?>
-                                            <img src="<?= base_url('writable/' . $aset['foto']) ?>" 
+                                            <?php 
+                                            // Extract just the filename from the path
+                                            $fotoFilename = basename($aset['foto']);
+                                            ?>
+                                            <img src="<?= base_url('/assets/image/' . $fotoFilename) ?>" 
                                                  class="rounded me-2" 
-                                                 style="width: 40px; height: 40px; object-fit: cover;">
+                                                 style="width: 40px; height: 40px; object-fit: cover;"
+                                                 onerror="this.onerror=null; this.src=''; this.parentElement.innerHTML='<div class=\'bg-secondary bg-opacity-10 rounded me-2 d-flex align-items-center justify-content-center\' style=\'width: 40px; height: 40px;\'><i class=\'fas fa-box text-secondary\'></i></div>' + this.parentElement.innerHTML.split(this.outerHTML)[1];">
                                         <?php else: ?>
                                             <div class="bg-secondary bg-opacity-10 rounded me-2 d-flex align-items-center justify-content-center" 
                                                  style="width: 40px; height: 40px;">
