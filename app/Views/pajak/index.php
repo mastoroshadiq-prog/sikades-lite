@@ -1,5 +1,4 @@
-<?= view('layout/header') ?>
-<?= view('layout/sidebar') ?>
+<?= view('layout/htmx_layout_start', get_defined_vars()) ?>
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +6,7 @@
         <h2 class="mb-1"><i class="fas fa-file-invoice-dollar text-primary"></i> Pajak - Pencatatan Pajak</h2>
         <p class="text-muted mb-0">Pencatatan PPN dan PPh</p>
     </div>
-    <?php if ($this->hasRole(['Administrator', 'Operator Desa'])): ?>
+    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
     <div>
         <a href="<?= base_url('/pajak/create') ?>" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Tambah Pajak
@@ -107,7 +106,7 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <?php if ($this->hasRole(['Administrator', 'Operator Desa'])): ?>
+                                    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
                                     <a href="<?= base_url('/pajak/edit/' . $pajak['id']) ?>" class="btn btn-outline-primary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
@@ -119,7 +118,7 @@
                                     </button>
                                     <?php endif; ?>
                                     <?php endif; ?>
-                                    <?php if ($this->hasRole(['Administrator'])): ?>
+                                    <?php if ($user['role'] == 'Administrator'): ?>
                                     <button type="button" class="btn btn-outline-danger" 
                                             onclick="confirmDelete('<?= base_url('/pajak/delete/' . $pajak['id']) ?>', 'pajak')"
                                             title="Hapus">
@@ -171,4 +170,4 @@ function bayarPajak(id) {
 }
 </script>
 
-<?= view('layout/footer') ?>
+<?= view('layout/htmx_layout_end', get_defined_vars()) ?>

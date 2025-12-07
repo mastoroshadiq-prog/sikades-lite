@@ -1,5 +1,4 @@
-<?= view('layout/header') ?>
-<?= view('layout/sidebar') ?>
+<?= view('layout/htmx_layout_start', get_defined_vars()) ?>
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +6,7 @@
         <h2 class="mb-1"><i class="fas fa-book text-primary"></i> BKU - Buku Kas Umum</h2>
         <p class="text-muted mb-0">Pencatatan transaksi kas masuk dan keluar</p>
     </div>
-    <?php if ($this->hasRole(['Administrator', 'Operator Desa'])): ?>
+    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
     <div>
         <a href="<?= base_url('/bku/create') ?>" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Tambah Transaksi
@@ -115,12 +114,12 @@
                             <td class="text-end"><strong>Rp <?= number_format($bku['saldo_kumulatif'], 0, ',', '.') ?></strong></td>
                             <td>
                                 <div class="btn-group btn-group-sm">
-                                    <?php if ($this->hasRole(['Administrator', 'Operator Desa'])): ?>
+                                    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
                                     <a href="<?= base_url('/bku/edit/' . $bku['id']) ?>" class="btn btn-outline-primary" title="Edit">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <?php endif; ?>
-                                    <?php if ($this->hasRole(['Administrator'])): ?>
+                                    <?php if ($user['role'] == 'Administrator'): ?>
                                     <button type="button" class="btn btn-outline-danger" 
                                             onclick="confirmDelete('<?= base_url('/bku/delete/' . $bku['id']) ?>', 'transaksi BKU')"
                                             title="Hapus">
@@ -138,4 +137,4 @@
     </div>
 </div>
 
-<?= view('layout/footer') ?>
+<?= view('layout/htmx_layout_end', get_defined_vars()) ?>

@@ -1,5 +1,4 @@
-<?= view('layout/header') ?>
-<?= view('layout/sidebar') ?>
+<?= view('layout/htmx_layout_start', get_defined_vars()) ?>
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +6,7 @@
         <h2 class="mb-1"><i class="fas fa-file-invoice text-primary"></i> SPP - Surat Permintaan Pembayaran</h2>
         <p class="text-muted mb-0">Kelola SPP dan pencairan anggaran</p>
     </div>
-    <?php if ($this->hasRole(['Administrator', 'Operator Desa'])): ?>
+    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa'])): ?>
     <div>
         <a href="<?= base_url('/spp/create') ?>" class="btn btn-primary">
             <i class="fas fa-plus me-2"></i>Buat SPP Baru
@@ -140,7 +139,7 @@
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     
-                                    <?php if ($this->hasRole(['Administrator', 'Operator Desa']) && $spp['status'] == 'Draft'): ?>
+                                    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa']) && $spp['status'] == 'Draft'): ?>
                                     <a href="<?= base_url('/spp/edit/' . $spp['id']) ?>" 
                                        class="btn btn-outline-primary" 
                                        title="Edit">
@@ -148,7 +147,7 @@
                                     </a>
                                     <?php endif; ?>
                                     
-                                    <?php if ($this->hasRole(['Administrator', 'Operator Desa']) && $spp['status'] == 'Draft'): ?>
+                                    <?php if (in_array($user['role'], ['Administrator', 'Operator Desa']) && $spp['status'] == 'Draft'): ?>
                                     <button type="button" 
                                             class="btn btn-outline-success" 
                                             onclick="verifySpp(<?= $spp['id'] ?>)"
@@ -157,7 +156,7 @@
                                     </button>
                                     <?php endif; ?>
                                     
-                                    <?php if ($this->hasRole(['Administrator', 'Kepala Desa']) && $spp['status'] == 'Verified'): ?>
+                                    <?php if (in_array($user['role'], ['Administrator', 'Kepala Desa']) && $spp['status'] == 'Verified'): ?>
                                     <button type="button" 
                                             class="btn btn-outline-success" 
                                             onclick="approveSpp(<?= $spp['id'] ?>)"
@@ -166,7 +165,7 @@
                                     </button>
                                     <?php endif; ?>
                                     
-                                    <?php if ($this->hasRole(['Administrator']) && $spp['status'] == 'Draft'): ?>
+                                    <?php if ($user['role'] == 'Administrator' && $spp['status'] == 'Draft'): ?>
                                     <button type="button" 
                                             class="btn btn-outline-danger" 
                                             onclick="confirmDelete('<?= base_url('/spp/delete/' . $spp['id']) ?>', 'SPP <?= esc($spp['nomor_spp']) ?>')"
@@ -253,4 +252,4 @@ function approveSpp(id) {
 }
 </script>
 
-<?= view('layout/footer') ?>
+<?= view('layout/htmx_layout_end', get_defined_vars()) ?>
