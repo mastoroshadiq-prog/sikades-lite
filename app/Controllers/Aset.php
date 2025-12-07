@@ -132,6 +132,13 @@ class Aset extends BaseController
      */
     public function store()
     {
+        // Sanitize currency input - remove thousand separators
+        $hargaPerolehan = $this->request->getPost('harga_perolehan');
+        $hargaPerolehan = str_replace(['.', ','], ['', '.'], $hargaPerolehan);
+        
+        // Merge sanitized value back for validation
+        $_POST['harga_perolehan'] = $hargaPerolehan;
+        
         // Validation
         $rules = [
             'nama_barang'      => 'required|max_length[255]',
@@ -172,8 +179,8 @@ class Aset extends BaseController
             'ukuran'           => $this->request->getPost('ukuran'),
             'bahan'            => $this->request->getPost('bahan'),
             'tahun_perolehan'  => $tahun,
-            'harga_perolehan'  => str_replace(['.', ','], ['', '.'], $this->request->getPost('harga_perolehan')),
-            'nilai_sisa'       => str_replace(['.', ','], ['', '.'], $this->request->getPost('harga_perolehan')), // Initially same as acquisition
+            'harga_perolehan'  => $hargaPerolehan,
+            'nilai_sisa'       => $hargaPerolehan, // Initially same as acquisition
             'kondisi'          => $this->request->getPost('kondisi'),
             'status_penggunaan' => $this->request->getPost('status_penggunaan') ?? 'Digunakan',
             'lokasi'           => $this->request->getPost('lokasi'),
