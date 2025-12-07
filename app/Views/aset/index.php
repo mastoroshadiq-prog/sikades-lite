@@ -103,7 +103,7 @@
     <div class="row">
         <!-- Aset by Kategori -->
         <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0">
                         <i class="fas fa-layer-group me-2 text-primary"></i>Aset per Kategori
@@ -137,10 +137,12 @@
                                         <td class="text-end">
                                             <?php 
                                             $nilai = 0;
-                                            foreach ($summary['by_kategori'] as $k) {
-                                                if ($k['nama_golongan'] === $cat['nama_golongan']) {
-                                                    $nilai = $k['nilai'] ?? 0;
-                                                    break;
+                                            if (!empty($summary['by_kategori'])) {
+                                                foreach ($summary['by_kategori'] as $k) {
+                                                    if (isset($k['nama_golongan']) && $k['nama_golongan'] === $cat['nama_golongan']) {
+                                                        $nilai = $k['nilai'] ?? 0;
+                                                        break;
+                                                    }
                                                 }
                                             }
                                             ?>
@@ -168,16 +170,31 @@
             </div>
         </div>
 
-        <!-- Quick Stats -->
+        <!-- Quick Stats - Kondisi Aset -->
         <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
+            <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white py-3">
                     <h5 class="mb-0">
                         <i class="fas fa-chart-pie me-2 text-success"></i>Kondisi Aset
                     </h5>
                 </div>
                 <div class="card-body">
-                    <canvas id="kondisiChart" height="200"></canvas>
+                    <?php 
+                    $totalKondisi = ($summary['by_kondisi']['Baik'] ?? 0) + 
+                                    ($summary['by_kondisi']['Rusak Ringan'] ?? 0) + 
+                                    ($summary['by_kondisi']['Rusak Berat'] ?? 0);
+                    ?>
+                    <?php if ($totalKondisi > 0): ?>
+                    <!-- Chart Container with fixed height -->
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="kondisiChart"></canvas>
+                    </div>
+                    <?php else: ?>
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-chart-pie fa-3x mb-3 d-block opacity-50"></i>
+                        <p>Belum ada data aset</p>
+                    </div>
+                    <?php endif; ?>
                     
                     <div class="mt-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
