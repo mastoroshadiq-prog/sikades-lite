@@ -87,6 +87,10 @@
             <a class="nav-link <?= (strpos(uri_string(), 'activity-log') !== false) ? 'active' : '' ?>" href="<?= base_url('/activity-log') ?>">
                 <i class="fas fa-history"></i> Activity Log
             </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'backup') !== false) ? 'active' : '' ?>" href="<?= base_url('/backup') ?>">
+                <i class="fas fa-database"></i> Backup Database
+            </a>
             <?php endif; ?>
         </nav>
     </div>

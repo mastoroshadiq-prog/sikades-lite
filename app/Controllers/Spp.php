@@ -343,4 +343,38 @@ class Spp extends BaseController
 
         return $this->respondSuccess(null, 'SPP berhasil dihapus');
     }
+
+    /**
+     * Generate Kuitansi PDF
+     */
+    public function kuitansi($id)
+    {
+        if (!$this->hasRole(['Administrator', 'Operator Desa', 'Kepala Desa'])) {
+            return redirect()->to('/spp')->with('error', 'Akses ditolak.');
+        }
+
+        $spp = $this->sppModel->getDetailWithRincian($id);
+
+        if (!$spp || $spp['kode_desa'] != $this->session->get('kode_desa')) {
+            return redirect()->to('/spp')->with('error', 'Data tidak ditemukan');
+        }
+
+        // Get desa info
+        $desaModel = new \App\Models\DataUmumDesaModel();
+        $desa = $desaModel->where('kode_desa', $spp['kode_desa'])->first();
+
+        // Prepare kuitansi data
+        $kuitansiData = [
+            'desa' => $desa,
+            'nomor' => $spp['nomor_spp'],
+            'tanggal' => date('d F Y', strtotime($spp['tanggal_spp'])),
+            'penerima' => $this->request->getGet('penerima') ?? 'Penerima',
+            'jumlah' => $spp['jumlah'],
+            'uraian' => $spp['uraian'],
+        ];
+
+        $pdfExport = new \App\Libraries\PdfExport();
+        $pdfExport->generateKuitansi($kuitansiData);
+    }
 }
+

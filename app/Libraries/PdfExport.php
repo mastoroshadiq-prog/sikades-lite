@@ -102,6 +102,15 @@ class PdfExport
     }
 
     /**
+     * Generate Kuitansi PDF
+     */
+    public function generateKuitansi(array $data): void
+    {
+        $html = $this->getKuitansiTemplate($data);
+        $this->generate($html, 'Kuitansi_' . ($data['nomor'] ?? 'X'), 'portrait', 'A5');
+    }
+
+    /**
      * BKU PDF Template
      */
     private function getBkuTemplate(array $data): string
@@ -809,6 +818,87 @@ class PdfExport
                         </td>
                     </tr>
                 </table>
+            </div>
+        </body>
+        </html>';
+    }
+
+    /**
+     * Kuitansi PDF Template
+     */
+    private function getKuitansiTemplate(array $data): string
+    {
+        $desa = $data['desa'] ?? [];
+        $nomor = $data['nomor'] ?? '-';
+        $tanggal = $data['tanggal'] ?? date('d F Y');
+        $penerima = $data['penerima'] ?? '-';
+        $jumlah = $data['jumlah'] ?? 0;
+        $uraian = $data['uraian'] ?? '-';
+        $terbilang = ucwords(trim($this->terbilang($jumlah)));
+
+        return '<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body { font-family: Arial, sans-serif; font-size: 11pt; margin: 20px; }
+                .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+                .title { font-size: 16pt; font-weight: bold; margin: 10px 0; }
+                .nomor { font-size: 10pt; }
+                table.info { width: 100%; margin: 15px 0; }
+                table.info td { padding: 5px 0; vertical-align: top; }
+                table.info td.label { width: 120px; }
+                .terbilang { background: #f5f5f5; padding: 10px; border: 1px dashed #ccc; margin: 15px 0; font-style: italic; }
+                .amount { font-size: 14pt; font-weight: bold; text-align: center; margin: 20px 0; padding: 15px; background: #e8f5e9; border: 2px solid #4caf50; }
+                .signatures { margin-top: 40px; }
+                .sig-box { width: 45%; display: inline-block; text-align: center; vertical-align: top; }
+                .stamp-area { border: 1px dashed #ccc; height: 60px; margin: 10px auto; width: 60px; font-size: 8pt; color: #999; display: flex; align-items: center; justify-content: center; }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <div style="font-size:12pt">PEMERINTAH DESA ' . strtoupper($desa['nama_desa'] ?? 'NAMA DESA') . '</div>
+                <div class="title">KUITANSI</div>
+                <div class="nomor">Nomor: ' . htmlspecialchars($nomor) . '</div>
+            </div>
+            
+            <table class="info">
+                <tr>
+                    <td class="label">Sudah terima dari</td>
+                    <td>: <strong>Bendahara Desa ' . ($desa['nama_desa'] ?? 'Nama Desa') . '</strong></td>
+                </tr>
+                <tr>
+                    <td class="label">Uang Sebesar</td>
+                    <td>:</td>
+                </tr>
+            </table>
+            
+            <div class="terbilang">
+                <em>' . $terbilang . ' Rupiah</em>
+            </div>
+            
+            <div class="amount">
+                Rp ' . number_format($jumlah, 0, ',', '.') . ',-
+            </div>
+            
+            <table class="info">
+                <tr>
+                    <td class="label">Untuk Pembayaran</td>
+                    <td>: ' . nl2br(htmlspecialchars($uraian)) . '</td>
+                </tr>
+            </table>
+            
+            <div class="signatures">
+                <div class="sig-box">
+                    <p>Mengetahui,<br><strong>Kepala Desa</strong></p>
+                    <br><br><br>
+                    <p><u><strong>' . ($desa['nama_kepala_desa'] ?? '.....................') . '</strong></u></p>
+                </div>
+                <div class="sig-box" style="float:right">
+                    <p>' . ($desa['nama_desa'] ?? 'Desa') . ', ' . $tanggal . '<br><strong>Yang Menerima</strong></p>
+                    <div class="stamp-area">Materai</div>
+                    <p><u><strong>' . htmlspecialchars($penerima) . '</strong></u></p>
+                </div>
             </div>
         </body>
         </html>';

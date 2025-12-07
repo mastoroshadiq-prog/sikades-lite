@@ -105,6 +105,7 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('verify/(:num)', 'Spp::verify/$1');
         $routes->post('approve/(:num)', 'Spp::approve/$1');
         $routes->delete('delete/(:num)', 'Spp::delete/$1');
+        $routes->get('kuitansi/(:num)', 'Spp::kuitansi/$1');
     });
     
     // BKU Routes (Buku Kas Umum)
@@ -187,6 +188,13 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('lpj', 'Lpj::index');
     $routes->get('lpj/semester/(:num)', 'Lpj::semester/$1');
     $routes->get('lpj/pdf/(:num)', 'Lpj::exportPdf/$1');
+    
+    // Backup Routes (Database Backup & Restore)
+    $routes->get('backup', 'Backup::index');
+    $routes->post('backup/create', 'Backup::create');
+    $routes->get('backup/download/(:any)', 'Backup::download/$1');
+    $routes->delete('backup/delete/(:any)', 'Backup::delete/$1');
+    $routes->post('backup/restore', 'Backup::restore');
     
     // Settings
     $routes->get('/profile', 'User::profile');
