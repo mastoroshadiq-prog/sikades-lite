@@ -323,15 +323,26 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
     </div>
 </div>
 
+<?php 
+$footerView = ($isHtmxRequest ?? false) ? 'layout/partial_footer' : 'layout/footer';
+?>
+<?= view($footerView) ?>
+
 <script>
+// Dashboard Charts - Run after footer loads Chart.js
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js not loaded');
+        return;
+    }
+    
     // Monthly data from controller
     const monthlyData = <?= json_encode($monthlyData ?? ['labels' => [], 'pendapatan' => [], 'belanja' => []]) ?>;
     
-    // Pendapatan vs Belanja Bar Chart - only if canvas exists
+    // Pendapatan vs Belanja Bar Chart
     const barCanvas = document.getElementById('pendapatanBelanjaChart');
     if (barCanvas) {
-        const ctxBar = barCanvas.getContext('2d');
-        new Chart(ctxBar, {
+        new Chart(barCanvas, {
             type: 'bar',
             data: {
                 labels: monthlyData.labels,
@@ -355,20 +366,15 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'top',
-                    }
+                    legend: { position: 'top' }
                 },
                 scales: {
                     y: {
                         beginAtZero: true,
                         ticks: {
                             callback: function(value) {
-                                if (value >= 1000000) {
-                                    return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
-                                } else if (value >= 1000) {
-                                    return 'Rp ' + (value / 1000).toFixed(0) + ' Rb';
-                                }
+                                if (value >= 1000000) return 'Rp ' + (value / 1000000).toFixed(1) + ' Jt';
+                                if (value >= 1000) return 'Rp ' + (value / 1000).toFixed(0) + ' Rb';
                                 return 'Rp ' + value.toLocaleString('id-ID');
                             }
                         }
@@ -378,28 +384,21 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
         });
     }
     
-    // Realisasi Anggaran Doughnut Chart - only if canvas exists
+    // Realisasi Anggaran Doughnut Chart
     const doughnutCanvas = document.getElementById('realisasiChart');
     if (doughnutCanvas) {
         const totalAnggaran = <?= $stats['total_anggaran'] ?? 0 ?>;
         const totalRealisasi = <?= $stats['total_realisasi'] ?? 0 ?>;
         const sisaAnggaran = Math.max(0, totalAnggaran - totalRealisasi);
         
-        const ctxDoughnut = doughnutCanvas.getContext('2d');
-        new Chart(ctxDoughnut, {
+        new Chart(doughnutCanvas, {
             type: 'doughnut',
             data: {
                 labels: ['Terealisasi', 'Sisa Anggaran'],
                 datasets: [{
                     data: [totalRealisasi, sisaAnggaran],
-                    backgroundColor: [
-                        'rgba(16, 185, 129, 0.9)',
-                        'rgba(229, 231, 235, 0.9)'
-                    ],
-                    borderColor: [
-                        'rgba(16, 185, 129, 1)',
-                        'rgba(229, 231, 235, 1)'
-                    ],
+                    backgroundColor: ['rgba(16, 185, 129, 0.9)', 'rgba(229, 231, 235, 0.9)'],
+                    borderColor: ['rgba(16, 185, 129, 1)', 'rgba(229, 231, 235, 1)'],
                     borderWidth: 2
                 }]
             },
@@ -408,23 +407,14 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
                 maintainAspectRatio: false,
                 cutout: '65%',
                 plugins: {
-                    legend: {
-                        position: 'bottom',
-                    },
+                    legend: { position: 'bottom' },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                let label = context.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                label += 'Rp ' + context.parsed.toLocaleString('id-ID');
-                                
+                                let label = context.label + ': Rp ' + context.parsed.toLocaleString('id-ID');
                                 if (totalAnggaran > 0) {
-                                    const percentage = ((context.parsed / totalAnggaran) * 100).toFixed(1);
-                                    label += ' (' + percentage + '%)';
+                                    label += ' (' + ((context.parsed / totalAnggaran) * 100).toFixed(1) + '%)';
                                 }
-                                
                                 return label;
                             }
                         }
@@ -433,15 +423,6 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
             }
         });
     }
-    
-    // Format currency in stat cards
-    document.getElementById('totalAnggaran').innerHTML = formatRupiah(<?= $stats['total_anggaran'] ?? 0 ?>);
-    document.getElementById('totalRealisasi').innerHTML = formatRupiah(<?= $stats['total_realisasi'] ?? 0 ?>);
-    document.getElementById('saldoKas').innerHTML = formatRupiah(<?= $stats['saldo_kas'] ?? 0 ?>);
+});
 </script>
-
-<?php 
-$footerView = ($isHtmxRequest ?? false) ? 'layout/partial_footer' : 'layout/footer';
-?>
-<?= view($footerView) ?>
 
