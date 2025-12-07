@@ -48,6 +48,21 @@ Siskeudes Lite adalah aplikasi web modern untuk manajemen keuangan desa yang dik
 - LPJ Semester I & II
 - Export LPJ ke PDF
 
+#### 🏠 **SIPADES - Sistem Pengelolaan Aset Desa**
+- Inventarisasi Aset dengan Kode Register Otomatis
+- Kategori: Tanah, Peralatan, Gedung, Jalan/Irigasi, Aset Lainnya, KDP
+- Integrasi dengan BKU (Belanja Modal otomatis tercatat)
+- Foto & Koordinat GPS (WebGIS ready)
+- Kartu Inventaris Barang (KIB)
+
+#### 👥 **DEMOGRAFI - Sistem Data Kependudukan**
+- Data Kartu Keluarga (KK)
+- Data Penduduk dengan NIK
+- Statistik: Piramida Umur, Pendidikan, Pekerjaan, Agama
+- Mutasi: Kelahiran, Kematian, Pindah Masuk/Keluar
+- Daftar Calon Penerima Bantuan (DTKS)
+- Import data dari CSV/Excel
+
 #### 🛠️ **Fitur Tambahan**
 - Enhanced Dashboard dengan Chart Analytics
 - Database Backup & Restore
@@ -89,16 +104,27 @@ Siskeudes Lite adalah aplikasi web modern untuk manajemen keuangan desa yang dik
    ├─ PAK (Perubahan Anggaran)    100% ✅
    ├─ Upload Bukti Transaksi      100% ✅
    └─ Unit Testing                100% ✅
+✅ Phase 9: SIPADES               100% COMPLETE
+   ├─ Inventarisasi Aset          100% ✅
+   ├─ Kode Register Otomatis      100% ✅
+   ├─ Integrasi BKU               100% ✅
+   └─ Foto & GPS                  100% ✅
+✅ Phase 10: DEMOGRAFI            100% COMPLETE
+   ├─ Data Keluarga (KK)          100% ✅
+   ├─ Data Penduduk               100% ✅
+   ├─ Mutasi Penduduk             100% ✅
+   ├─ Statistik Dashboard         100% ✅
+   └─ Import Data                 100% ✅
 
 Overall Progress: ████████████████████ 100%
-Siskeudes Coverage: 95%
+Siskeudes Coverage: 95% + Extension Modules
 
-Status: 🟢 PRODUCTION READY + TESTED!
+Status: 🟢 PRODUCTION READY + EXTENDED!
 ```
 
-**Development Timeline:** December 5-7, 2025  
-**Current Version:** 2.1.0  
-**Last Update:** December 7, 2025 - 16:50 WIB
+**Development Timeline:** December 5-8, 2025  
+**Current Version:** 3.0.0  
+**Last Update:** December 8, 2025 - 00:00 WIB
 
 ---
 
@@ -207,6 +233,8 @@ sikades-lite/
 │   │   ├── Lpj.php             # LPJ Reports
 │   │   ├── Report.php          # All Reports
 │   │   ├── Backup.php          # DB Backup/Restore
+│   │   ├── Aset.php            # SIPADES - Asset Management
+│   │   ├── Demografi.php       # Population Data
 │   │   └── ActivityLog.php     # Activity Logging
 │   ├── Models/
 │   │   ├── UserModel.php
@@ -217,6 +245,10 @@ sikades-lite/
 │   │   ├── RkpdesaModel.php
 │   │   ├── KegiatanModel.php
 │   │   ├── TutupBukuModel.php
+│   │   ├── AsetModel.php       # Asset inventory
+│   │   ├── KeluargaModel.php   # Family (KK) data
+│   │   ├── PendudukModel.php   # Resident data
+│   │   ├── MutasiModel.php     # Vital statistics
 │   │   └── ActivityLogModel.php
 │   ├── Libraries/
 │   │   ├── PdfExport.php       # PDF Generation
@@ -229,7 +261,12 @@ sikades-lite/
 │       ├── bku/                # BKU views
 │       ├── tutup_buku/         # Year-end closing
 │       ├── lpj/                # LPJ reports
-│       └── backup/             # Backup management
+│       ├── backup/             # Backup management
+│       ├── aset/               # SIPADES views
+│       └── demografi/          # Population views
+│           ├── keluarga/       # Family (KK) views
+│           ├── penduduk/       # Resident views
+│           └── mutasi/         # Vital events views
 ├── docker/
 │   └── mysql/
 │       ├── 01-init.sql         # Initial schema
@@ -260,6 +297,14 @@ sikades-lite/
 | Tutup Buku | `/tutup-buku` | Year-end closing |
 | Backup | `/backup` | Database backup |
 | Activity | `/activity-log` | User activities |
+| **SIPADES** | `/aset` | Asset dashboard |
+| Inventaris | `/aset/list` | Asset inventory list |
+| Kartu Inventaris | `/aset/print-kir` | Print KIB |
+| **DEMOGRAFI** | `/demografi` | Population dashboard |
+| Keluarga | `/demografi/keluarga` | Family (KK) data |
+| Penduduk | `/demografi/penduduk` | Resident data |
+| Mutasi | `/demografi/mutasi` | Vital events |
+| BLT Eligible | `/demografi/blt-eligible` | Aid recipients |
 
 ---
 
