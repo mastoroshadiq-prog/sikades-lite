@@ -215,14 +215,17 @@ class PendudukModel extends Model
      */
     public function getEducationStats(string $kodeDesa): array
     {
-        return $this->select('pop_penduduk.pendidikan_terakhir, COUNT(*) as jumlah')
-            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
-            ->where('pop_keluarga.kode_desa', $kodeDesa)
-            ->where('pop_penduduk.status_dasar', 'HIDUP')
-            ->whereNotIn('pop_penduduk.pendidikan_terakhir', ['', null])
-            ->groupBy('pop_penduduk.pendidikan_terakhir')
-            ->orderBy('jumlah', 'DESC')
-            ->findAll();
+        $db = \Config\Database::connect();
+        
+        return $db->query("
+            SELECT pendidikan_terakhir, COUNT(*) as jumlah
+            FROM pop_penduduk p
+            JOIN pop_keluarga k ON k.id = p.keluarga_id
+            WHERE k.kode_desa = ? AND p.status_dasar = 'HIDUP' 
+              AND p.pendidikan_terakhir IS NOT NULL AND p.pendidikan_terakhir != ''
+            GROUP BY pendidikan_terakhir
+            ORDER BY jumlah DESC
+        ", [$kodeDesa])->getResultArray();
     }
 
     /**
@@ -230,15 +233,18 @@ class PendudukModel extends Model
      */
     public function getOccupationStats(string $kodeDesa): array
     {
-        return $this->select('pop_penduduk.pekerjaan, COUNT(*) as jumlah')
-            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
-            ->where('pop_keluarga.kode_desa', $kodeDesa)
-            ->where('pop_penduduk.status_dasar', 'HIDUP')
-            ->whereNotIn('pop_penduduk.pekerjaan', ['', null])
-            ->groupBy('pop_penduduk.pekerjaan')
-            ->orderBy('jumlah', 'DESC')
-            ->limit(15)
-            ->findAll();
+        $db = \Config\Database::connect();
+        
+        return $db->query("
+            SELECT pekerjaan, COUNT(*) as jumlah
+            FROM pop_penduduk p
+            JOIN pop_keluarga k ON k.id = p.keluarga_id
+            WHERE k.kode_desa = ? AND p.status_dasar = 'HIDUP' 
+              AND p.pekerjaan IS NOT NULL AND p.pekerjaan != ''
+            GROUP BY pekerjaan
+            ORDER BY jumlah DESC
+            LIMIT 15
+        ", [$kodeDesa])->getResultArray();
     }
 
     /**
@@ -246,14 +252,17 @@ class PendudukModel extends Model
      */
     public function getReligionStats(string $kodeDesa): array
     {
-        return $this->select('pop_penduduk.agama, COUNT(*) as jumlah')
-            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
-            ->where('pop_keluarga.kode_desa', $kodeDesa)
-            ->where('pop_penduduk.status_dasar', 'HIDUP')
-            ->whereNotIn('pop_penduduk.agama', ['', null])
-            ->groupBy('pop_penduduk.agama')
-            ->orderBy('jumlah', 'DESC')
-            ->findAll();
+        $db = \Config\Database::connect();
+        
+        return $db->query("
+            SELECT agama, COUNT(*) as jumlah
+            FROM pop_penduduk p
+            JOIN pop_keluarga k ON k.id = p.keluarga_id
+            WHERE k.kode_desa = ? AND p.status_dasar = 'HIDUP' 
+              AND p.agama IS NOT NULL AND p.agama != ''
+            GROUP BY agama
+            ORDER BY jumlah DESC
+        ", [$kodeDesa])->getResultArray();
     }
 
     /**
@@ -261,14 +270,17 @@ class PendudukModel extends Model
      */
     public function getMaritalStats(string $kodeDesa): array
     {
-        return $this->select('pop_penduduk.status_perkawinan, COUNT(*) as jumlah')
-            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
-            ->where('pop_keluarga.kode_desa', $kodeDesa)
-            ->where('pop_penduduk.status_dasar', 'HIDUP')
-            ->whereNotIn('pop_penduduk.status_perkawinan', ['', null])
-            ->groupBy('pop_penduduk.status_perkawinan')
-            ->orderBy('jumlah', 'DESC')
-            ->findAll();
+        $db = \Config\Database::connect();
+        
+        return $db->query("
+            SELECT status_perkawinan, COUNT(*) as jumlah
+            FROM pop_penduduk p
+            JOIN pop_keluarga k ON k.id = p.keluarga_id
+            WHERE k.kode_desa = ? AND p.status_dasar = 'HIDUP' 
+              AND p.status_perkawinan IS NOT NULL AND p.status_perkawinan != ''
+            GROUP BY status_perkawinan
+            ORDER BY jumlah DESC
+        ", [$kodeDesa])->getResultArray();
     }
 
     /**

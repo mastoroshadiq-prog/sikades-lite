@@ -77,12 +77,15 @@ class KeluargaModel extends Model
         $validGroups = ['rt', 'rw', 'dusun'];
         $groupBy = in_array($groupBy, $validGroups) ? $groupBy : 'dusun';
 
-        return $this->select("{$groupBy}, COUNT(*) as jumlah_kk")
-            ->where('kode_desa', $kodeDesa)
-            ->whereNotIn($groupBy, ['', null])
-            ->groupBy($groupBy)
-            ->orderBy($groupBy, 'ASC')
-            ->findAll();
+        $db = \Config\Database::connect();
+        
+        return $db->query("
+            SELECT {$groupBy}, COUNT(*) as jumlah_kk
+            FROM pop_keluarga
+            WHERE kode_desa = ? AND {$groupBy} IS NOT NULL AND {$groupBy} != ''
+            GROUP BY {$groupBy}
+            ORDER BY {$groupBy} ASC
+        ", [$kodeDesa])->getResultArray();
     }
 
     /**
