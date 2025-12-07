@@ -110,9 +110,11 @@
                                 <label class="form-label">Harga Perolehan <span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <span class="input-group-text">Rp</span>
-                                    <input type="text" name="harga_perolehan" class="form-control currency-input" 
+                                    <input type="text" id="harga_display" class="form-control currency-input" 
                                            value="<?= old('harga_perolehan', isset($prefill['harga_perolehan']) ? number_format($prefill['harga_perolehan'], 0, ',', '.') : '') ?>" 
                                            placeholder="0" required>
+                                    <input type="hidden" name="harga_perolehan" id="harga_perolehan" 
+                                           value="<?= old('harga_perolehan', $prefill['harga_perolehan'] ?? '') ?>">
                                 </div>
                             </div>
                             
@@ -244,12 +246,30 @@
 </div>
 
 <script>
-// Currency format
+// Currency format with hidden field sync
 document.querySelectorAll('.currency-input').forEach(function(input) {
     input.addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, '');
-        e.target.value = new Intl.NumberFormat('id-ID').format(value);
+        // Remove non-digits
+        let rawValue = e.target.value.replace(/\D/g, '');
+        
+        // Format for display
+        e.target.value = new Intl.NumberFormat('id-ID').format(rawValue);
+        
+        // Update hidden field with raw numeric value
+        const hiddenField = document.getElementById('harga_perolehan');
+        if (hiddenField) {
+            hiddenField.value = rawValue;
+        }
     });
+    
+    // Also trigger on page load to sync initial values
+    if (input.value) {
+        let rawValue = input.value.replace(/\D/g, '');
+        const hiddenField = document.getElementById('harga_perolehan');
+        if (hiddenField && rawValue) {
+            hiddenField.value = rawValue;
+        }
+    }
 });
 
 // Foto preview

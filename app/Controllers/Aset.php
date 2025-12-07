@@ -132,12 +132,8 @@ class Aset extends BaseController
      */
     public function store()
     {
-        // Sanitize currency input - remove thousand separators
+        // Get harga_perolehan from hidden field (already numeric from JS)
         $hargaPerolehan = $this->request->getPost('harga_perolehan');
-        $hargaPerolehan = str_replace(['.', ','], ['', '.'], $hargaPerolehan);
-        
-        // Merge sanitized value back for validation
-        $_POST['harga_perolehan'] = $hargaPerolehan;
         
         // Validation
         $rules = [
