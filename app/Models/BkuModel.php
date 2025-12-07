@@ -20,6 +20,7 @@ class BkuModel extends Model
         'kredit',
         'saldo_kumulatif',
         'spp_id',
+        'bukti_file',
     ];
 
     protected $validationRules = [

@@ -25,8 +25,12 @@
                 <div class="px-3 py-2 text-muted small fw-bold">DATA ENTRI</div>
             </div>
             
-            <a class="nav-link <?= (strpos(uri_string(), 'apbdes') !== false) ? 'active' : '' ?>" href="<?= base_url('/apbdes') ?>">
+            <a class="nav-link <?= (strpos(uri_string(), 'apbdes') !== false && strpos(uri_string(), 'pak') === false) ? 'active' : '' ?>" href="<?= base_url('/apbdes') ?>">
                 <i class="fas fa-file-invoice-dollar"></i> Penganggaran (APBDes)
+            </a>
+            
+            <a class="nav-link <?= (strpos(uri_string(), 'pak') !== false) ? 'active' : '' ?>" href="<?= base_url('/pak') ?>">
+                <i class="fas fa-edit"></i> Perubahan Anggaran (PAK)
             </a>
             
             <a class="nav-link <?= (strpos(uri_string(), 'spp') !== false) ? 'active' : '' ?>" href="<?= base_url('/spp') ?>">

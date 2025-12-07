@@ -22,6 +22,7 @@ class SppModel extends Model
         'created_by',
         'verified_by',
         'approved_by',
+        'bukti_file',
     ];
 
     protected $validationRules = [

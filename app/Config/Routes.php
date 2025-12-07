@@ -94,6 +94,17 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('linked', 'Apbdes::linkedKegiatan');
     });
     
+    // PAK Routes (Perubahan Anggaran)
+    $routes->group('pak', function($routes) {
+        $routes->get('/', 'Pak::index');
+        $routes->get('create', 'Pak::create');
+        $routes->post('save', 'Pak::save');
+        $routes->get('detail/(:num)', 'Pak::detail/$1');
+        $routes->post('approve/(:num)', 'Pak::approve/$1');
+        $routes->post('reject/(:num)', 'Pak::reject/$1');
+        $routes->delete('delete/(:num)', 'Pak::delete/$1');
+    });
+    
     // SPP Routes (Payment Request)
     $routes->group('spp', function($routes) {
         $routes->get('/', 'Spp::index');
@@ -151,6 +162,14 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         // Pajak (Tax)
         $routes->get('pajak', 'Penatausahaan::pajak');
         $routes->post('pajak/save', 'Penatausahaan::savePajak');
+    });
+    
+    // Upload Routes (Bukti Transaksi)
+    $routes->group('upload', function($routes) {
+        $routes->post('bku/(:num)', 'Upload::bku/$1');
+        $routes->post('spp/(:num)', 'Upload::spp/$1');
+        $routes->get('view/(:segment)/(:any)', 'Upload::view/$1/$2');
+        $routes->delete('(:segment)/(:num)', 'Upload::delete/$1/$2');
     });
     
     // Modern Report Routes (Phase 4)
