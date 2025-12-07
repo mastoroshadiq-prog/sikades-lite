@@ -1,6 +1,6 @@
     <!-- Sidebar -->
     <div class="sidebar position-fixed" style="width: 250px; top: 56px; left: 0; overflow-y: auto; max-height: calc(100vh - 56px);">
-        <nav class="nav flex-column py-3" hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-indicator="#page-loader">
+        <nav class="nav flex-column py-3">
             <!-- Dashboard -->
             <a class="nav-link <?= (uri_string() == 'dashboard') ? 'active' : '' ?>" href="<?= base_url('/dashboard') ?>">
                 <i class="fas fa-home"></i> Dashboard
@@ -163,14 +163,5 @@
         </nav>
     </div>
     
-    <!-- Loading Indicator -->
-    <div id="page-loader" class="htmx-indicator">
-        <div class="loader-overlay">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Loading...</span>
-            </div>
-        </div>
-    </div>
-    
     <!-- Main Content -->
-    <div class="content-wrapper" id="main-content">
+    <div class="content-wrapper">
