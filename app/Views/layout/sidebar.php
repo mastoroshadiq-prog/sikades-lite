@@ -1,6 +1,6 @@
     <!-- Sidebar -->
     <div class="sidebar position-fixed" style="width: 250px; top: 56px; left: 0; overflow-y: auto; max-height: calc(100vh - 56px);">
-        <nav class="nav flex-column py-3">
+        <nav class="nav flex-column py-3" hx-boost="true" hx-target="#main-content" hx-swap="innerHTML" hx-indicator="#page-loader">
             <!-- Dashboard -->
             <a class="nav-link <?= (uri_string() == 'dashboard') ? 'active' : '' ?>" href="<?= base_url('/dashboard') ?>">
                 <i class="fas fa-home"></i> Dashboard
@@ -12,7 +12,8 @@
             ?>
             <div class="sidebar-section">
                 <a class="nav-link section-toggle <?= $perencanaanActive ? '' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" href="#menuPerencanaan" role="button">
+                   data-bs-toggle="collapse" href="#menuPerencanaan" role="button"
+                   hx-boost="false">
                     <i class="fas fa-project-diagram"></i> 
                     <span>Perencanaan</span>
                     <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
@@ -38,7 +39,8 @@
             ?>
             <div class="sidebar-section">
                 <a class="nav-link section-toggle <?= $penganggaranActive ? '' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" href="#menuPenganggaran" role="button">
+                   data-bs-toggle="collapse" href="#menuPenganggaran" role="button"
+                   hx-boost="false">
                     <i class="fas fa-wallet"></i> 
                     <span>Penganggaran</span>
                     <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
@@ -64,7 +66,8 @@
             ?>
             <div class="sidebar-section">
                 <a class="nav-link section-toggle <?= $penatausahaanActive ? '' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" href="#menuPenatausahaan" role="button">
+                   data-bs-toggle="collapse" href="#menuPenatausahaan" role="button"
+                   hx-boost="false">
                     <i class="fas fa-cash-register"></i> 
                     <span>Penatausahaan</span>
                     <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
@@ -95,7 +98,8 @@
             ?>
             <div class="sidebar-section">
                 <a class="nav-link section-toggle <?= $laporanActive ? '' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" href="#menuLaporan" role="button">
+                   data-bs-toggle="collapse" href="#menuLaporan" role="button"
+                   hx-boost="false">
                     <i class="fas fa-chart-bar"></i> 
                     <span>Laporan</span>
                     <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
@@ -127,7 +131,8 @@
             ?>
             <div class="sidebar-section">
                 <a class="nav-link section-toggle <?= $pengaturanActive ? '' : 'collapsed' ?>" 
-                   data-bs-toggle="collapse" href="#menuPengaturan" role="button">
+                   data-bs-toggle="collapse" href="#menuPengaturan" role="button"
+                   hx-boost="false">
                     <i class="fas fa-cog"></i> 
                     <span>Pengaturan</span>
                     <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
@@ -158,5 +163,14 @@
         </nav>
     </div>
     
+    <!-- Loading Indicator -->
+    <div id="page-loader" class="htmx-indicator">
+        <div class="loader-overlay">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    </div>
+    
     <!-- Main Content -->
-    <div class="content-wrapper">
+    <div class="content-wrapper" id="main-content">

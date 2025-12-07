@@ -69,10 +69,14 @@ abstract class BaseController extends Controller
         $this->db = \Config\Database::connect();
         $this->validation = \Config\Services::validation();
         
+        // Detect HTMX request
+        $isHtmxRequest = $this->request->hasHeader('HX-Request');
+        
         // Set common view data
         $this->data = [
             'title' => 'Siskeudes Lite',
             'session' => $this->session,
+            'isHtmxRequest' => $isHtmxRequest,
             'user' => [
                 'id' => $this->session->get('user_id'),
                 'username' => $this->session->get('username'),
@@ -80,6 +84,14 @@ abstract class BaseController extends Controller
                 'kode_desa' => $this->session->get('kode_desa'),
             ],
         ];
+    }
+
+    /**
+     * Check if this is an HTMX request
+     */
+    protected function isHtmxRequest(): bool
+    {
+        return $this->request->hasHeader('HX-Request');
     }
 
     /**

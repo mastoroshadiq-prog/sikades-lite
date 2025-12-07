@@ -20,6 +20,9 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- HTMX for SPA-like navigation -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
     <!-- Custom CSS -->
     <style>
         :root {
@@ -223,6 +226,38 @@
             .sidebar.show {
                 left: 0;
             }
+        }
+        
+        /* HTMX Loading Indicator */
+        .htmx-indicator {
+            display: none;
+        }
+        
+        .htmx-request .htmx-indicator,
+        .htmx-indicator.htmx-request {
+            display: block;
+        }
+        
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.8);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* HTMX Transitions */
+        #main-content {
+            transition: opacity 0.15s ease-in-out;
+        }
+        
+        #main-content.htmx-swapping {
+            opacity: 0.5;
         }
     </style>
 </head>

@@ -1,5 +1,11 @@
-<?= view('layout/header') ?>
-<?= view('layout/sidebar') ?>
+<?php 
+// Use partial layout for HTMX requests
+$headerView = ($isHtmxRequest ?? false) ? 'layout/partial_header' : 'layout/header';
+$sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/sidebar';
+?>
+<?= view($headerView) ?>
+<?= view($sidebarView) ?>
+
 
 <!-- Page Title -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -411,4 +417,8 @@
     document.getElementById('saldoKas').innerHTML = formatRupiah(<?= $stats['saldo_kas'] ?? 0 ?>);
 </script>
 
-<?= view('layout/footer') ?>
+<?php 
+$footerView = ($isHtmxRequest ?? false) ? 'layout/partial_footer' : 'layout/footer';
+?>
+<?= view($footerView) ?>
+

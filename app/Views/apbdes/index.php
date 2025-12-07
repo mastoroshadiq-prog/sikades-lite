@@ -1,5 +1,4 @@
-<?= view('layout/header') ?>
-<?= view('layout/sidebar') ?>
+<?= view('layout/htmx_layout_start', get_defined_vars()) ?>
 
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -185,4 +184,4 @@
 </div>
 <?php endif; ?>
 
-<?= view('layout/footer') ?>
+<?= view('layout/htmx_layout_end', get_defined_vars()) ?>
