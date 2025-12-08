@@ -41,10 +41,12 @@ class Gis extends BaseController
             WHERE kode_desa = ? AND lat IS NOT NULL AND lng IS NOT NULL
         ", [$kodeDesa])->getRow()->total ?? 0;
         
-        // Get population stats by wilayah
+        // Get population stats - join with keluarga to get kode_desa
         $totalPenduduk = $db->query("
-            SELECT COUNT(*) as total FROM pop_penduduk 
-            WHERE kode_desa = ? AND status_tinggal = 'Tetap'
+            SELECT COUNT(*) as total 
+            FROM pop_penduduk p
+            LEFT JOIN pop_keluarga k ON p.keluarga_id = k.id
+            WHERE k.kode_desa = ? AND p.status_dasar = 'HIDUP'
         ", [$kodeDesa])->getRow()->total ?? 0;
 
         $data = [
@@ -148,38 +150,40 @@ class Gis extends BaseController
         $kodeDesa = $this->user['kode_desa'] ?? null;
         $db = \Config\Database::connect();
         
-        // Get population by dusun
+        // Get population by dusun - join with keluarga for wilayah data
         $dusunData = $db->query("
             SELECT 
-                COALESCE(dusun, 'Tidak Diketahui') as wilayah,
+                COALESCE(k.dusun, 'Tidak Diketahui') as wilayah,
                 COUNT(*) as jumlah_penduduk,
-                COUNT(DISTINCT no_kk) as jumlah_kk,
-                SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
-                SUM(CASE WHEN jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
-            FROM pop_penduduk
-            WHERE kode_desa = ? 
-                AND status_tinggal = 'Tetap'
-                AND dusun IS NOT NULL 
-                AND dusun != ''
-            GROUP BY dusun
+                COUNT(DISTINCT k.no_kk) as jumlah_kk,
+                SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
+                SUM(CASE WHEN p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
+            FROM pop_penduduk p
+            LEFT JOIN pop_keluarga k ON p.keluarga_id = k.id
+            WHERE k.kode_desa = ? 
+                AND p.status_dasar = 'HIDUP'
+                AND k.dusun IS NOT NULL 
+                AND k.dusun != ''
+            GROUP BY k.dusun
             ORDER BY jumlah_penduduk DESC
         ", [$kodeDesa])->getResultArray();
         
-        // Get by RT
+        // Get by RT - join with keluarga
         $rtData = $db->query("
             SELECT 
-                CONCAT(COALESCE(dusun, '-'), '/RT ', COALESCE(rt, '0')) as wilayah,
-                dusun,
-                rt,
+                CONCAT(COALESCE(k.dusun, '-'), '/RT ', COALESCE(k.rt, '0')) as wilayah,
+                k.dusun,
+                k.rt,
                 COUNT(*) as jumlah_penduduk,
-                COUNT(DISTINCT no_kk) as jumlah_kk,
-                SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
-                SUM(CASE WHEN jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
-            FROM pop_penduduk
-            WHERE kode_desa = ? 
-                AND status_tinggal = 'Tetap'
-            GROUP BY dusun, rt
-            ORDER BY dusun, rt
+                COUNT(DISTINCT k.no_kk) as jumlah_kk,
+                SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
+                SUM(CASE WHEN p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
+            FROM pop_penduduk p
+            LEFT JOIN pop_keluarga k ON p.keluarga_id = k.id
+            WHERE k.kode_desa = ? 
+                AND p.status_dasar = 'HIDUP'
+            GROUP BY k.dusun, k.rt
+            ORDER BY k.dusun, k.rt
         ", [$kodeDesa])->getResultArray();
         
         // Calculate density ranges for legend
