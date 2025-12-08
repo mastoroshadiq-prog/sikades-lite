@@ -198,8 +198,14 @@ class Gis extends BaseController
             }
         }
         
-        // Get wilayah with coordinates for circle markers
-        $wilayahData = $this->wilayahModel->getWithCoordinates($kodeDesa, 'DUSUN');
+        // Get wilayah with coordinates for circle markers (gracefully handle missing table)
+        $wilayahData = [];
+        try {
+            $wilayahData = $this->wilayahModel->getWithCoordinates($kodeDesa, 'DUSUN');
+        } catch (\Exception $e) {
+            // Table might not exist yet - continue without coordinates
+            log_message('warning', 'GIS wilayah table not ready: ' . $e->getMessage());
+        }
         
         // Map population data to wilayah coordinates
         $dusunWithCoords = [];
@@ -232,11 +238,43 @@ class Gis extends BaseController
     public function wilayahSettings()
     {
         $kodeDesa = $this->user['kode_desa'] ?? null;
+        $db = \Config\Database::connect();
         
-        // Sync wilayah from keluarga data
-        $this->wilayahModel->syncFromKeluarga($kodeDesa);
-        
-        $wilayahs = $this->wilayahModel->getByType($kodeDesa, 'DUSUN');
+        // Check if table exists, if not create it
+        try {
+            $tables = $db->listTables();
+            if (!in_array('gis_wilayah', $tables)) {
+                // Create table
+                $db->query("
+                    CREATE TABLE IF NOT EXISTS gis_wilayah (
+                        id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
+                        kode_desa VARCHAR(20) NOT NULL,
+                        nama_wilayah VARCHAR(100) NOT NULL,
+                        tipe ENUM('DESA','DUSUN','RW','RT') NOT NULL DEFAULT 'DUSUN',
+                        parent_id INT(11) UNSIGNED NULL,
+                        center_lat DECIMAL(10,8) NULL,
+                        center_lng DECIMAL(11,8) NULL,
+                        geojson LONGTEXT NULL,
+                        luas_area DECIMAL(12,2) NULL,
+                        warna VARCHAR(7) NULL,
+                        keterangan TEXT NULL,
+                        created_at DATETIME NULL,
+                        updated_at DATETIME NULL,
+                        PRIMARY KEY (id),
+                        INDEX (kode_desa),
+                        INDEX (tipe)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+                ");
+            }
+            
+            // Sync wilayah from keluarga data
+            $this->wilayahModel->syncFromKeluarga($kodeDesa);
+            
+            $wilayahs = $this->wilayahModel->getByType($kodeDesa, 'DUSUN');
+        } catch (\Exception $e) {
+            log_message('error', 'Wilayah settings error: ' . $e->getMessage());
+            $wilayahs = [];
+        }
         
         $data = [
             'title'     => 'Pengaturan Wilayah GIS',
