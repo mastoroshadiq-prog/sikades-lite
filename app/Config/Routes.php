@@ -318,6 +318,7 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->group('gis', function($routes) {
         $routes->get('/', 'Gis::index');
         $routes->get('json', 'Gis::getJsonData');
+        $routes->get('population', 'Gis::getPopulationData');
         $routes->get('detail/(:num)', 'Gis::getAsetDetail/$1');
         $routes->get('fullscreen', 'Gis::fullscreen');
     });

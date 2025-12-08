@@ -3,11 +3,15 @@
 namespace App\Controllers;
 
 use App\Models\AsetModel;
+use App\Models\PendudukModel;
+use App\Models\KeluargaModel;
 
 class Gis extends BaseController
 {
     protected $user;
     protected $asetModel;
+    protected $pendudukModel;
+    protected $keluargaModel;
 
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
@@ -15,6 +19,8 @@ class Gis extends BaseController
         
         $this->user = session()->get();
         $this->asetModel = new AsetModel();
+        $this->pendudukModel = new PendudukModel();
+        $this->keluargaModel = new KeluargaModel();
     }
 
     /**
@@ -34,13 +40,20 @@ class Gis extends BaseController
             SELECT COUNT(*) as total FROM aset_inventaris 
             WHERE kode_desa = ? AND lat IS NOT NULL AND lng IS NOT NULL
         ", [$kodeDesa])->getRow()->total ?? 0;
+        
+        // Get population stats by wilayah
+        $totalPenduduk = $db->query("
+            SELECT COUNT(*) as total FROM pop_penduduk 
+            WHERE kode_desa = ? AND status_tinggal = 'Tetap'
+        ", [$kodeDesa])->getRow()->total ?? 0;
 
         $data = [
-            'title'     => 'WebGIS - Peta Aset Desa',
-            'user'      => $this->user,
-            'centerLat' => $centerLat,
-            'centerLng' => $centerLng,
-            'totalAset' => $totalAset,
+            'title'         => 'WebGIS - Peta Aset Desa',
+            'user'          => $this->user,
+            'centerLat'     => $centerLat,
+            'centerLng'     => $centerLng,
+            'totalAset'     => $totalAset,
+            'totalPenduduk' => $totalPenduduk,
         ];
 
         return view('gis/index', $data);
@@ -125,4 +138,65 @@ class Gis extends BaseController
 
         return view('gis/fullscreen', $data);
     }
+
+    /**
+     * Get population density data for choropleth map
+     * Returns population counts grouped by dusun/RT/RW
+     */
+    public function getPopulationData()
+    {
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        $db = \Config\Database::connect();
+        
+        // Get population by dusun
+        $dusunData = $db->query("
+            SELECT 
+                COALESCE(dusun, 'Tidak Diketahui') as wilayah,
+                COUNT(*) as jumlah_penduduk,
+                COUNT(DISTINCT no_kk) as jumlah_kk,
+                SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
+                SUM(CASE WHEN jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
+            FROM pop_penduduk
+            WHERE kode_desa = ? 
+                AND status_tinggal = 'Tetap'
+                AND dusun IS NOT NULL 
+                AND dusun != ''
+            GROUP BY dusun
+            ORDER BY jumlah_penduduk DESC
+        ", [$kodeDesa])->getResultArray();
+        
+        // Get by RT
+        $rtData = $db->query("
+            SELECT 
+                CONCAT(COALESCE(dusun, '-'), '/RT ', COALESCE(rt, '0')) as wilayah,
+                dusun,
+                rt,
+                COUNT(*) as jumlah_penduduk,
+                COUNT(DISTINCT no_kk) as jumlah_kk,
+                SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
+                SUM(CASE WHEN jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan
+            FROM pop_penduduk
+            WHERE kode_desa = ? 
+                AND status_tinggal = 'Tetap'
+            GROUP BY dusun, rt
+            ORDER BY dusun, rt
+        ", [$kodeDesa])->getResultArray();
+        
+        // Calculate density ranges for legend
+        $maxPenduduk = 0;
+        foreach ($dusunData as $d) {
+            if ($d['jumlah_penduduk'] > $maxPenduduk) {
+                $maxPenduduk = $d['jumlah_penduduk'];
+            }
+        }
+        
+        // Return data
+        return $this->response->setJSON([
+            'by_dusun' => $dusunData,
+            'by_rt'    => $rtData,
+            'max'      => $maxPenduduk,
+            'total'    => array_sum(array_column($dusunData, 'jumlah_penduduk')),
+        ]);
+    }
 }
+

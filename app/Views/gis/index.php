@@ -38,6 +38,53 @@
         border-radius: 50%;
         margin-right: 8px;
     }
+    .layer-control {
+        background: white;
+        padding: 10px 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .layer-btn {
+        cursor: pointer;
+        padding: 5px 12px;
+        border-radius: 5px;
+        margin-right: 5px;
+        transition: all 0.2s;
+    }
+    .layer-btn.active {
+        background: #0d6efd;
+        color: white;
+    }
+    .layer-btn:hover:not(.active) {
+        background: #e9ecef;
+    }
+    .population-card {
+        border-radius: 10px;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .population-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+    .density-legend {
+        background: white;
+        padding: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    .density-bar {
+        height: 15px;
+        border-radius: 3px;
+        background: linear-gradient(to right, #fee5d9, #fcae91, #fb6a4a, #de2d26, #a50f15);
+    }
+    .info-box {
+        background: white;
+        padding: 10px 14px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+        max-width: 250px;
+    }
 </style>
 
 <div class="container-fluid py-4">
@@ -45,7 +92,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="mb-1">
-                <i class="fas fa-map-marked-alt me-2 text-success"></i>WebGIS - Peta Aset Desa
+                <i class="fas fa-map-marked-alt me-2 text-success"></i>WebGIS - Peta Desa Interaktif
             </h2>
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0">
@@ -64,17 +111,38 @@
         </div>
     </div>
 
-    <!-- Stats -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="card border-0 shadow-sm bg-success text-white">
-                <div class="card-body text-center py-3">
-                    <h3 class="mb-0" id="totalMarkers"><?= $totalAset ?></h3>
-                    <small>Aset Terpetakan</small>
+    <!-- Layer Toggle -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <div class="d-flex align-items-center justify-content-between flex-wrap">
+                <div class="d-flex align-items-center">
+                    <span class="fw-bold me-3"><i class="fas fa-layer-group me-2"></i>Layer Peta:</span>
+                    <div class="layer-control d-inline-flex">
+                        <span class="layer-btn active" id="layerAset" onclick="toggleLayer('aset')">
+                            <i class="fas fa-warehouse me-1"></i>Aset Desa
+                        </span>
+                        <span class="layer-btn" id="layerPenduduk" onclick="toggleLayer('penduduk')">
+                            <i class="fas fa-users me-1"></i>Kepadatan Penduduk
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-4">
+                    <div class="text-center">
+                        <span class="badge bg-success fs-6"><?= $totalAset ?></span>
+                        <small class="text-muted ms-1">Aset Terpetakan</small>
+                    </div>
+                    <div class="text-center">
+                        <span class="badge bg-primary fs-6"><?= $totalPenduduk ?></span>
+                        <small class="text-muted ms-1">Total Penduduk</small>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-9">
+    </div>
+
+    <!-- Stats Row - Aset Layer -->
+    <div class="row g-3 mb-4" id="asetStats">
+        <div class="col-md-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body py-2">
                     <div class="row text-center">
@@ -104,6 +172,26 @@
         </div>
     </div>
 
+    <!-- Stats Row - Penduduk Layer -->
+    <div class="row g-3 mb-4" id="pendudukStats" style="display: none;">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent">
+                    <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Distribusi Penduduk per Wilayah</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3" id="dusunCards">
+                        <!-- Akan diisi dengan JavaScript -->
+                        <div class="col-12 text-center text-muted py-4">
+                            <i class="fas fa-spinner fa-spin fa-2x"></i>
+                            <p class="mt-2">Memuat data penduduk...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Map -->
     <div class="card border-0 shadow-sm">
         <div class="card-body p-0">
@@ -112,10 +200,15 @@
     </div>
 
     <!-- Info -->
-    <div class="alert alert-info mt-4">
+    <div class="alert alert-info mt-4" id="asetTip">
         <i class="fas fa-info-circle me-2"></i>
         <strong>Tip:</strong> Klik marker untuk melihat detail aset. Gunakan scroll untuk zoom in/out.
         Aset yang belum memiliki koordinat GPS tidak ditampilkan di peta.
+    </div>
+    <div class="alert alert-primary mt-4" id="pendudukTip" style="display: none;">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Tip:</strong> Klik pada kartu wilayah untuk melihat detail demografi. 
+        Warna menunjukkan kepadatan penduduk (merah = padat, biru = jarang).
     </div>
 </div>
 
@@ -132,10 +225,11 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// Marker cluster group
+// =============================================
+// LAYER 1: ASET DESA
+// =============================================
 const markers = L.markerClusterGroup();
 
-// Category colors
 const categoryColors = {
     'Tanah': '#0d6efd',
     'Peralatan dan Mesin': '#198754',
@@ -145,7 +239,6 @@ const categoryColors = {
     'Konstruksi Dalam Pengerjaan': '#dc3545'
 };
 
-// Custom icon
 function getIcon(kategori) {
     const color = categoryColors[kategori] || '#6c757d';
     return L.divIcon({
@@ -157,7 +250,6 @@ function getIcon(kategori) {
     });
 }
 
-// Create popup content
 function createPopup(props) {
     let content = '<div class="popup-content">';
     
@@ -183,16 +275,9 @@ function createPopup(props) {
     return content;
 }
 
-// Counters
-let counts = {
-    Tanah: 0,
-    Peralatan: 0,
-    Gedung: 0,
-    Jalan: 0,
-    Lainnya: 0
-};
+let counts = { Tanah: 0, Peralatan: 0, Gedung: 0, Jalan: 0, Lainnya: 0 };
 
-// Load GeoJSON data
+// Load asset data
 fetch('<?= base_url('/gis/json') ?>')
     .then(response => response.json())
     .then(data => {
@@ -203,16 +288,11 @@ fetch('<?= base_url('/gis/json') ?>')
                 const coords = feature.geometry.coordinates;
                 const props = feature.properties;
                 
-                // Create marker
                 const marker = L.marker([coords[1], coords[0]], {
                     icon: getIcon(props.kategori)
                 });
                 
-                // Bind popup
-                marker.bindPopup(createPopup(props), {
-                    maxWidth: 300
-                });
-                
+                marker.bindPopup(createPopup(props), { maxWidth: 300 });
                 markers.addLayer(marker);
                 bounds.push([coords[1], coords[0]]);
                 
@@ -226,12 +306,10 @@ fetch('<?= base_url('/gis/json') ?>')
             
             map.addLayer(markers);
             
-            // Fit bounds if we have markers
             if (bounds.length > 0) {
                 map.fitBounds(bounds, { padding: [50, 50] });
             }
             
-            // Update counters
             document.getElementById('countTanah').textContent = counts.Tanah;
             document.getElementById('countPeralatan').textContent = counts.Peralatan;
             document.getElementById('countGedung').textContent = counts.Gedung;
@@ -239,13 +317,13 @@ fetch('<?= base_url('/gis/json') ?>')
             document.getElementById('countLainnya').textContent = counts.Lainnya;
         }
     })
-    .catch(error => console.error('Error loading GeoJSON:', error));
+    .catch(error => console.error('Error loading asset GeoJSON:', error));
 
-// Legend control
-const legend = L.control({ position: 'bottomright' });
-legend.onAdd = function(map) {
+// Asset Legend
+const assetLegend = L.control({ position: 'bottomright' });
+assetLegend.onAdd = function(map) {
     const div = L.DomUtil.create('div', 'legend');
-    div.innerHTML = '<strong class="mb-2 d-block">Kategori</strong>';
+    div.innerHTML = '<strong class="mb-2 d-block">Kategori Aset</strong>';
     
     for (const [kategori, color] of Object.entries(categoryColors)) {
         const shortName = kategori.split(' ')[0];
@@ -256,10 +334,189 @@ legend.onAdd = function(map) {
             </div>
         `;
     }
-    
     return div;
 };
-legend.addTo(map);
+assetLegend.addTo(map);
+
+// =============================================
+// LAYER 2: KEPADATAN PENDUDUK
+// =============================================
+let populationData = null;
+let populationInfoBox = null;
+
+// Population info control
+const popInfo = L.control({ position: 'topright' });
+popInfo.onAdd = function(map) {
+    const div = L.DomUtil.create('div', 'info-box');
+    div.innerHTML = `
+        <h6><i class="fas fa-users me-2"></i>Kepadatan Penduduk</h6>
+        <p class="small text-muted mb-0">Hover pada wilayah untuk detail</p>
+    `;
+    return div;
+};
+
+// Population density legend
+const densityLegend = L.control({ position: 'bottomright' });
+densityLegend.onAdd = function(map) {
+    const div = L.DomUtil.create('div', 'density-legend');
+    div.innerHTML = `
+        <strong class="d-block mb-2">Kepadatan Penduduk</strong>
+        <div class="density-bar mb-1"></div>
+        <div class="d-flex justify-content-between small text-muted">
+            <span>Jarang</span>
+            <span>Padat</span>
+        </div>
+    `;
+    return div;
+};
+
+// Get density color (red gradient)
+function getDensityColor(value, max) {
+    if (max === 0) return '#fee5d9';
+    const ratio = value / max;
+    
+    if (ratio > 0.8) return '#a50f15';
+    if (ratio > 0.6) return '#de2d26';
+    if (ratio > 0.4) return '#fb6a4a';
+    if (ratio > 0.2) return '#fcae91';
+    return '#fee5d9';
+}
+
+// Load population data
+function loadPopulationData() {
+    fetch('<?= base_url('/gis/population') ?>')
+        .then(response => response.json())
+        .then(data => {
+            populationData = data;
+            renderDusunCards(data);
+        })
+        .catch(error => console.error('Error loading population data:', error));
+}
+
+// Render dusun cards
+function renderDusunCards(data) {
+    const container = document.getElementById('dusunCards');
+    
+    if (!data.by_dusun || data.by_dusun.length === 0) {
+        container.innerHTML = `
+            <div class="col-12 text-center text-muted py-4">
+                <i class="fas fa-users-slash fa-3x mb-3"></i>
+                <p>Belum ada data penduduk terpetakan</p>
+                <a href="<?= base_url('/demografi') ?>" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Kelola Data Demografi
+                </a>
+            </div>
+        `;
+        return;
+    }
+    
+    let html = '';
+    const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'];
+    
+    data.by_dusun.forEach((dusun, index) => {
+        const color = colors[index % colors.length];
+        const percentage = data.total > 0 ? ((dusun.jumlah_penduduk / data.total) * 100).toFixed(1) : 0;
+        
+        html += `
+            <div class="col-md-3 col-sm-6">
+                <div class="population-card card border-0 h-100" style="border-left: 4px solid ${color} !important;">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5 class="mb-1" style="color: ${color}">${dusun.wilayah}</h5>
+                                <p class="text-muted small mb-0">${dusun.jumlah_kk} KK</p>
+                            </div>
+                            <div class="text-end">
+                                <h4 class="mb-0">${dusun.jumlah_penduduk}</h4>
+                                <span class="badge" style="background: ${color}">${percentage}%</span>
+                            </div>
+                        </div>
+                        <hr class="my-2">
+                        <div class="row text-center small">
+                            <div class="col-6">
+                                <i class="fas fa-male text-primary"></i> ${dusun.laki_laki}
+                            </div>
+                            <div class="col-6">
+                                <i class="fas fa-female text-danger"></i> ${dusun.perempuan}
+                            </div>
+                        </div>
+                        <div class="progress mt-2" style="height: 6px;">
+                            <div class="progress-bar bg-primary" style="width: ${(dusun.laki_laki / dusun.jumlah_penduduk * 100)}%"></div>
+                            <div class="progress-bar bg-danger" style="width: ${(dusun.perempuan / dusun.jumlah_penduduk * 100)}%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    // Add summary card
+    html += `
+        <div class="col-md-3 col-sm-6">
+            <div class="population-card card border-0 h-100 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <div class="card-body text-white">
+                    <div class="text-center">
+                        <i class="fas fa-globe fa-3x mb-2 opacity-75"></i>
+                        <h3 class="mb-0">${data.total}</h3>
+                        <p class="mb-0">Total Penduduk</p>
+                    </div>
+                    <hr class="border-white opacity-25 my-2">
+                    <div class="row text-center small">
+                        <div class="col-6">
+                            <strong>${data.by_dusun.length}</strong><br>Dusun
+                        </div>
+                        <div class="col-6">
+                            <strong>${data.by_rt ? data.by_rt.length : 0}</strong><br>RT
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// =============================================
+// LAYER SWITCHING
+// =============================================
+let currentLayer = 'aset';
+
+function toggleLayer(layer) {
+    currentLayer = layer;
+    
+    // Update button states
+    document.getElementById('layerAset').classList.toggle('active', layer === 'aset');
+    document.getElementById('layerPenduduk').classList.toggle('active', layer === 'penduduk');
+    
+    // Toggle stats/tips visibility
+    document.getElementById('asetStats').style.display = layer === 'aset' ? 'flex' : 'none';
+    document.getElementById('pendudukStats').style.display = layer === 'penduduk' ? 'block' : 'none';
+    document.getElementById('asetTip').style.display = layer === 'aset' ? 'block' : 'none';
+    document.getElementById('pendudukTip').style.display = layer === 'penduduk' ? 'block' : 'none';
+    
+    if (layer === 'aset') {
+        // Show asset markers, hide population legend
+        map.addLayer(markers);
+        if (map.hasLayer(densityLegend)) map.removeControl(densityLegend);
+        if (map.hasLayer(popInfo)) map.removeControl(popInfo);
+        assetLegend.addTo(map);
+    } else {
+        // Hide asset markers, show population view
+        map.removeLayer(markers);
+        if (map.hasLayer(assetLegend)) map.removeControl(assetLegend);
+        densityLegend.addTo(map);
+        popInfo.addTo(map);
+        
+        // Load population data if not already loaded
+        if (!populationData) {
+            loadPopulationData();
+        }
+    }
+}
+
+// Initial load of population data (background)
+loadPopulationData();
 </script>
 
 <?= view('layout/footer') ?>

@@ -146,6 +146,21 @@ class Bku extends BaseController
                 ->with('bku_nilai', max($debet, $kredit));
         }
 
+        // ===============================================
+        // BUMDES INTEGRATION: Detect Penyertaan Modal (6.2.x)
+        // ===============================================
+        $isPenyertaanModal = $this->checkIsPenyertaanModal($refRekeningId);
+
+        if ($isPenyertaanModal) {
+            // Redirect to BKU list with BUMDes journal creation prompt
+            return redirect()->to('/bku')
+                ->with('success', 'Transaksi BKU berhasil ditambahkan')
+                ->with('show_bumdes_prompt', true)
+                ->with('bku_id', $newBkuId)
+                ->with('bku_uraian', $data['uraian'])
+                ->with('bku_nilai', max($debet, $kredit));
+        }
+
         return redirect()->to('/bku')->with('success', 'Transaksi BKU berhasil ditambahkan');
     }
 
@@ -157,6 +172,18 @@ class Bku extends BaseController
         $rekening = $this->rekeningModel->find($refRekeningId);
         if ($rekening && isset($rekening['kode_akun'])) {
             return strpos($rekening['kode_akun'], '5.3') === 0;
+        }
+        return false;
+    }
+
+    /**
+     * Check if rekening code is 6.2.1 (Penyertaan Modal Desa ke BUMDes)
+     */
+    private function checkIsPenyertaanModal($refRekeningId): bool
+    {
+        $rekening = $this->rekeningModel->find($refRekeningId);
+        if ($rekening && isset($rekening['kode_akun'])) {
+            return strpos($rekening['kode_akun'], '6.2.1') === 0 || strpos($rekening['kode_akun'], '6.2') === 0;
         }
         return false;
     }
