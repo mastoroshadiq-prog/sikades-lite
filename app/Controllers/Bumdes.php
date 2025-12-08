@@ -212,12 +212,48 @@ class Bumdes extends BaseController
 
         $noBukti = $this->jurnalModel->generateNoBukti($unitId);
 
+        // Check if coming from BKU (Penyertaan Modal)
+        $fromBku = $this->request->getGet('from_bku');
+        $prefill = [];
+        
+        if ($fromBku) {
+            $bkuModel = new \App\Models\BkuModel();
+            $bku = $bkuModel->find($fromBku);
+            
+            if ($bku) {
+                $nilai = $this->request->getGet('nilai') ?: ($bku['debet'] > 0 ? $bku['debet'] : $bku['kredit']);
+                
+                // Find Kas and Modal Desa accounts
+                $kasAkun = $db->table('bumdes_akun')
+                    ->like('nama_akun', 'Kas', 'after')
+                    ->where('is_header', 0)
+                    ->get()
+                    ->getRowArray();
+                    
+                $modalAkun = $db->table('bumdes_akun')
+                    ->like('nama_akun', 'Modal')
+                    ->where('is_header', 0)
+                    ->get()
+                    ->getRowArray();
+                
+                $prefill = [
+                    'tanggal'     => date('Y-m-d'),
+                    'deskripsi'   => 'Penyertaan Modal Desa - ' . $bku['uraian'],
+                    'bku_id'      => $fromBku,
+                    'nilai'       => $nilai,
+                    'kas_akun_id' => $kasAkun['id'] ?? null,
+                    'modal_akun_id' => $modalAkun['id'] ?? null,
+                ];
+            }
+        }
+
         $data = [
             'title'    => 'Tambah Jurnal - ' . $unit['nama_unit'],
             'user'     => $this->user,
             'unit'     => $unit,
             'akunList' => $akunList,
             'noBukti'  => $noBukti,
+            'prefill'  => $prefill,
         ];
 
         return view('bumdes/jurnal/form', $data);

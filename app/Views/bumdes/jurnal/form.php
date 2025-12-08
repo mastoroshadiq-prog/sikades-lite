@@ -1,6 +1,8 @@
 <?= view('layout/header') ?>
 <?= view('layout/sidebar') ?>
 
+<?php $prefill = $prefill ?? []; ?>
+
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -16,7 +18,20 @@
                 </ol>
             </nav>
         </div>
+        <?php if (!empty($prefill['bku_id'])): ?>
+        <span class="badge bg-success fs-6">
+            <i class="fas fa-link me-2"></i>Dari Penyertaan Modal BKU
+        </span>
+        <?php endif; ?>
     </div>
+
+    <?php if (!empty($prefill['bku_id'])): ?>
+    <div class="alert alert-info mb-4">
+        <i class="fas fa-info-circle me-2"></i>
+        <strong>Integrasi dari BKU:</strong> Form ini sudah terisi otomatis untuk mencatat penerimaan modal dari Pemerintah Desa.
+        <br><small class="text-muted">Debet: Kas BUMDes | Kredit: Modal Desa | Nilai: Rp <?= number_format($prefill['nilai'] ?? 0, 0, ',', '.') ?></small>
+    </div>
+    <?php endif; ?>
 
     <form action="<?= base_url('/bumdes/jurnal/' . $unit['id'] . '/save') ?>" method="POST" id="jurnalForm">
         <?= csrf_field() ?>
@@ -37,13 +52,13 @@
                         <div class="mb-3">
                             <label class="form-label">Tanggal <span class="text-danger">*</span></label>
                             <input type="date" name="tanggal" class="form-control" 
-                                   value="<?= date('Y-m-d') ?>" required>
+                                   value="<?= $prefill['tanggal'] ?? date('Y-m-d') ?>" required>
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Deskripsi</label>
                             <textarea name="deskripsi" class="form-control" rows="3" 
-                                      placeholder="Keterangan transaksi"></textarea>
+                                      placeholder="Keterangan transaksi"><?= esc($prefill['deskripsi'] ?? '') ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -95,11 +110,11 @@
                                             <select name="details[0][akun_id]" class="form-select akun-select" required>
                                                 <option value="">Pilih Akun</option>
                                                 <?php foreach ($akunList as $a): ?>
-                                                <option value="<?= $a['id'] ?>"><?= $a['kode_akun'] ?> - <?= $a['nama_akun'] ?></option>
+                                                <option value="<?= $a['id'] ?>" <?= ($prefill['kas_akun_id'] ?? '') == $a['id'] ? 'selected' : '' ?>><?= $a['kode_akun'] ?> - <?= $a['nama_akun'] ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </td>
-                                        <td><input type="text" name="details[0][debet]" class="form-control debet-input rupiah-input" value="0"></td>
+                                        <td><input type="text" name="details[0][debet]" class="form-control debet-input rupiah-input" value="<?= !empty($prefill['nilai']) ? number_format($prefill['nilai'], 0, ',', '.') : '0' ?>"></td>
                                         <td><input type="text" name="details[0][kredit]" class="form-control kredit-input rupiah-input" value="0"></td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-danger remove-row" disabled>
@@ -112,12 +127,12 @@
                                             <select name="details[1][akun_id]" class="form-select akun-select" required>
                                                 <option value="">Pilih Akun</option>
                                                 <?php foreach ($akunList as $a): ?>
-                                                <option value="<?= $a['id'] ?>"><?= $a['kode_akun'] ?> - <?= $a['nama_akun'] ?></option>
+                                                <option value="<?= $a['id'] ?>" <?= ($prefill['modal_akun_id'] ?? '') == $a['id'] ? 'selected' : '' ?>><?= $a['kode_akun'] ?> - <?= $a['nama_akun'] ?></option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </td>
                                         <td><input type="text" name="details[1][debet]" class="form-control debet-input rupiah-input" value="0"></td>
-                                        <td><input type="text" name="details[1][kredit]" class="form-control kredit-input rupiah-input" value="0"></td>
+                                        <td><input type="text" name="details[1][kredit]" class="form-control kredit-input rupiah-input" value="<?= !empty($prefill['nilai']) ? number_format($prefill['nilai'], 0, ',', '.') : '0' ?>"></td>
                                         <td class="text-center">
                                             <button type="button" class="btn btn-sm btn-danger remove-row" disabled>
                                                 <i class="fas fa-trash"></i>
@@ -232,4 +247,9 @@ function bindInputEvents() {
 }
 
 bindInputEvents();
+
+// Calculate initial balance on page load (for prefill)
+document.addEventListener('DOMContentLoaded', function() {
+    calculateBalance();
+});
 </script>

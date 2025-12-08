@@ -331,8 +331,25 @@ class Demografi extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $keluargaId = $this->request->getPost('keluarga_id');
+        $statusHubungan = $this->request->getPost('status_hubungan');
+        
+        // Validate: Only one "Kepala Keluarga" per KK
+        if ($statusHubungan === 'Kepala Keluarga') {
+            $existingKepala = $this->pendudukModel
+                ->where('keluarga_id', $keluargaId)
+                ->where('status_hubungan', 'Kepala Keluarga')
+                ->where('status_dasar', 'HIDUP')
+                ->first();
+            
+            if ($existingKepala) {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Kartu Keluarga ini sudah memiliki Kepala Keluarga: ' . $existingKepala['nama_lengkap'] . '. Setiap KK hanya boleh memiliki 1 Kepala Keluarga.');
+            }
+        }
+
         $data = [
-            'keluarga_id'         => $this->request->getPost('keluarga_id'),
+            'keluarga_id'         => $keluargaId,
             'nik'                 => $this->request->getPost('nik'),
             'nama_lengkap'        => $this->request->getPost('nama_lengkap'),
             'tempat_lahir'        => $this->request->getPost('tempat_lahir'),
@@ -455,8 +472,26 @@ class Demografi extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $keluargaId = $this->request->getPost('keluarga_id');
+        $statusHubungan = $this->request->getPost('status_hubungan');
+        
+        // Validate: Only one "Kepala Keluarga" per KK (exclude current record)
+        if ($statusHubungan === 'Kepala Keluarga') {
+            $existingKepala = $this->pendudukModel
+                ->where('keluarga_id', $keluargaId)
+                ->where('status_hubungan', 'Kepala Keluarga')
+                ->where('status_dasar', 'HIDUP')
+                ->where('id !=', $id)
+                ->first();
+            
+            if ($existingKepala) {
+                return redirect()->back()->withInput()
+                    ->with('error', 'Kartu Keluarga ini sudah memiliki Kepala Keluarga: ' . $existingKepala['nama_lengkap'] . '. Setiap KK hanya boleh memiliki 1 Kepala Keluarga.');
+            }
+        }
+
         $data = [
-            'keluarga_id'         => $this->request->getPost('keluarga_id'),
+            'keluarga_id'         => $keluargaId,
             'nik'                 => $this->request->getPost('nik'),
             'nama_lengkap'        => $this->request->getPost('nama_lengkap'),
             'tempat_lahir'        => $this->request->getPost('tempat_lahir'),
@@ -466,7 +501,7 @@ class Demografi extends BaseController
             'pendidikan_terakhir' => $this->request->getPost('pendidikan_terakhir'),
             'pekerjaan'           => $this->request->getPost('pekerjaan'),
             'status_perkawinan'   => $this->request->getPost('status_perkawinan'),
-            'status_hubungan'     => $this->request->getPost('status_hubungan'),
+            'status_hubungan'     => $statusHubungan,
             'golongan_darah'      => $this->request->getPost('golongan_darah'),
             'nama_ayah'           => $this->request->getPost('nama_ayah'),
             'nama_ibu'            => $this->request->getPost('nama_ibu'),
