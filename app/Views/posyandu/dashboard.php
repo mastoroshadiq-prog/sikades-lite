@@ -24,23 +24,23 @@
     <div class="row g-4 mb-4">
         <!-- Stunting Stats -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100 bg-gradient" style="background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);">
+            <div class="card border-0 shadow h-100" style="background: #dc3545 !important;">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-white-50 mb-2">Kasus Stunting</h6>
-                            <h2 class="mb-0 fw-bold"><?= $stuntingStats['stunting'] ?? 0 ?></h2>
-                            <small class="text-white-50">dari <?= $stuntingStats['total_balita'] ?? 0 ?> balita</small>
+                            <h6 class="text-white mb-2" style="opacity: 0.9;">Kasus Stunting</h6>
+                            <h2 class="mb-0 fw-bold text-white"><?= $stuntingStats['stunting'] ?? 0 ?></h2>
+                            <small class="text-white" style="opacity: 0.8;">dari <?= $stuntingStats['total_balita'] ?? 0 ?> balita</small>
                         </div>
-                        <div class="bg-white bg-opacity-25 rounded-circle p-3">
-                            <i class="fas fa-child fa-2x"></i>
+                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                            <i class="fas fa-child fa-2x text-white"></i>
                         </div>
                     </div>
                     <div class="mt-3">
-                        <div class="progress bg-white bg-opacity-25" style="height: 6px;">
+                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.3);">
                             <div class="progress-bar bg-white" style="width: <?= $stuntingStats['percentage'] ?? 0 ?>%"></div>
                         </div>
-                        <small class="text-white-50 mt-1 d-block"><?= $stuntingStats['percentage'] ?? 0 ?>% prevalensi</small>
+                        <small class="text-white mt-1 d-block" style="opacity: 0.8;"><?= $stuntingStats['percentage'] ?? 0 ?>% prevalensi</small>
                     </div>
                 </div>
             </div>
@@ -48,16 +48,16 @@
 
         <!-- Total Balita -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+            <div class="card border-0 shadow h-100" style="background: #0d6efd !important;">
+                <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">Total Balita Terpantau</h6>
-                            <h2 class="mb-0 fw-bold text-primary"><?= $stuntingStats['total_balita'] ?? 0 ?></h2>
-                            <small class="text-success"><i class="fas fa-check-circle me-1"></i><?= $stuntingStats['normal'] ?? 0 ?> normal</small>
+                            <h6 class="text-white mb-2" style="opacity: 0.9;">Total Balita Terpantau</h6>
+                            <h2 class="mb-0 fw-bold text-white"><?= $stuntingStats['total_balita'] ?? 0 ?></h2>
+                            <small class="text-white" style="opacity: 0.8;"><i class="fas fa-check-circle me-1"></i><?= $stuntingStats['normal'] ?? 0 ?> normal</small>
                         </div>
-                        <div class="bg-primary bg-opacity-10 rounded-circle p-3">
-                            <i class="fas fa-baby fa-2x text-primary"></i>
+                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                            <i class="fas fa-baby fa-2x text-white"></i>
                         </div>
                     </div>
                 </div>
@@ -66,16 +66,16 @@
 
         <!-- Ibu Hamil -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+            <div class="card border-0 shadow h-100" style="background: #17a2b8 !important;">
+                <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">Ibu Hamil Aktif</h6>
-                            <h2 class="mb-0 fw-bold text-info"><?= $bumpilStats['total_hamil'] ?? 0 ?></h2>
+                            <h6 class="text-white mb-2" style="opacity: 0.9;">Ibu Hamil Aktif</h6>
+                            <h2 class="mb-0 fw-bold text-white"><?= $bumpilStats['total_hamil'] ?? 0 ?></h2>
                             <small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i><?= $bumpilStats['resiko_tinggi'] ?? 0 ?> resiko tinggi</small>
                         </div>
-                        <div class="bg-info bg-opacity-10 rounded-circle p-3">
-                            <i class="fas fa-user-nurse fa-2x text-info"></i>
+                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                            <i class="fas fa-user-nurse fa-2x text-white"></i>
                         </div>
                     </div>
                 </div>
@@ -84,16 +84,16 @@
 
         <!-- HPL dalam 30 hari -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
+            <div class="card border-0 shadow h-100" style="background: #28a745 !important;">
+                <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
-                            <h6 class="text-muted mb-2">Akan Melahirkan</h6>
-                            <h2 class="mb-0 fw-bold text-success"><?= $bumpilStats['akan_melahirkan_30_hari'] ?? 0 ?></h2>
-                            <small class="text-muted">dalam 30 hari ke depan</small>
+                            <h6 class="text-white mb-2" style="opacity: 0.9;">Akan Melahirkan</h6>
+                            <h2 class="mb-0 fw-bold text-white"><?= $bumpilStats['akan_melahirkan_30_hari'] ?? 0 ?></h2>
+                            <small class="text-white" style="opacity: 0.8;">dalam 30 hari ke depan</small>
                         </div>
-                        <div class="bg-success bg-opacity-10 rounded-circle p-3">
-                            <i class="fas fa-calendar-check fa-2x text-success"></i>
+                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                            <i class="fas fa-calendar-check fa-2x text-white"></i>
                         </div>
                     </div>
                 </div>
