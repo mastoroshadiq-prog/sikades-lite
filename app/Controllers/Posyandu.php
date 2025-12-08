@@ -550,4 +550,142 @@ class Posyandu extends BaseController
         
         return view('posyandu/bumil/risti', $data);
     }
+
+    // ========================================
+    // KADER MANAGEMENT
+    // ========================================
+
+    /**
+     * Form tambah kader
+     */
+    public function createKader($posyanduId)
+    {
+        $posyandu = $this->posyanduModel->find($posyanduId);
+        
+        if (!$posyandu) {
+            return redirect()->to('/posyandu')->with('error', 'Posyandu tidak ditemukan');
+        }
+        
+        // Get penduduk for dropdown
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        $pendudukList = $this->pendudukModel
+            ->select('pop_penduduk.*, pop_keluarga.dusun')
+            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
+            ->where('pop_keluarga.kode_desa', $kodeDesa)
+            ->where('pop_penduduk.status_dasar', 'HIDUP')
+            ->orderBy('pop_penduduk.nama_lengkap')
+            ->findAll();
+        
+        $data = [
+            'title'        => 'Tambah Kader - ' . $posyandu['nama_posyandu'],
+            'user'         => $this->user,
+            'posyandu'     => $posyandu,
+            'pendudukList' => $pendudukList,
+        ];
+        
+        return view('posyandu/kader/form', $data);
+    }
+
+    /**
+     * Simpan kader baru
+     */
+    public function saveKader()
+    {
+        $posyanduId = $this->request->getPost('posyandu_id');
+        
+        $data = [
+            'posyandu_id' => $posyanduId,
+            'penduduk_id' => $this->request->getPost('penduduk_id') ?: null,
+            'nama_kader'  => $this->request->getPost('nama_kader'),
+            'jabatan'     => $this->request->getPost('jabatan'),
+            'no_telp'     => $this->request->getPost('no_telp'),
+            'status'      => $this->request->getPost('status') ?: 'AKTIF',
+            'created_at'  => date('Y-m-d H:i:s'),
+            'updated_at'  => date('Y-m-d H:i:s'),
+        ];
+        
+        $this->db->table('kes_kader')->insert($data);
+        
+        return redirect()->to('/posyandu/posyandu/detail/' . $posyanduId)
+            ->with('success', 'Kader berhasil ditambahkan');
+    }
+
+    /**
+     * Edit kader
+     */
+    public function editKader($id)
+    {
+        $kader = $this->db->table('kes_kader')->where('id', $id)->get()->getRowArray();
+        
+        if (!$kader) {
+            return redirect()->to('/posyandu')->with('error', 'Data kader tidak ditemukan');
+        }
+        
+        $posyandu = $this->posyanduModel->find($kader['posyandu_id']);
+        
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        $pendudukList = $this->pendudukModel
+            ->select('pop_penduduk.*, pop_keluarga.dusun')
+            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
+            ->where('pop_keluarga.kode_desa', $kodeDesa)
+            ->where('pop_penduduk.status_dasar', 'HIDUP')
+            ->orderBy('pop_penduduk.nama_lengkap')
+            ->findAll();
+        
+        $data = [
+            'title'        => 'Edit Kader - ' . $kader['nama_kader'],
+            'user'         => $this->user,
+            'posyandu'     => $posyandu,
+            'kader'        => $kader,
+            'pendudukList' => $pendudukList,
+        ];
+        
+        return view('posyandu/kader/form', $data);
+    }
+
+    /**
+     * Update kader
+     */
+    public function updateKader($id)
+    {
+        $kader = $this->db->table('kes_kader')->where('id', $id)->get()->getRowArray();
+        
+        if (!$kader) {
+            return redirect()->to('/posyandu')->with('error', 'Data kader tidak ditemukan');
+        }
+        
+        $data = [
+            'penduduk_id' => $this->request->getPost('penduduk_id') ?: null,
+            'nama_kader'  => $this->request->getPost('nama_kader'),
+            'jabatan'     => $this->request->getPost('jabatan'),
+            'no_telp'     => $this->request->getPost('no_telp'),
+            'status'      => $this->request->getPost('status'),
+            'updated_at'  => date('Y-m-d H:i:s'),
+        ];
+        
+        $this->db->table('kes_kader')->where('id', $id)->update($data);
+        
+        return redirect()->to('/posyandu/posyandu/detail/' . $kader['posyandu_id'])
+            ->with('success', 'Data kader berhasil diupdate');
+    }
+
+    /**
+     * Hapus kader
+     */
+    public function deleteKader($id)
+    {
+        $kader = $this->db->table('kes_kader')->where('id', $id)->get()->getRowArray();
+        
+        if (!$kader) {
+            return redirect()->to('/posyandu')->with('error', 'Data kader tidak ditemukan');
+        }
+        
+        $posyanduId = $kader['posyandu_id'];
+        
+        $this->db->table('kes_kader')->where('id', $id)->delete();
+        
+        return redirect()->to('/posyandu/posyandu/detail/' . $posyanduId)
+            ->with('success', 'Data kader berhasil dihapus');
+    }
 }
+

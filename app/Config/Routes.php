@@ -356,6 +356,13 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('bumil/(:num)/create', 'Posyandu::createBumil/$1');
         $routes->post('bumil/save', 'Posyandu::saveBumil');
         $routes->get('bumil/risti', 'Posyandu::bumilRisti');
+        
+        // Kader Management
+        $routes->get('kader/(:num)/create', 'Posyandu::createKader/$1');
+        $routes->post('kader/save', 'Posyandu::saveKader');
+        $routes->get('kader/edit/(:num)', 'Posyandu::editKader/$1');
+        $routes->post('kader/update/(:num)', 'Posyandu::updateKader/$1');
+        $routes->get('kader/delete/(:num)', 'Posyandu::deleteKader/$1');
     });
 });
 

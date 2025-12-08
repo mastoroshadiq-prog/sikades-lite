@@ -201,11 +201,20 @@
         <!-- Tab Kader -->
         <div class="tab-pane fade" id="tabKader">
             <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-users me-2 text-secondary"></i>Daftar Kader</h5>
+                    <a href="<?= base_url('/posyandu/kader/' . $posyandu['id'] . '/create') ?>" class="btn btn-primary btn-sm">
+                        <i class="fas fa-plus me-2"></i>Tambah Kader
+                    </a>
+                </div>
                 <div class="card-body p-0">
                     <?php if (empty($kaderList)): ?>
                         <div class="text-center py-5">
                             <i class="fas fa-users fa-4x text-muted mb-3"></i>
                             <h5 class="text-muted">Belum ada data kader</h5>
+                            <a href="<?= base_url('/posyandu/kader/' . $posyandu['id'] . '/create') ?>" class="btn btn-primary mt-3">
+                                <i class="fas fa-plus me-2"></i>Tambah Kader
+                            </a>
                         </div>
                     <?php else: ?>
                         <div class="table-responsive">
@@ -216,6 +225,7 @@
                                         <th>Jabatan</th>
                                         <th>No. Telepon</th>
                                         <th>Status</th>
+                                        <th width="120">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -228,6 +238,17 @@
                                                 <span class="badge bg-<?= $k['status'] == 'AKTIF' ? 'success' : 'secondary' ?>">
                                                     <?= $k['status'] ?>
                                                 </span>
+                                            </td>
+                                            <td>
+                                                <a href="<?= base_url('/posyandu/kader/edit/' . $k['id']) ?>" 
+                                                   class="btn btn-sm btn-outline-primary" title="Edit">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="<?= base_url('/posyandu/kader/delete/' . $k['id']) ?>" 
+                                                   class="btn btn-sm btn-outline-danger" title="Hapus"
+                                                   onclick="return confirm('Yakin ingin menghapus kader ini?')">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
