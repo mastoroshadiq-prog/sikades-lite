@@ -175,8 +175,35 @@
                         <a class="nav-link <?= (strpos(uri_string(), 'bumdes/unit') !== false) ? 'active' : '' ?>" href="<?= base_url('/bumdes/unit') ?>">
                             <i class="fas fa-building"></i> Unit Usaha
                         </a>
-                        <a class="nav-link <?= (strpos(uri_string(), 'bumdes/akun') !== false) ? 'active' : '' ?>" href="<?= base_url('/bumdes/akun') ?>">
-                            <i class="fas fa-book"></i> Chart of Accounts
+                    </div>
+                </div>
+            </div>
+            
+            <!-- e-POSYANDU - Kesehatan Masyarakat -->
+            <?php 
+            $posyanduActive = strpos(uri_string(), 'posyandu') !== false;
+            ?>
+            <div class="sidebar-section">
+                <a class="nav-link section-toggle <?= $posyanduActive ? '' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" href="#menuPosyandu" role="button"
+                   hx-boost="false">
+                    <i class="fas fa-heartbeat"></i> 
+                    <span>e-Posyandu</span>
+                    <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
+                </a>
+                <div class="collapse <?= $posyanduActive ? 'show' : '' ?>" id="menuPosyandu">
+                    <div class="submenu">
+                        <a class="nav-link <?= (uri_string() === 'posyandu' || uri_string() === 'posyandu/') ? 'active' : '' ?>" href="<?= base_url('/posyandu') ?>">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'posyandu/posyandu') !== false) ? 'active' : '' ?>" href="<?= base_url('/posyandu/posyandu') ?>">
+                            <i class="fas fa-clinic-medical"></i> Data Posyandu
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'posyandu/stunting') !== false) ? 'active' : '' ?>" href="<?= base_url('/posyandu/stunting') ?>">
+                            <i class="fas fa-child"></i> Stunting
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'posyandu/bumil') !== false) ? 'active' : '' ?>" href="<?= base_url('/posyandu/bumil/risti') ?>">
+                            <i class="fas fa-user-nurse"></i> Bumil Risti
                         </a>
                     </div>
                 </div>

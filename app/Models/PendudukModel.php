@@ -370,4 +370,40 @@ class PendudukModel extends Model
     {
         return ['A', 'B', 'AB', 'O', 'Tidak Tahu'];
     }
+
+    /**
+     * Get balita (children under 5 years old)
+     */
+    public function getBalita(string $kodeDesa): array
+    {
+        $fiveYearsAgo = date('Y-m-d', strtotime('-5 years'));
+        
+        return $this->select('pop_penduduk.*, pop_keluarga.no_kk, pop_keluarga.dusun, pop_keluarga.alamat')
+            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
+            ->where('pop_keluarga.kode_desa', $kodeDesa)
+            ->where('pop_penduduk.status_dasar', 'HIDUP')
+            ->where('pop_penduduk.tanggal_lahir >=', $fiveYearsAgo)
+            ->orderBy('pop_penduduk.nama_lengkap')
+            ->findAll();
+    }
+
+    /**
+     * Get WUS (Wanita Usia Subur) - Women 15-49 years old
+     */
+    public function getWUS(string $kodeDesa): array
+    {
+        $minAge = date('Y-m-d', strtotime('-49 years'));
+        $maxAge = date('Y-m-d', strtotime('-15 years'));
+        
+        return $this->select('pop_penduduk.*, pop_keluarga.no_kk, pop_keluarga.dusun, pop_keluarga.alamat')
+            ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
+            ->where('pop_keluarga.kode_desa', $kodeDesa)
+            ->where('pop_penduduk.status_dasar', 'HIDUP')
+            ->where('pop_penduduk.jenis_kelamin', 'P')
+            ->where('pop_penduduk.tanggal_lahir >=', $minAge)
+            ->where('pop_penduduk.tanggal_lahir <=', $maxAge)
+            ->orderBy('pop_penduduk.nama_lengkap')
+            ->findAll();
+    }
 }
+

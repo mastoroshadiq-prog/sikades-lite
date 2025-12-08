@@ -329,6 +329,34 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('wilayah/boundaries', 'Gis::getWilayahBoundaries');
         $routes->get('wilayah/markers', 'Gis::getWilayahMarkers');
     });
+    
+    // ===========================================
+    // e-Posyandu - Kesehatan Masyarakat
+    // ===========================================
+    $routes->group('posyandu', function($routes) {
+        // Dashboard
+        $routes->get('/', 'Posyandu::index');
+        
+        // Posyandu Management
+        $routes->get('posyandu', 'Posyandu::posyandu');
+        $routes->get('posyandu/create', 'Posyandu::createPosyandu');
+        $routes->post('posyandu/save', 'Posyandu::savePosyandu');
+        $routes->get('posyandu/detail/(:num)', 'Posyandu::detailPosyandu/$1');
+        
+        // Pemeriksaan Balita
+        $routes->get('pemeriksaan/(:num)/create', 'Posyandu::createPemeriksaan/$1');
+        $routes->post('pemeriksaan/save', 'Posyandu::savePemeriksaan');
+        $routes->get('pemeriksaan/riwayat/(:num)', 'Posyandu::riwayatBalita/$1');
+        
+        // Stunting Monitoring
+        $routes->get('stunting', 'Posyandu::stunting');
+        $routes->get('stunting/gis', 'Posyandu::getStuntingGis');
+        
+        // Ibu Hamil
+        $routes->get('bumil/(:num)/create', 'Posyandu::createBumil/$1');
+        $routes->post('bumil/save', 'Posyandu::saveBumil');
+        $routes->get('bumil/risti', 'Posyandu::bumilRisti');
+    });
 });
 
 /*
