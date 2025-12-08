@@ -215,6 +215,46 @@
     </div>
 </div>
 
+<!-- Modal untuk Detail Dusun -->
+<div class="modal fade" id="dusunDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-map-marker-alt me-2"></i><span id="modalDusunName">Dusun</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center py-4">
+                <div class="mb-3">
+                    <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="fas fa-exclamation-triangle text-warning fa-3x"></i>
+                    </div>
+                </div>
+                <h5 class="mb-2">Koordinat Belum Diatur</h5>
+                <p class="text-muted mb-3">
+                    Wilayah <strong id="modalDusunNameText"></strong> belum memiliki koordinat lokasi di peta.
+                </p>
+                <div class="alert alert-info text-start mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Anda dapat mengatur koordinat di halaman <strong>Pengaturan Wilayah</strong>, atau langsung melihat data penduduk untuk wilayah ini.
+                </div>
+            </div>
+            <div class="modal-footer justify-content-center gap-2">
+                <a href="" id="btnViewDemografi" class="btn btn-primary">
+                    <i class="fas fa-users me-2"></i>Lihat Data Penduduk
+                </a>
+                <a href="<?= base_url('/gis/wilayah') ?>" class="btn btn-outline-success">
+                    <i class="fas fa-cog me-2"></i>Atur Koordinat
+                </a>
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Tutup
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
@@ -572,10 +612,13 @@ function handleDusunClick(encodedDusun, lat, lng) {
             }
         });
     } else {
-        // No coordinates - redirect to demografi
-        if (confirm(`Wilayah "${dusun}" belum memiliki koordinat.\n\nLihat data penduduk untuk wilayah ini?`)) {
-            window.location.href = `<?= base_url('/demografi/penduduk') ?>?dusun=${encodedDusun}`;
-        }
+        // No coordinates - show modal with options
+        document.getElementById('modalDusunName').textContent = dusun;
+        document.getElementById('modalDusunNameText').textContent = dusun;
+        document.getElementById('btnViewDemografi').href = `<?= base_url('/demografi/penduduk') ?>?dusun=${encodedDusun}`;
+        
+        const modal = new bootstrap.Modal(document.getElementById('dusunDetailModal'));
+        modal.show();
     }
 }
 
