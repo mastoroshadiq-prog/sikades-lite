@@ -412,14 +412,21 @@ function renderDusunCards(data) {
     
     let html = '';
     const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f43f5e', '#f97316', '#eab308', '#22c55e', '#06b6d4'];
+    let validDusunCount = 0;
     
     data.by_dusun.forEach((dusun, index) => {
-        const color = colors[index % colors.length];
+        // Skip entries with empty or invalid wilayah
+        if (!dusun.wilayah || dusun.wilayah.trim() === '' || dusun.wilayah === 'Tidak Diketahui') {
+            return;
+        }
+        
+        const color = colors[validDusunCount % colors.length];
         const percentage = data.total > 0 ? ((dusun.jumlah_penduduk / data.total) * 100).toFixed(1) : 0;
+        validDusunCount++;
         
         html += `
             <div class="col-md-3 col-sm-6">
-                <div class="population-card card border-0 h-100" style="border-left: 4px solid ${color} !important;">
+                <div class="population-card card border-0 h-100 shadow-sm" style="border-left: 4px solid ${color} !important;">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
@@ -450,29 +457,31 @@ function renderDusunCards(data) {
         `;
     });
     
-    // Add summary card
-    html += `
-        <div class="col-md-3 col-sm-6">
-            <div class="population-card card border-0 h-100 bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div class="card-body text-white">
-                    <div class="text-center">
-                        <i class="fas fa-globe fa-3x mb-2 opacity-75"></i>
-                        <h3 class="mb-0">${data.total}</h3>
-                        <p class="mb-0">Total Penduduk</p>
-                    </div>
-                    <hr class="border-white opacity-25 my-2">
-                    <div class="row text-center small">
-                        <div class="col-6">
-                            <strong>${data.by_dusun.length}</strong><br>Dusun
+    // Add summary card only if we have valid dusun data
+    if (validDusunCount > 0) {
+        html += `
+            <div class="col-md-3 col-sm-6">
+                <div class="population-card card border-0 h-100 shadow" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;">
+                    <div class="card-body text-white">
+                        <div class="text-center">
+                            <i class="fas fa-globe fa-3x mb-2 opacity-75"></i>
+                            <h3 class="mb-0">${data.total}</h3>
+                            <p class="mb-0">Total Penduduk</p>
                         </div>
-                        <div class="col-6">
-                            <strong>${data.by_rt ? data.by_rt.length : 0}</strong><br>RT
+                        <hr class="border-white opacity-25 my-2">
+                        <div class="row text-center small">
+                            <div class="col-6">
+                                <strong>${validDusunCount}</strong><br>Dusun
+                            </div>
+                            <div class="col-6">
+                                <strong>${data.by_rt ? data.by_rt.length : 0}</strong><br>RT
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    `;
+        `;
+    }
     
     container.innerHTML = html;
 }

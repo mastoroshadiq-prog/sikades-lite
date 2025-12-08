@@ -153,7 +153,7 @@ class Gis extends BaseController
         // Get population by dusun - join with keluarga for wilayah data
         $dusunData = $db->query("
             SELECT 
-                COALESCE(k.dusun, 'Tidak Diketahui') as wilayah,
+                TRIM(k.dusun) as wilayah,
                 COUNT(*) as jumlah_penduduk,
                 COUNT(DISTINCT k.no_kk) as jumlah_kk,
                 SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
@@ -163,8 +163,9 @@ class Gis extends BaseController
             WHERE k.kode_desa = ? 
                 AND p.status_dasar = 'HIDUP'
                 AND k.dusun IS NOT NULL 
-                AND k.dusun != ''
-            GROUP BY k.dusun
+                AND TRIM(k.dusun) != ''
+            GROUP BY TRIM(k.dusun)
+            HAVING wilayah != ''
             ORDER BY jumlah_penduduk DESC
         ", [$kodeDesa])->getResultArray();
         
