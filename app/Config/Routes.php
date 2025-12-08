@@ -281,6 +281,46 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('api/search', 'Demografi::searchPenduduk');
         $routes->get('blt-eligible', 'Demografi::bltEligible');
     });
+    
+    // ===========================================
+    // BUMDES - Sistem Akuntansi BUMDes
+    // ===========================================
+    $routes->group('bumdes', function($routes) {
+        // Dashboard
+        $routes->get('/', 'Bumdes::index');
+        
+        // Unit Usaha
+        $routes->get('unit', 'Bumdes::units');
+        $routes->get('unit/create', 'Bumdes::createUnit');
+        $routes->post('unit/save', 'Bumdes::saveUnit');
+        $routes->get('unit/detail/(:num)', 'Bumdes::detailUnit/$1');
+        $routes->get('unit/edit/(:num)', 'Bumdes::editUnit/$1');
+        $routes->post('unit/update/(:num)', 'Bumdes::updateUnit/$1');
+        
+        // Jurnal
+        $routes->get('jurnal/(:num)', 'Bumdes::jurnal/$1');
+        $routes->get('jurnal/(:num)/create', 'Bumdes::createJurnal/$1');
+        $routes->post('jurnal/(:num)/save', 'Bumdes::saveJurnal/$1');
+        $routes->get('jurnal/(:num)/detail/(:num)', 'Bumdes::detailJurnal/$1/$2');
+        
+        // Laporan
+        $routes->get('laporan/laba-rugi/(:num)', 'Bumdes::laporanLabaRugi/$1');
+        $routes->get('laporan/neraca/(:num)', 'Bumdes::laporanNeraca/$1');
+        $routes->get('laporan/neraca-saldo/(:num)', 'Bumdes::laporanNeracaSaldo/$1');
+        
+        // Chart of Accounts
+        $routes->get('akun', 'Bumdes::akun');
+    });
+    
+    // ===========================================
+    // WebGIS - Peta Aset Desa
+    // ===========================================
+    $routes->group('gis', function($routes) {
+        $routes->get('/', 'Gis::index');
+        $routes->get('json', 'Gis::getJsonData');
+        $routes->get('detail/(:num)', 'Gis::getAsetDetail/$1');
+        $routes->get('fullscreen', 'Gis::fullscreen');
+    });
 });
 
 /*

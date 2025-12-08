@@ -115,6 +115,9 @@
                         <a class="nav-link <?= (strpos(uri_string(), 'aset/create') !== false) ? 'active' : '' ?>" href="<?= base_url('/aset/create') ?>">
                             <i class="fas fa-plus"></i> Tambah Aset
                         </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'gis') !== false) ? 'active' : '' ?>" href="<?= base_url('/gis') ?>">
+                            <i class="fas fa-map-marked-alt"></i> WebGIS
+                        </a>
                     </div>
                 </div>
             </div>
@@ -147,6 +150,33 @@
                         </a>
                         <a class="nav-link <?= (strpos(uri_string(), 'demografi/import') !== false) ? 'active' : '' ?>" href="<?= base_url('/demografi/import') ?>">
                             <i class="fas fa-file-import"></i> Import Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- BUMDES - Sistem Akuntansi BUMDes -->
+            <?php 
+            $bumdesActive = strpos(uri_string(), 'bumdes') !== false;
+            ?>
+            <div class="sidebar-section">
+                <a class="nav-link section-toggle <?= $bumdesActive ? '' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" href="#menuBumdes" role="button"
+                   hx-boost="false">
+                    <i class="fas fa-store"></i> 
+                    <span>BUMDes</span>
+                    <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
+                </a>
+                <div class="collapse <?= $bumdesActive ? 'show' : '' ?>" id="menuBumdes">
+                    <div class="submenu">
+                        <a class="nav-link <?= (uri_string() === 'bumdes' || uri_string() === 'bumdes/') ? 'active' : '' ?>" href="<?= base_url('/bumdes') ?>">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'bumdes/unit') !== false) ? 'active' : '' ?>" href="<?= base_url('/bumdes/unit') ?>">
+                            <i class="fas fa-building"></i> Unit Usaha
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'bumdes/akun') !== false) ? 'active' : '' ?>" href="<?= base_url('/bumdes/akun') ?>">
+                            <i class="fas fa-book"></i> Chart of Accounts
                         </a>
                     </div>
                 </div>

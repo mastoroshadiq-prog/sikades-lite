@@ -613,7 +613,7 @@ class Demografi extends BaseController
     }
 
     /**
-     * Process import
+     * Process import CSV/Excel
      */
     public function processImport()
     {
@@ -628,19 +628,183 @@ class Demografi extends BaseController
             return redirect()->back()->with('error', 'Format file harus CSV atau Excel');
         }
 
-        // TODO: Implement actual import logic with PhpSpreadsheet
-        // For now, just show success message
-        
-        return redirect()->to('/demografi/penduduk')
-            ->with('success', 'Import data berhasil (fitur dalam pengembangan)');
+        try {
+            $kodeDesa = $this->session->get('kode_desa');
+            
+            // Load spreadsheet based on type
+            if ($extension === 'csv') {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Csv();
+            } elseif ($extension === 'xlsx') {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+            } else {
+                $reader = new \PhpOffice\PhpSpreadsheet\Reader\Xls();
+            }
+            
+            $spreadsheet = $reader->load($file->getTempName());
+            $worksheet = $spreadsheet->getActiveSheet();
+            $rows = $worksheet->toArray();
+            
+            // Skip header row
+            $header = array_shift($rows);
+            
+            // Map header to column index
+            $headerMap = [];
+            foreach ($header as $idx => $col) {
+                $headerMap[strtoupper(trim($col ?? ''))] = $idx;
+            }
+            
+            // Required columns
+            $requiredCols = ['NO_KK', 'NIK', 'NAMA_LENGKAP', 'JENIS_KELAMIN'];
+            foreach ($requiredCols as $col) {
+                if (!isset($headerMap[$col])) {
+                    return redirect()->back()->with('error', "Kolom {$col} tidak ditemukan dalam file");
+                }
+            }
+            
+            $imported = 0;
+            $skipped = 0;
+            $errors = [];
+            
+            foreach ($rows as $rowNum => $row) {
+                $actualRow = $rowNum + 2; // Account for 0-index and header
+                
+                // Get values with fallback
+                $noKk = $row[$headerMap['NO_KK']] ?? '';
+                $nik = $row[$headerMap['NIK']] ?? '';
+                $nama = $row[$headerMap['NAMA_LENGKAP']] ?? '';
+                $jk = strtoupper($row[$headerMap['JENIS_KELAMIN']] ?? 'L');
+                
+                // Skip empty rows
+                if (empty($noKk) || empty($nik) || empty($nama)) {
+                    continue;
+                }
+                
+                // Validate NIK (16 digits)
+                $nik = trim(strval($nik));
+                if (strlen($nik) != 16) {
+                    $errors[] = "Baris {$actualRow}: NIK harus 16 digit";
+                    $skipped++;
+                    continue;
+                }
+                
+                // Validate No KK (16 digits)
+                $noKk = trim(strval($noKk));
+                if (strlen($noKk) != 16) {
+                    $errors[] = "Baris {$actualRow}: No KK harus 16 digit";
+                    $skipped++;
+                    continue;
+                }
+                
+                // Check if NIK already exists
+                if ($this->pendudukModel->where('nik', $nik)->first()) {
+                    $errors[] = "Baris {$actualRow}: NIK {$nik} sudah terdaftar";
+                    $skipped++;
+                    continue;
+                }
+                
+                // Find or create keluarga
+                $keluarga = $this->keluargaModel->where('no_kk', $noKk)->first();
+                if (!$keluarga) {
+                    // Create new keluarga
+                    $keluargaData = [
+                        'kode_desa' => $kodeDesa,
+                        'no_kk' => $noKk,
+                        'kepala_keluarga' => $nama,
+                        'alamat' => $row[$headerMap['ALAMAT'] ?? 999] ?? null,
+                        'rt' => $row[$headerMap['RT'] ?? 999] ?? null,
+                        'rw' => $row[$headerMap['RW'] ?? 999] ?? null,
+                        'dusun' => $row[$headerMap['DUSUN'] ?? 999] ?? null,
+                    ];
+                    $this->keluargaModel->insert($keluargaData);
+                    $keluargaId = $this->keluargaModel->getInsertID();
+                } else {
+                    $keluargaId = $keluarga['id'];
+                }
+                
+                // Prepare penduduk data
+                $pendudukData = [
+                    'keluarga_id' => $keluargaId,
+                    'nik' => $nik,
+                    'nama_lengkap' => $nama,
+                    'tempat_lahir' => $row[$headerMap['TEMPAT_LAHIR'] ?? 999] ?? null,
+                    'tanggal_lahir' => $this->parseDate($row[$headerMap['TANGGAL_LAHIR'] ?? 999] ?? null),
+                    'jenis_kelamin' => in_array($jk, ['L', 'P']) ? $jk : 'L',
+                    'agama' => $row[$headerMap['AGAMA'] ?? 999] ?? null,
+                    'pendidikan_terakhir' => $row[$headerMap['PENDIDIKAN'] ?? 999] ?? null,
+                    'pekerjaan' => $row[$headerMap['PEKERJAAN'] ?? 999] ?? null,
+                    'status_perkawinan' => $row[$headerMap['STATUS_KAWIN'] ?? 999] ?? null,
+                    'status_hubungan' => $row[$headerMap['STATUS_HUBUNGAN'] ?? 999] ?? null,
+                    'golongan_darah' => $row[$headerMap['GOLONGAN_DARAH'] ?? 999] ?? null,
+                    'nama_ayah' => $row[$headerMap['NAMA_AYAH'] ?? 999] ?? null,
+                    'nama_ibu' => $row[$headerMap['NAMA_IBU'] ?? 999] ?? null,
+                    'kewarganegaraan' => 'WNI',
+                    'status_dasar' => 'HIDUP',
+                    'is_miskin' => ($row[$headerMap['IS_MISKIN'] ?? 999] ?? 0) == 1 ? 1 : 0,
+                ];
+                
+                $this->pendudukModel->insert($pendudukData);
+                $imported++;
+            }
+            
+            $message = "Import selesai: {$imported} data berhasil diimport";
+            if ($skipped > 0) {
+                $message .= ", {$skipped} data dilewati";
+            }
+            
+            if (!empty($errors)) {
+                $this->session->setFlashdata('import_errors', array_slice($errors, 0, 10));
+            }
+            
+            return redirect()->to('/demografi/penduduk')->with('success', $message);
+            
+        } catch (\Exception $e) {
+            log_message('error', 'Import error: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Gagal import: ' . $e->getMessage());
+        }
     }
 
     /**
-     * Download template import
+     * Parse date from various formats
+     */
+    private function parseDate($value): ?string
+    {
+        if (empty($value)) return null;
+        
+        $value = trim(strval($value));
+        
+        // If already in Y-m-d format
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+            return $value;
+        }
+        
+        // Try d/m/Y format
+        if (preg_match('/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/', $value, $m)) {
+            return "{$m[3]}-" . str_pad($m[2], 2, '0', STR_PAD_LEFT) . "-" . str_pad($m[1], 2, '0', STR_PAD_LEFT);
+        }
+        
+        // Try d-m-Y format
+        if (preg_match('/^(\d{1,2})-(\d{1,2})-(\d{4})$/', $value, $m)) {
+            return "{$m[3]}-" . str_pad($m[2], 2, '0', STR_PAD_LEFT) . "-" . str_pad($m[1], 2, '0', STR_PAD_LEFT);
+        }
+        
+        // Excel numeric date
+        if (is_numeric($value)) {
+            try {
+                $date = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject($value);
+                return $date->format('Y-m-d');
+            } catch (\Exception $e) {
+                return null;
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Download template import CSV
      */
     public function downloadTemplate()
     {
-        // Headers for template
         $headers = [
             'NO_KK', 'NIK', 'NAMA_LENGKAP', 'TEMPAT_LAHIR', 'TANGGAL_LAHIR',
             'JENIS_KELAMIN', 'AGAMA', 'PENDIDIKAN', 'PEKERJAAN', 'STATUS_KAWIN',
@@ -650,6 +814,7 @@ class Demografi extends BaseController
 
         $output = implode(',', $headers) . "\n";
         $output .= "3201234567890123,3201234567890124,John Doe,Jakarta,1990-01-15,L,Islam,SLTA/Sederajat,Wiraswasta,Kawin,Kepala Keluarga,O,Father Name,Mother Name,Jl. Contoh No. 1,001,002,Dusun 1,0\n";
+        $output .= "3201234567890123,3201234567890125,Jane Doe,Bandung,1995-05-20,P,Islam,SLTA/Sederajat,Mengurus Rumah Tangga,Kawin,Istri,A,Father Name,Mother Name,Jl. Contoh No. 1,001,002,Dusun 1,0\n";
 
         return $this->response
             ->setHeader('Content-Type', 'text/csv')
