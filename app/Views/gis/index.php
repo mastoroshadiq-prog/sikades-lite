@@ -102,6 +102,9 @@
             </nav>
         </div>
         <div>
+            <a href="<?= base_url('/gis/wilayah') ?>" class="btn btn-outline-secondary">
+                <i class="fas fa-cog me-2"></i>Pengaturan Wilayah
+            </a>
             <a href="<?= base_url('/gis/fullscreen') ?>" class="btn btn-outline-primary" target="_blank">
                 <i class="fas fa-expand me-2"></i>Fullscreen
             </a>
@@ -422,11 +425,18 @@ function renderDusunCards(data) {
         
         const color = colors[validDusunCount % colors.length];
         const percentage = data.total > 0 ? ((dusun.jumlah_penduduk / data.total) * 100).toFixed(1) : 0;
+        const encodedDusun = encodeURIComponent(dusun.wilayah);
+        const hasCoords = dusun.coordinates && dusun.coordinates.lat && dusun.coordinates.lng;
         validDusunCount++;
         
         html += `
             <div class="col-md-3 col-sm-6">
-                <div class="population-card card border-0 h-100 shadow-sm" style="border-left: 4px solid ${color} !important;">
+                <div class="population-card card border-0 h-100 shadow-sm" 
+                     style="border-left: 4px solid ${color} !important;"
+                     onclick="handleDusunClick('${encodedDusun}', ${hasCoords ? dusun.coordinates.lat : 'null'}, ${hasCoords ? dusun.coordinates.lng : 'null'})"
+                     data-dusun="${dusun.wilayah}"
+                     data-color="${color}"
+                     data-population="${dusun.jumlah_penduduk}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start">
                             <div>
@@ -451,10 +461,20 @@ function renderDusunCards(data) {
                             <div class="progress-bar bg-primary" style="width: ${(dusun.laki_laki / dusun.jumlah_penduduk * 100)}%"></div>
                             <div class="progress-bar bg-danger" style="width: ${(dusun.perempuan / dusun.jumlah_penduduk * 100)}%"></div>
                         </div>
+                        <div class="mt-2 text-center">
+                            <small class="text-muted">
+                                ${hasCoords ? '<i class="fas fa-map-marker-alt text-success"></i> Klik untuk lihat di peta' : '<i class="fas fa-external-link-alt"></i> Klik untuk detail'}
+                            </small>
+                        </div>
                     </div>
                 </div>
             </div>
         `;
+        
+        // Add circle marker to map if has coordinates
+        if (hasCoords) {
+            addPopulationCircle(dusun.wilayah, dusun.coordinates.lat, dusun.coordinates.lng, dusun.jumlah_penduduk, data.max, color, dusun);
+        }
     });
     
     // Add summary card only if we have valid dusun data
@@ -487,7 +507,80 @@ function renderDusunCards(data) {
 }
 
 // =============================================
-// LAYER SWITCHING
+// POPULATION CIRCLE MARKERS
+// =============================================
+let populationCircles = L.layerGroup();
+
+function addPopulationCircle(name, lat, lng, population, maxPopulation, color, dusunData) {
+    // Calculate radius based on population (min 30, max 80)
+    const minRadius = 30;
+    const maxRadius = 80;
+    const ratio = maxPopulation > 0 ? population / maxPopulation : 0;
+    const radius = minRadius + (ratio * (maxRadius - minRadius));
+    
+    const circle = L.circleMarker([lat, lng], {
+        radius: radius,
+        fillColor: color,
+        color: '#fff',
+        weight: 2,
+        opacity: 1,
+        fillOpacity: 0.7
+    });
+    
+    // Popup content
+    const popupContent = `
+        <div style="min-width: 200px;">
+            <h6 class="mb-2" style="color: ${color}"><i class="fas fa-map-marker-alt me-2"></i>${name}</h6>
+            <table class="table table-sm table-borderless mb-2">
+                <tr><td>Jumlah Penduduk</td><td class="fw-bold">${population}</td></tr>
+                <tr><td>Jumlah KK</td><td>${dusunData.jumlah_kk}</td></tr>
+                <tr><td>Laki-laki</td><td><i class="fas fa-male text-primary"></i> ${dusunData.laki_laki}</td></tr>
+                <tr><td>Perempuan</td><td><i class="fas fa-female text-danger"></i> ${dusunData.perempuan}</td></tr>
+            </table>
+            <a href="<?= base_url('/demografi/penduduk') ?>?dusun=${encodeURIComponent(name)}" class="btn btn-sm btn-primary w-100">
+                <i class="fas fa-users me-1"></i>Lihat Detail Penduduk
+            </a>
+        </div>
+    `;
+    
+    circle.bindPopup(popupContent, { maxWidth: 300 });
+    
+    // Hover effect
+    circle.on('mouseover', function() {
+        this.setStyle({ fillOpacity: 0.9, weight: 3 });
+    });
+    circle.on('mouseout', function() {
+        this.setStyle({ fillOpacity: 0.7, weight: 2 });
+    });
+    
+    populationCircles.addLayer(circle);
+}
+
+// Handle dusun card click
+function handleDusunClick(encodedDusun, lat, lng) {
+    const dusun = decodeURIComponent(encodedDusun);
+    
+    if (lat && lng) {
+        // Pan to location and open popup
+        map.setView([lat, lng], 15);
+        
+        // Find and open the circle's popup
+        populationCircles.eachLayer(function(layer) {
+            const popup = layer.getPopup();
+            if (popup && popup.getContent().includes(dusun)) {
+                layer.openPopup();
+            }
+        });
+    } else {
+        // No coordinates - redirect to demografi
+        if (confirm(`Wilayah "${dusun}" belum memiliki koordinat.\n\nLihat data penduduk untuk wilayah ini?`)) {
+            window.location.href = `<?= base_url('/demografi/penduduk') ?>?dusun=${encodedDusun}`;
+        }
+    }
+}
+
+// =============================================
+// LAYER SWITCHING (Updated)
 // =============================================
 let currentLayer = 'aset';
 
@@ -505,14 +598,16 @@ function toggleLayer(layer) {
     document.getElementById('pendudukTip').style.display = layer === 'penduduk' ? 'block' : 'none';
     
     if (layer === 'aset') {
-        // Show asset markers, hide population legend
+        // Show asset markers, hide population circles
         map.addLayer(markers);
+        map.removeLayer(populationCircles);
         if (map.hasLayer(densityLegend)) map.removeControl(densityLegend);
         if (map.hasLayer(popInfo)) map.removeControl(popInfo);
         assetLegend.addTo(map);
     } else {
-        // Hide asset markers, show population view
+        // Hide asset markers, show population circles
         map.removeLayer(markers);
+        map.addLayer(populationCircles);
         if (map.hasLayer(assetLegend)) map.removeControl(assetLegend);
         densityLegend.addTo(map);
         popInfo.addTo(map);
@@ -529,3 +624,4 @@ loadPopulationData();
 </script>
 
 <?= view('layout/footer') ?>
+

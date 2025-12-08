@@ -321,6 +321,13 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->get('population', 'Gis::getPopulationData');
         $routes->get('detail/(:num)', 'Gis::getAsetDetail/$1');
         $routes->get('fullscreen', 'Gis::fullscreen');
+        
+        // Wilayah Management
+        $routes->get('wilayah', 'Gis::wilayahSettings');
+        $routes->post('wilayah/coordinates', 'Gis::updateWilayahCoordinates');
+        $routes->post('wilayah/upload', 'Gis::uploadBoundary');
+        $routes->get('wilayah/boundaries', 'Gis::getWilayahBoundaries');
+        $routes->get('wilayah/markers', 'Gis::getWilayahMarkers');
     });
 });
 

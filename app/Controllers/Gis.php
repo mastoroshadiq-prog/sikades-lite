@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\AsetModel;
 use App\Models\PendudukModel;
 use App\Models\KeluargaModel;
+use App\Models\GisWilayahModel;
 
 class Gis extends BaseController
 {
@@ -12,6 +13,7 @@ class Gis extends BaseController
     protected $asetModel;
     protected $pendudukModel;
     protected $keluargaModel;
+    protected $wilayahModel;
 
     public function initController(\CodeIgniter\HTTP\RequestInterface $request, \CodeIgniter\HTTP\ResponseInterface $response, \Psr\Log\LoggerInterface $logger)
     {
@@ -21,6 +23,7 @@ class Gis extends BaseController
         $this->asetModel = new AsetModel();
         $this->pendudukModel = new PendudukModel();
         $this->keluargaModel = new KeluargaModel();
+        $this->wilayahModel = new GisWilayahModel();
     }
 
     /**
@@ -195,13 +198,225 @@ class Gis extends BaseController
             }
         }
         
+        // Get wilayah with coordinates for circle markers
+        $wilayahData = $this->wilayahModel->getWithCoordinates($kodeDesa, 'DUSUN');
+        
+        // Map population data to wilayah coordinates
+        $dusunWithCoords = [];
+        foreach ($dusunData as $d) {
+            $coords = null;
+            foreach ($wilayahData as $w) {
+                if ($w['nama_wilayah'] === $d['wilayah']) {
+                    $coords = [
+                        'lat' => (float) $w['center_lat'],
+                        'lng' => (float) $w['center_lng'],
+                    ];
+                    break;
+                }
+            }
+            $dusunWithCoords[] = array_merge($d, ['coordinates' => $coords]);
+        }
+        
         // Return data
         return $this->response->setJSON([
-            'by_dusun' => $dusunData,
+            'by_dusun' => $dusunWithCoords,
             'by_rt'    => $rtData,
             'max'      => $maxPenduduk,
             'total'    => array_sum(array_column($dusunData, 'jumlah_penduduk')),
         ]);
+    }
+
+    /**
+     * Wilayah Settings Page
+     */
+    public function wilayahSettings()
+    {
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        
+        // Sync wilayah from keluarga data
+        $this->wilayahModel->syncFromKeluarga($kodeDesa);
+        
+        $wilayahs = $this->wilayahModel->getByType($kodeDesa, 'DUSUN');
+        
+        $data = [
+            'title'     => 'Pengaturan Wilayah GIS',
+            'user'      => $this->user,
+            'wilayahs'  => $wilayahs,
+        ];
+        
+        return view('gis/wilayah_settings', $data);
+    }
+
+    /**
+     * Update wilayah coordinates
+     */
+    public function updateWilayahCoordinates()
+    {
+        $id = $this->request->getPost('id');
+        $lat = $this->request->getPost('lat');
+        $lng = $this->request->getPost('lng');
+        
+        if (!$id || !$lat || !$lng) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Data tidak lengkap']);
+        }
+        
+        $this->wilayahModel->updateCoordinates($id, $lat, $lng);
+        
+        return $this->response->setJSON(['success' => true, 'message' => 'Koordinat berhasil diperbarui']);
+    }
+
+    /**
+     * Upload GeoJSON boundary
+     */
+    public function uploadBoundary()
+    {
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        
+        $file = $this->request->getFile('geojson_file');
+        
+        if (!$file || !$file->isValid()) {
+            return redirect()->back()->with('error', 'File tidak valid');
+        }
+        
+        $ext = $file->getClientExtension();
+        if (!in_array($ext, ['json', 'geojson'])) {
+            return redirect()->back()->with('error', 'Format file harus .json atau .geojson');
+        }
+        
+        try {
+            $content = file_get_contents($file->getTempName());
+            $geojson = json_decode($content, true);
+            
+            if (!$geojson || !isset($geojson['type'])) {
+                return redirect()->back()->with('error', 'Format GeoJSON tidak valid');
+            }
+            
+            $imported = 0;
+            
+            // Handle FeatureCollection
+            if ($geojson['type'] === 'FeatureCollection' && isset($geojson['features'])) {
+                foreach ($geojson['features'] as $feature) {
+                    if ($this->importFeature($kodeDesa, $feature)) {
+                        $imported++;
+                    }
+                }
+            }
+            // Handle single Feature
+            elseif ($geojson['type'] === 'Feature') {
+                if ($this->importFeature($kodeDesa, $geojson)) {
+                    $imported++;
+                }
+            }
+            
+            return redirect()->back()->with('success', "Berhasil mengimpor {$imported} wilayah");
+            
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Import single GeoJSON feature
+     */
+    private function importFeature($kodeDesa, $feature)
+    {
+        if (!isset($feature['geometry']) || !isset($feature['properties'])) {
+            return false;
+        }
+        
+        // Get name from properties (try common field names)
+        $name = $feature['properties']['nama'] 
+             ?? $feature['properties']['name'] 
+             ?? $feature['properties']['NAMA']
+             ?? $feature['properties']['NAME']
+             ?? $feature['properties']['DUSUN']
+             ?? $feature['properties']['dusun']
+             ?? null;
+        
+        if (!$name) {
+            return false;
+        }
+        
+        // Get or create wilayah
+        $wilayah = $this->wilayahModel->getOrCreate($kodeDesa, $name, 'DUSUN');
+        
+        // Calculate center from geometry
+        $center = $this->calculateGeometryCenter($feature['geometry']);
+        
+        // Update with boundary and center
+        $this->wilayahModel->update($wilayah['id'], [
+            'geojson'    => json_encode($feature['geometry']),
+            'center_lat' => $center['lat'],
+            'center_lng' => $center['lng'],
+            'warna'      => $feature['properties']['fill'] ?? $feature['properties']['color'] ?? null,
+        ]);
+        
+        return true;
+    }
+
+    /**
+     * Calculate center point of geometry
+     */
+    private function calculateGeometryCenter($geometry)
+    {
+        $coords = [];
+        
+        // Extract all coordinates
+        if ($geometry['type'] === 'Polygon') {
+            $coords = $geometry['coordinates'][0]; // Outer ring
+        } elseif ($geometry['type'] === 'MultiPolygon') {
+            foreach ($geometry['coordinates'] as $polygon) {
+                $coords = array_merge($coords, $polygon[0]);
+            }
+        } elseif ($geometry['type'] === 'Point') {
+            return [
+                'lng' => $geometry['coordinates'][0],
+                'lat' => $geometry['coordinates'][1],
+            ];
+        }
+        
+        if (empty($coords)) {
+            return ['lat' => null, 'lng' => null];
+        }
+        
+        // Calculate centroid
+        $sumLat = 0;
+        $sumLng = 0;
+        $count = count($coords);
+        
+        foreach ($coords as $coord) {
+            $sumLng += $coord[0];
+            $sumLat += $coord[1];
+        }
+        
+        return [
+            'lat' => $sumLat / $count,
+            'lng' => $sumLng / $count,
+        ];
+    }
+
+    /**
+     * Get wilayah boundaries GeoJSON
+     */
+    public function getWilayahBoundaries()
+    {
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        
+        $geojson = $this->wilayahModel->getGeoJsonFeatureCollection($kodeDesa, 'DUSUN');
+        
+        return $this->response->setJSON($geojson);
+    }
+
+    /**
+     * Get wilayah with coordinates for markers
+     */
+    public function getWilayahMarkers()
+    {
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        
+        $wilayahs = $this->wilayahModel->getWithCoordinates($kodeDesa, 'DUSUN');
+        
+        return $this->response->setJSON($wilayahs);
     }
 }
 
