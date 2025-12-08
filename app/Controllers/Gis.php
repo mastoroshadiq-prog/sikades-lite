@@ -2,6 +2,8 @@
 
 namespace App\Controllers;
 
+use App\Models\AsetModel;
+
 class Gis extends BaseController
 {
     protected $user;
@@ -12,7 +14,7 @@ class Gis extends BaseController
         parent::initController($request, $response, $logger);
         
         $this->user = session()->get();
-        $this->asetModel = model('AsetModel');
+        $this->asetModel = new AsetModel();
     }
 
     /**
@@ -26,11 +28,12 @@ class Gis extends BaseController
         $centerLat = -6.2088;
         $centerLng = 106.8456;
         
-        // Get stats
-        $totalAset = $this->asetModel->where('kode_desa', $kodeDesa)
-            ->where('lat IS NOT NULL')
-            ->where('lng IS NOT NULL')
-            ->countAllResults();
+        // Get stats using raw query to avoid issues
+        $db = \Config\Database::connect();
+        $totalAset = $db->query("
+            SELECT COUNT(*) as total FROM aset_inventaris 
+            WHERE kode_desa = ? AND lat IS NOT NULL AND lng IS NOT NULL
+        ", [$kodeDesa])->getRow()->total ?? 0;
 
         $data = [
             'title'     => 'WebGIS - Peta Aset Desa',
@@ -52,12 +55,14 @@ class Gis extends BaseController
         
         $aset = $this->db->query("
             SELECT 
-                id, kode_register, nama_barang, kategori,
-                tahun_perolehan, harga_perolehan, kondisi,
-                lat, lng, foto
-            FROM desa_aset
-            WHERE kode_desa = ? AND lat IS NOT NULL AND lng IS NOT NULL
-            ORDER BY nama_barang
+                a.id, a.kode_register, a.nama_barang, 
+                COALESCE(k.nama_golongan, 'Lainnya') as kategori,
+                a.tahun_perolehan, a.harga_perolehan, a.kondisi,
+                a.lat, a.lng, a.foto
+            FROM aset_inventaris a
+            LEFT JOIN aset_kategori k ON a.kategori_id = k.id
+            WHERE a.kode_desa = ? AND a.lat IS NOT NULL AND a.lng IS NOT NULL
+            ORDER BY a.nama_barang
         ", [$kodeDesa])->getResultArray();
         
         // Format for GeoJSON

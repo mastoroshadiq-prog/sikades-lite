@@ -79,24 +79,24 @@
                 <div class="card-body py-2">
                     <div class="row text-center">
                         <div class="col">
-                            <span class="badge bg-primary">Tanah</span>
-                            <span id="countTanah" class="ms-1">0</span>
+                            <span class="badge bg-primary"><i class="fas fa-mountain me-1"></i>Tanah</span>
+                            <span id="countTanah" class="ms-1 fw-bold">0</span>
                         </div>
                         <div class="col">
-                            <span class="badge bg-success">Peralatan</span>
-                            <span id="countPeralatan" class="ms-1">0</span>
+                            <span class="badge bg-success"><i class="fas fa-tools me-1"></i>Peralatan</span>
+                            <span id="countPeralatan" class="ms-1 fw-bold">0</span>
                         </div>
                         <div class="col">
-                            <span class="badge bg-warning">Gedung</span>
-                            <span id="countGedung" class="ms-1">0</span>
+                            <span class="badge bg-warning text-dark"><i class="fas fa-building me-1"></i>Gedung</span>
+                            <span id="countGedung" class="ms-1 fw-bold">0</span>
                         </div>
                         <div class="col">
-                            <span class="badge bg-info">Jalan</span>
-                            <span id="countJalan" class="ms-1">0</span>
+                            <span class="badge bg-info text-dark"><i class="fas fa-road me-1"></i>Jalan</span>
+                            <span id="countJalan" class="ms-1 fw-bold">0</span>
                         </div>
                         <div class="col">
-                            <span class="badge bg-secondary">Lainnya</span>
-                            <span id="countLainnya" class="ms-1">0</span>
+                            <span class="badge bg-secondary"><i class="fas fa-box me-1"></i>Lainnya</span>
+                            <span id="countLainnya" class="ms-1 fw-bold">0</span>
                         </div>
                     </div>
                 </div>

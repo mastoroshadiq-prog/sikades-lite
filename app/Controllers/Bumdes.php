@@ -203,7 +203,8 @@ class Bumdes extends BaseController
             return redirect()->to('/bumdes')->with('error', 'Unit tidak ditemukan');
         }
 
-        $akunList = $this->db->table('bumdes_akun')
+        $db = \Config\Database::connect();
+        $akunList = $db->table('bumdes_akun')
             ->where('is_header', 0)
             ->orderBy('urutan')
             ->get()
@@ -364,7 +365,8 @@ class Bumdes extends BaseController
 
     public function akun()
     {
-        $akunList = $this->db->table('bumdes_akun')
+        $db = \Config\Database::connect();
+        $akunList = $db->table('bumdes_akun')
             ->orderBy('urutan')
             ->get()
             ->getResultArray();

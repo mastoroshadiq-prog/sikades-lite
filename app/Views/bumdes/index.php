@@ -144,29 +144,64 @@
     </div>
 
     <!-- Quick Links -->
+    <?php $firstUnit = !empty($units) ? $units[0] : null; ?>
     <div class="row mt-4">
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center py-4">
+            <?php if ($firstUnit): ?>
+            <a href="<?= base_url('/bumdes/jurnal/' . $firstUnit['id']) ?>" class="card border-0 shadow-sm text-center py-4 text-decoration-none hover-lift">
+                <i class="fas fa-book fa-3x text-primary mb-3"></i>
+                <h5 class="text-dark">Jurnal Umum</h5>
+                <p class="text-muted small mb-0">Input transaksi double-entry</p>
+            </a>
+            <?php else: ?>
+            <div class="card border-0 shadow-sm text-center py-4 opacity-50" title="Buat unit usaha terlebih dahulu">
                 <i class="fas fa-book fa-3x text-primary mb-3"></i>
                 <h5>Jurnal Umum</h5>
-                <p class="text-muted small">Input transaksi double-entry</p>
+                <p class="text-muted small mb-0">Input transaksi double-entry</p>
             </div>
+            <?php endif; ?>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center py-4">
+            <?php if ($firstUnit): ?>
+            <a href="<?= base_url('/bumdes/laporan/laba-rugi/' . $firstUnit['id']) ?>" class="card border-0 shadow-sm text-center py-4 text-decoration-none hover-lift">
+                <i class="fas fa-file-invoice-dollar fa-3x text-success mb-3"></i>
+                <h5 class="text-dark">Laba Rugi</h5>
+                <p class="text-muted small mb-0">Laporan keuangan</p>
+            </a>
+            <?php else: ?>
+            <div class="card border-0 shadow-sm text-center py-4 opacity-50" title="Buat unit usaha terlebih dahulu">
                 <i class="fas fa-file-invoice-dollar fa-3x text-success mb-3"></i>
                 <h5>Laba Rugi</h5>
-                <p class="text-muted small">Laporan keuangan</p>
+                <p class="text-muted small mb-0">Laporan keuangan</p>
             </div>
+            <?php endif; ?>
         </div>
         <div class="col-md-4">
-            <div class="card border-0 shadow-sm text-center py-4">
+            <?php if ($firstUnit): ?>
+            <a href="<?= base_url('/bumdes/laporan/neraca/' . $firstUnit['id']) ?>" class="card border-0 shadow-sm text-center py-4 text-decoration-none hover-lift">
+                <i class="fas fa-balance-scale fa-3x text-info mb-3"></i>
+                <h5 class="text-dark">Neraca</h5>
+                <p class="text-muted small mb-0">Balance sheet</p>
+            </a>
+            <?php else: ?>
+            <div class="card border-0 shadow-sm text-center py-4 opacity-50" title="Buat unit usaha terlebih dahulu">
                 <i class="fas fa-balance-scale fa-3x text-info mb-3"></i>
                 <h5>Neraca</h5>
-                <p class="text-muted small">Balance sheet</p>
+                <p class="text-muted small mb-0">Balance sheet</p>
             </div>
+            <?php endif; ?>
         </div>
     </div>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+}
+</style>
 </div>
 
 <?= view('layout/footer') ?>
