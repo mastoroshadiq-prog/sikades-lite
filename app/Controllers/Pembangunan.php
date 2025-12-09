@@ -191,7 +191,7 @@ class Pembangunan extends BaseController
                     // Get data filtered by kode_desa only (no year filter)
                     if (in_array('ref_rekening', $tables)) {
                         $kegiatanList = $this->db->table('apbdes')
-                            ->select('apbdes.id, COALESCE(ref_rekening.kode_rekening, CAST(apbdes.ref_rekening_id AS CHAR)) as kode_kegiatan, apbdes.uraian, apbdes.anggaran as pagu_anggaran')
+                            ->select('apbdes.id, COALESCE(ref_rekening.kode_akun, CAST(apbdes.ref_rekening_id AS CHAR)) as kode_kegiatan, apbdes.uraian, apbdes.anggaran as pagu_anggaran')
                             ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id', 'left')
                             ->where('apbdes.kode_desa', $kodeDesa)
                             ->orderBy('apbdes.id', 'ASC')
