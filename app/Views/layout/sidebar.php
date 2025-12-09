@@ -115,8 +115,29 @@
                         <a class="nav-link <?= (strpos(uri_string(), 'aset/create') !== false) ? 'active' : '' ?>" href="<?= base_url('/aset/create') ?>">
                             <i class="fas fa-plus"></i> Tambah Aset
                         </a>
-                        <a class="nav-link <?= (strpos(uri_string(), 'gis') !== false) ? 'active' : '' ?>" href="<?= base_url('/gis') ?>">
-                            <i class="fas fa-map-marked-alt"></i> WebGIS
+                    </div>
+                </div>
+            </div>
+            
+            <!-- WEBGIS - Peta Desa Interaktif -->
+            <?php 
+            $gisActive = strpos(uri_string(), 'gis') !== false;
+            ?>
+            <div class="sidebar-section">
+                <a class="nav-link section-toggle <?= $gisActive ? '' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" href="#menuGis" role="button"
+                   hx-boost="false">
+                    <i class="fas fa-map-marked-alt"></i> 
+                    <span>WebGIS</span>
+                    <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
+                </a>
+                <div class="collapse <?= $gisActive ? 'show' : '' ?>" id="menuGis">
+                    <div class="submenu">
+                        <a class="nav-link <?= (uri_string() === 'gis' || uri_string() === 'gis/') ? 'active' : '' ?>" href="<?= base_url('/gis') ?>">
+                            <i class="fas fa-globe"></i> Peta Interaktif
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'gis/wilayah') !== false) ? 'active' : '' ?>" href="<?= base_url('/gis/wilayah') ?>">
+                            <i class="fas fa-cog"></i> Pengaturan Wilayah
                         </a>
                     </div>
                 </div>

@@ -386,8 +386,6 @@ fetch('<?= base_url('/gis/json') ?>')
                 else counts.Lainnya++;
             });
             
-            map.addLayer(markers);
-            
             if (bounds.length > 0) {
                 map.fitBounds(bounds, { padding: [50, 50] });
             }
@@ -398,8 +396,15 @@ fetch('<?= base_url('/gis/json') ?>')
             document.getElementById('countJalan').textContent = counts.Jalan;
             document.getElementById('countLainnya').textContent = counts.Lainnya;
         }
+        
+        // Always add markers layer to map (even if empty)
+        map.addLayer(markers);
     })
-    .catch(error => console.error('Error loading asset GeoJSON:', error));
+    .catch(error => {
+        console.error('Error loading asset GeoJSON:', error);
+        // Still add empty markers layer so switching works
+        map.addLayer(markers);
+    });
 
 // Asset Legend
 const assetLegend = L.control({ position: 'bottomright' });
