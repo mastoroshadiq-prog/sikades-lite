@@ -288,6 +288,14 @@ class Pembangunan extends BaseController
     {
         $proyekId = $this->request->getPost('proyek_id');
         
+        // Validate foto is required
+        $foto = $this->request->getFile('foto');
+        if (!$foto || !$foto->isValid() || $foto->hasMoved()) {
+            return redirect()->back()
+                ->with('error', 'Foto dokumentasi wajib dilampirkan untuk setiap laporan progres')
+                ->withInput();
+        }
+        
         $data = [
             'proyek_id'          => $proyekId,
             'tanggal_laporan'    => $this->request->getPost('tanggal_laporan'),
@@ -300,13 +308,10 @@ class Pembangunan extends BaseController
             'created_at'         => date('Y-m-d H:i:s'),
         ];
         
-        // Handle foto
-        $foto = $this->request->getFile('foto');
-        if ($foto && $foto->isValid() && !$foto->hasMoved()) {
-            $newName = $foto->getRandomName();
-            $foto->move(WRITEPATH . 'uploads/proyek', $newName);
-            $data['foto'] = 'writable/uploads/proyek/' . $newName;
-        }
+        // Handle foto (already validated above)
+        $newName = $foto->getRandomName();
+        $foto->move(WRITEPATH . 'uploads/proyek', $newName);
+        $data['foto'] = 'writable/uploads/proyek/' . $newName;
         
         $this->logModel->addProgress($data);
         
@@ -314,7 +319,7 @@ class Pembangunan extends BaseController
         $this->proyekModel->updateKeuanganRealization($proyekId);
         
         return redirect()->to('/pembangunan/proyek/detail/' . $proyekId)
-            ->with('success', 'Progres berhasil disimpan');
+            ->with('success', 'Progres berhasil disimpan dengan foto dokumentasi');
     }
 
     // ========================================

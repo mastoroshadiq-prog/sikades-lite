@@ -127,6 +127,9 @@
                         <span class="layer-btn" id="layerPenduduk" onclick="toggleLayer('penduduk')">
                             <i class="fas fa-users me-1"></i>Kepadatan Penduduk
                         </span>
+                        <span class="layer-btn" id="layerProyek" onclick="toggleLayer('proyek')">
+                            <i class="fas fa-hard-hat me-1"></i>Proyek Pembangunan
+                        </span>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-4">
@@ -190,6 +193,37 @@
                             <p class="mt-2">Memuat data penduduk...</p>
                         </div>
                     </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Row - Proyek Layer -->
+    <div class="row g-3 mb-4" id="proyekStats" style="display: none;">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body py-2">
+                    <div class="row text-center">
+                        <div class="col">
+                            <span class="badge bg-secondary"><i class="fas fa-clipboard-list me-1"></i>Rencana</span>
+                            <span id="countRencana" class="ms-1 fw-bold">0</span>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-warning text-dark"><i class="fas fa-spinner me-1"></i>Proses</span>
+                            <span id="countProses" class="ms-1 fw-bold">0</span>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Selesai</span>
+                            <span id="countSelesai" class="ms-1 fw-bold">0</span>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-danger"><i class="fas fa-pause-circle me-1"></i>Mangkrak</span>
+                            <span id="countMangkrak" class="ms-1 fw-bold">0</span>
+                        </div>
+                        <div class="col">
+                            <span class="badge bg-danger"><i class="fas fa-exclamation-triangle me-1"></i>Alert Deviasi</span>
+                            <span id="countAlert" class="ms-1 fw-bold">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -212,6 +246,11 @@
         <i class="fas fa-info-circle me-2"></i>
         <strong>Tip:</strong> Klik pada kartu wilayah untuk melihat detail demografi. 
         Warna menunjukkan kepadatan penduduk (merah = padat, biru = jarang).
+    </div>
+    <div class="alert alert-warning mt-4" id="proyekTip" style="display: none;">
+        <i class="fas fa-hard-hat me-2"></i>
+        <strong>Tip:</strong> Klik marker untuk melihat detail proyek dengan foto dokumentasi. 
+        Warna marker: 🟢 Selesai, 🟡 Proses, ⚪ Rencana, 🔴 Alert/Mangkrak.
     </div>
 </div>
 
@@ -623,7 +662,162 @@ function handleDusunClick(encodedDusun, lat, lng) {
 }
 
 // =============================================
-// LAYER SWITCHING (Updated)
+// LAYER 3: PROYEK PEMBANGUNAN
+// =============================================
+let proyekMarkers = L.markerClusterGroup();
+let proyekData = null;
+
+// Proyek status colors
+const proyekColors = {
+    'RENCANA': '#6c757d',   // Gray
+    'PROSES': '#ffc107',    // Yellow
+    'SELESAI': '#28a745',   // Green
+    'MANGKRAK': '#dc3545',  // Red
+    'ALERT': '#dc3545'      // Red for deviation alert
+};
+
+function getProyekIcon(status, isAlert) {
+    const color = isAlert ? proyekColors.ALERT : (proyekColors[status] || '#6c757d');
+    return L.divIcon({
+        className: 'proyek-marker',
+        html: `<div style="background-color: ${color}; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-hard-hat" style="color: white; font-size: 12px;"></i>
+               </div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -15]
+    });
+}
+
+function createProyekPopup(props) {
+    const statusBadge = {
+        'RENCANA': 'bg-secondary',
+        'PROSES': 'bg-warning text-dark',
+        'SELESAI': 'bg-success',
+        'MANGKRAK': 'bg-danger'
+    };
+    
+    let photoHtml = '';
+    if (props.foto_terbaru || props.foto_0 || props.foto_50 || props.foto_100) {
+        photoHtml = `<div class="mb-2">`;
+        if (props.foto_terbaru) {
+            photoHtml += `<img src="${props.foto_terbaru}" class="popup-img" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">`;
+        } else if (props.foto_0) {
+            photoHtml += `<img src="${props.foto_0}" class="popup-img" style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 5px;">`;
+        }
+        photoHtml += `</div>`;
+    }
+    
+    let alertHtml = '';
+    if (props.is_alert) {
+        alertHtml = `<div class="alert alert-danger py-1 px-2 small mb-2">
+            <i class="fas fa-exclamation-triangle me-1"></i>Deviasi ${props.deviation}%
+        </div>`;
+    }
+    
+    return `
+        <div class="popup-content" style="min-width: 250px;">
+            ${photoHtml}
+            <h6 class="mb-1">${props.nama}</h6>
+            <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${props.lokasi || 'Lokasi tidak ditentukan'}</p>
+            ${alertHtml}
+            <div class="row mb-2 small">
+                <div class="col-6">
+                    <div class="d-flex align-items-center">
+                        <span class="me-1">Fisik</span>
+                        <div class="progress flex-grow-1" style="height: 10px;">
+                            <div class="progress-bar bg-info" style="width: ${props.persentase_fisik}%">${props.persentase_fisik}%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="d-flex align-items-center">
+                        <span class="me-1">Uang</span>
+                        <div class="progress flex-grow-1" style="height: 10px;">
+                            <div class="progress-bar bg-success" style="width: ${props.persentase_keuangan}%">${Math.round(props.persentase_keuangan)}%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <table class="table table-sm mb-2">
+                <tr><td>Status</td><td><span class="badge ${statusBadge[props.status]}">${props.status}</span></td></tr>
+                <tr><td>Anggaran</td><td>Rp ${props.anggaran.toLocaleString('id-ID')}</td></tr>
+                <tr><td>Pelaksana</td><td>${props.pelaksana || '-'}</td></tr>
+            </table>
+            <a href="<?= base_url('/pembangunan/proyek/detail/') ?>${props.id}" class="btn btn-sm btn-warning w-100">
+                <i class="fas fa-eye me-1"></i>Lihat Detail Proyek
+            </a>
+        </div>
+    `;
+}
+
+// Load proyek data
+function loadProyekData() {
+    fetch('<?= base_url('/gis/proyek') ?>')
+        .then(response => response.json())
+        .then(data => {
+            proyekData = data;
+            proyekMarkers.clearLayers();
+            
+            if (data.features && data.features.length > 0) {
+                const bounds = [];
+                
+                data.features.forEach(feature => {
+                    const coords = feature.geometry.coordinates;
+                    const props = feature.properties;
+                    
+                    const marker = L.marker([coords[1], coords[0]], {
+                        icon: getProyekIcon(props.status, props.is_alert)
+                    });
+                    
+                    marker.bindPopup(createProyekPopup(props), { maxWidth: 350 });
+                    proyekMarkers.addLayer(marker);
+                    bounds.push([coords[1], coords[0]]);
+                });
+                
+                // Update stats
+                if (data.stats) {
+                    document.getElementById('countRencana').textContent = data.stats.rencana || 0;
+                    document.getElementById('countProses').textContent = data.stats.proses || 0;
+                    document.getElementById('countSelesai').textContent = data.stats.selesai || 0;
+                    document.getElementById('countMangkrak').textContent = data.stats.mangkrak || 0;
+                    document.getElementById('countAlert').textContent = data.stats.alert || 0;
+                }
+                
+                if (currentLayer === 'proyek' && bounds.length > 0) {
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            }
+        })
+        .catch(error => console.error('Error loading proyek data:', error));
+}
+
+// Proyek Legend
+const proyekLegend = L.control({ position: 'bottomright' });
+proyekLegend.onAdd = function(map) {
+    const div = L.DomUtil.create('div', 'legend');
+    div.innerHTML = '<strong class="mb-2 d-block"><i class="fas fa-hard-hat me-1"></i>Status Proyek</strong>';
+    
+    const items = [
+        { label: 'Rencana', color: '#6c757d' },
+        { label: 'Proses', color: '#ffc107' },
+        { label: 'Selesai', color: '#28a745' },
+        { label: 'Alert/Mangkrak', color: '#dc3545' }
+    ];
+    
+    items.forEach(item => {
+        div.innerHTML += `
+            <div class="legend-item">
+                <div class="legend-color" style="background: ${item.color}"></div>
+                <span class="small">${item.label}</span>
+            </div>
+        `;
+    });
+    return div;
+};
+
+// =============================================
+// LAYER SWITCHING (Updated with Proyek)
 // =============================================
 let currentLayer = 'aset';
 
@@ -633,37 +827,50 @@ function toggleLayer(layer) {
     // Update button states
     document.getElementById('layerAset').classList.toggle('active', layer === 'aset');
     document.getElementById('layerPenduduk').classList.toggle('active', layer === 'penduduk');
+    document.getElementById('layerProyek').classList.toggle('active', layer === 'proyek');
     
     // Toggle stats/tips visibility
     document.getElementById('asetStats').style.display = layer === 'aset' ? 'flex' : 'none';
     document.getElementById('pendudukStats').style.display = layer === 'penduduk' ? 'block' : 'none';
+    document.getElementById('proyekStats').style.display = layer === 'proyek' ? 'block' : 'none';
     document.getElementById('asetTip').style.display = layer === 'aset' ? 'block' : 'none';
     document.getElementById('pendudukTip').style.display = layer === 'penduduk' ? 'block' : 'none';
+    document.getElementById('proyekTip').style.display = layer === 'proyek' ? 'block' : 'none';
+    
+    // Remove all layers first
+    map.removeLayer(markers);
+    map.removeLayer(populationCircles);
+    map.removeLayer(proyekMarkers);
+    if (map.hasLayer(assetLegend)) map.removeControl(assetLegend);
+    if (map.hasLayer(densityLegend)) map.removeControl(densityLegend);
+    if (map.hasLayer(popInfo)) map.removeControl(popInfo);
+    if (map.hasLayer(proyekLegend)) map.removeControl(proyekLegend);
     
     if (layer === 'aset') {
-        // Show asset markers, hide population circles
         map.addLayer(markers);
-        map.removeLayer(populationCircles);
-        if (map.hasLayer(densityLegend)) map.removeControl(densityLegend);
-        if (map.hasLayer(popInfo)) map.removeControl(popInfo);
         assetLegend.addTo(map);
-    } else {
-        // Hide asset markers, show population circles
-        map.removeLayer(markers);
+    } else if (layer === 'penduduk') {
         map.addLayer(populationCircles);
-        if (map.hasLayer(assetLegend)) map.removeControl(assetLegend);
         densityLegend.addTo(map);
         popInfo.addTo(map);
         
-        // Load population data if not already loaded
         if (!populationData) {
             loadPopulationData();
+        }
+    } else if (layer === 'proyek') {
+        map.addLayer(proyekMarkers);
+        proyekLegend.addTo(map);
+        
+        if (!proyekData) {
+            loadProyekData();
         }
     }
 }
 
 // Initial load of population data (background)
 loadPopulationData();
+// Initial load of proyek data (background)
+loadProyekData();
 </script>
 
 <?= view('layout/footer') ?>

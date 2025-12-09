@@ -128,6 +128,82 @@ class Gis extends BaseController
     }
 
     /**
+     * Get infrastructure projects for GIS layer
+     */
+    public function getProyekData()
+    {
+        $kodeDesa = $this->user['kode_desa'] ?? null;
+        $db = \Config\Database::connect();
+        
+        // Check if proyek_fisik table exists
+        if (!in_array('proyek_fisik', $db->listTables())) {
+            return $this->response->setJSON([
+                'type' => 'FeatureCollection',
+                'features' => [],
+            ]);
+        }
+        
+        $proyek = $db->query("
+            SELECT 
+                p.*,
+                (SELECT foto FROM proyek_log WHERE proyek_id = p.id ORDER BY tanggal_laporan DESC LIMIT 1) as foto_terbaru
+            FROM proyek_fisik p
+            WHERE p.kode_desa = ? AND p.lat IS NOT NULL AND p.lng IS NOT NULL
+            ORDER BY p.tgl_mulai DESC
+        ", [$kodeDesa])->getResultArray();
+        
+        $features = [];
+        foreach ($proyek as $p) {
+            // Calculate deviation
+            $keuangan = (float) ($p['persentase_keuangan'] ?? 0);
+            $fisik = (int) ($p['persentase_fisik'] ?? 0);
+            $deviation = $keuangan - $fisik;
+            
+            $features[] = [
+                'type' => 'Feature',
+                'geometry' => [
+                    'type' => 'Point',
+                    'coordinates' => [(float)$p['lng'], (float)$p['lat']],
+                ],
+                'properties' => [
+                    'id'                  => $p['id'],
+                    'nama'                => $p['nama_proyek'],
+                    'lokasi'              => $p['lokasi_detail'],
+                    'anggaran'            => (float) $p['anggaran'],
+                    'persentase_fisik'    => (int) $p['persentase_fisik'],
+                    'persentase_keuangan' => (float) $p['persentase_keuangan'],
+                    'status'              => $p['status'],
+                    'tgl_mulai'           => $p['tgl_mulai'],
+                    'tgl_selesai_target'  => $p['tgl_selesai_target'],
+                    'pelaksana'           => $p['pelaksana_kegiatan'],
+                    'deviation'           => round($deviation, 2),
+                    'is_alert'            => $deviation > 20,
+                    'foto_0'              => $p['foto_0'] ? base_url($p['foto_0']) : null,
+                    'foto_50'             => $p['foto_50'] ? base_url($p['foto_50']) : null,
+                    'foto_100'            => $p['foto_100'] ? base_url($p['foto_100']) : null,
+                    'foto_terbaru'        => $p['foto_terbaru'] ? base_url($p['foto_terbaru']) : null,
+                ],
+            ];
+        }
+        
+        // Count by status
+        $stats = [
+            'total' => count($proyek),
+            'rencana' => count(array_filter($proyek, fn($p) => $p['status'] === 'RENCANA')),
+            'proses' => count(array_filter($proyek, fn($p) => $p['status'] === 'PROSES')),
+            'selesai' => count(array_filter($proyek, fn($p) => $p['status'] === 'SELESAI')),
+            'mangkrak' => count(array_filter($proyek, fn($p) => $p['status'] === 'MANGKRAK')),
+            'alert' => count(array_filter($proyek, fn($p) => ((float)$p['persentase_keuangan'] - (int)$p['persentase_fisik']) > 20)),
+        ];
+        
+        return $this->response->setJSON([
+            'type' => 'FeatureCollection',
+            'features' => $features,
+            'stats' => $stats,
+        ]);
+    }
+
+    /**
      * Full screen map view
      */
     public function fullscreen()

@@ -328,6 +328,9 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('wilayah/upload', 'Gis::uploadBoundary');
         $routes->get('wilayah/boundaries', 'Gis::getWilayahBoundaries');
         $routes->get('wilayah/markers', 'Gis::getWilayahMarkers');
+        
+        // Proyek Pembangunan
+        $routes->get('proyek', 'Gis::getProyekData');
     });
     
     // ===========================================

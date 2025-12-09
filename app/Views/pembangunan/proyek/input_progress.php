@@ -91,19 +91,23 @@
                         <?php endif; ?>
 
                         <div class="mb-3">
-                            <label class="form-label">Foto Dokumentasi</label>
-                            <input type="file" name="foto" class="form-control" accept="image/*" id="fotoInput">
-                            <small class="text-muted">
+                            <label class="form-label">
+                                Foto Dokumentasi <span class="text-danger">*</span>
+                                <small class="text-warning">(Wajib untuk setiap laporan progres)</small>
+                            </label>
+                            <input type="file" name="foto" class="form-control" accept="image/*" id="fotoInput" required>
+                            <div class="alert alert-info mt-2 small py-2">
+                                <i class="fas fa-camera me-1"></i>
                                 <?php if ($project['persentase_fisik'] < 10): ?>
-                                    📷 Foto ini akan menjadi foto 0% (kondisi awal)
+                                    📷 Foto ini akan menjadi foto <strong>0% (kondisi awal)</strong>
                                 <?php elseif ($project['persentase_fisik'] >= 45 && $project['persentase_fisik'] <= 55): ?>
-                                    📷 Foto ini akan menjadi foto 50% (pertengahan)
+                                    📷 Foto ini akan menjadi foto <strong>50% (pertengahan)</strong>
                                 <?php elseif ($project['persentase_fisik'] >= 90): ?>
-                                    📷 Foto ini akan menjadi foto 100% (selesai)
+                                    📷 Foto ini akan menjadi foto <strong>100% (selesai)</strong>
                                 <?php else: ?>
-                                    📷 Lampirkan foto kondisi terkini
+                                    📷 <strong>Wajib</strong> lampirkan foto kondisi terkini sebagai bukti progres
                                 <?php endif; ?>
-                            </small>
+                            </div>
                             <div id="previewContainer" class="mt-2 d-none">
                                 <img id="preview" class="img-fluid rounded" style="max-height: 200px;">
                             </div>
