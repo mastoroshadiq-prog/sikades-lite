@@ -43,6 +43,13 @@
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                    <?php if (!empty($debugInfo)): ?>
+                                        <div class="alert alert-info mt-2 py-2 small">
+                                            <i class="fas fa-info-circle me-1"></i><?= $debugInfo ?>
+                                        </div>
+                                    <?php elseif (empty($kegiatanList)): ?>
+                                        <small class="text-muted">Tidak ada data APBDes - Anda bisa mengisi anggaran manual</small>
+                                    <?php endif; ?>
                                     <input type="hidden" name="kode_kegiatan" id="kodeKegiatan">
                                 </div>
 

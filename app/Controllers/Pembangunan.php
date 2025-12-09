@@ -170,39 +170,51 @@ class Pembangunan extends BaseController
      */
     public function createProyek()
     {
-        // Get APBDes kegiatan for linking (with fallback if ref_kegiatan doesn't exist)
         $kodeDesa = $this->user['kode_desa'] ?? null;
         $kegiatanList = [];
+        $debugInfo = '';
         
         try {
-            // Check if tables exist
             $tables = $this->db->listTables();
             
             if (in_array('apbdes', $tables)) {
-                // APBDes table uses: tahun (not tahun_anggaran), uraian, anggaran
-                // Join with ref_rekening to get kode_rekening if available
-                if (in_array('ref_rekening', $tables)) {
-                    $kegiatanList = $this->db->table('apbdes')
-                        ->select('apbdes.id, COALESCE(ref_rekening.kode_rekening, CAST(apbdes.ref_rekening_id AS CHAR)) as kode_kegiatan, apbdes.uraian, apbdes.anggaran as pagu_anggaran')
-                        ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id', 'left')
-                        ->where('apbdes.kode_desa', $kodeDesa)
-                        ->where('apbdes.tahun', date('Y'))
-                        ->orderBy('apbdes.id', 'ASC')
-                        ->get()
-                        ->getResultArray();
+                // First try: get ALL apbdes entries (no filters) to see if table has data
+                $allData = $this->db->table('apbdes')
+                    ->select('*')
+                    ->limit(20)
+                    ->get()
+                    ->getResultArray();
+                
+                if (empty($allData)) {
+                    $debugInfo = 'Tabel APBDes kosong - silakan import data anggaran terlebih dahulu';
                 } else {
-                    // Fallback without ref_rekening
-                    $kegiatanList = $this->db->table('apbdes')
-                        ->select('id, CAST(ref_rekening_id AS CHAR) as kode_kegiatan, uraian, anggaran as pagu_anggaran')
-                        ->where('kode_desa', $kodeDesa)
-                        ->where('tahun', date('Y'))
-                        ->orderBy('id', 'ASC')
-                        ->get()
-                        ->getResultArray();
+                    // Get data filtered by kode_desa only (no year filter)
+                    if (in_array('ref_rekening', $tables)) {
+                        $kegiatanList = $this->db->table('apbdes')
+                            ->select('apbdes.id, COALESCE(ref_rekening.kode_rekening, CAST(apbdes.ref_rekening_id AS CHAR)) as kode_kegiatan, apbdes.uraian, apbdes.anggaran as pagu_anggaran')
+                            ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id', 'left')
+                            ->where('apbdes.kode_desa', $kodeDesa)
+                            ->orderBy('apbdes.id', 'ASC')
+                            ->get()
+                            ->getResultArray();
+                    } else {
+                        $kegiatanList = $this->db->table('apbdes')
+                            ->select('id, CAST(ref_rekening_id AS CHAR) as kode_kegiatan, uraian, anggaran as pagu_anggaran')
+                            ->where('kode_desa', $kodeDesa)
+                            ->orderBy('id', 'ASC')
+                            ->get()
+                            ->getResultArray();
+                    }
+                    
+                    if (empty($kegiatanList)) {
+                        $debugInfo = "Data APBDes ada tetapi tidak untuk kode desa: {$kodeDesa}. Total records: " . count($allData);
+                    }
                 }
+            } else {
+                $debugInfo = 'Tabel APBDes tidak ditemukan dalam database';
             }
         } catch (\Exception $e) {
-            // Log error but continue with empty list
+            $debugInfo = 'Error: ' . $e->getMessage();
             log_message('warning', 'Error fetching kegiatan: ' . $e->getMessage());
         }
         
@@ -211,6 +223,7 @@ class Pembangunan extends BaseController
             'user'          => $this->user,
             'kegiatanList'  => $kegiatanList,
             'satuanOptions' => ProyekModel::getSatuanOptions(),
+            'debugInfo'     => $debugInfo,
         ];
         
         return view('pembangunan/proyek/form', $data);
