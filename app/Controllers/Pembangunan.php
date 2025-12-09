@@ -170,16 +170,36 @@ class Pembangunan extends BaseController
      */
     public function createProyek()
     {
-        // Get APBDes kegiatan for linking
+        // Get APBDes kegiatan for linking (with fallback if ref_kegiatan doesn't exist)
         $kodeDesa = $this->user['kode_desa'] ?? null;
-        $kegiatanList = $this->db->table('apbdes')
-            ->select('apbdes.id, apbdes.kode_kegiatan, ref_kegiatan.uraian, apbdes.pagu_anggaran')
-            ->join('ref_kegiatan', 'ref_kegiatan.kode_kegiatan = apbdes.kode_kegiatan', 'left')
-            ->where('apbdes.kode_desa', $kodeDesa)
-            ->where('apbdes.tahun_anggaran', date('Y'))
-            ->where('apbdes.kode_kegiatan LIKE', '2.%') // Bidang Pembangunan
-            ->get()
-            ->getResultArray();
+        $kegiatanList = [];
+        
+        try {
+            // Check if ref_kegiatan table exists
+            $tables = $this->db->listTables();
+            if (in_array('ref_kegiatan', $tables) && in_array('apbdes', $tables)) {
+                $kegiatanList = $this->db->table('apbdes')
+                    ->select('apbdes.id, apbdes.kode_kegiatan, ref_kegiatan.uraian, apbdes.pagu_anggaran')
+                    ->join('ref_kegiatan', 'ref_kegiatan.kode_kegiatan = apbdes.kode_kegiatan', 'left')
+                    ->where('apbdes.kode_desa', $kodeDesa)
+                    ->where('apbdes.tahun_anggaran', date('Y'))
+                    ->where('apbdes.kode_kegiatan LIKE', '2.%') // Bidang Pembangunan
+                    ->get()
+                    ->getResultArray();
+            } elseif (in_array('apbdes', $tables)) {
+                // Fallback without ref_kegiatan
+                $kegiatanList = $this->db->table('apbdes')
+                    ->select('id, kode_kegiatan, kode_kegiatan as uraian, pagu_anggaran')
+                    ->where('kode_desa', $kodeDesa)
+                    ->where('tahun_anggaran', date('Y'))
+                    ->where('kode_kegiatan LIKE', '2.%')
+                    ->get()
+                    ->getResultArray();
+            }
+        } catch (\Exception $e) {
+            // Log error but continue with empty list
+            log_message('warning', 'Error fetching kegiatan: ' . $e->getMessage());
+        }
         
         $data = [
             'title'         => 'Tambah Proyek Baru - Siskeudes Lite',
