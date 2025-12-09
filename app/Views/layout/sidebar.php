@@ -209,6 +209,33 @@
                 </div>
             </div>
             
+            <!-- e-PEMBANGUNAN - Infrastructure Monitoring -->
+            <?php 
+            $pembangunanActive = strpos(uri_string(), 'pembangunan') !== false;
+            ?>
+            <div class="sidebar-section">
+                <a class="nav-link section-toggle <?= $pembangunanActive ? '' : 'collapsed' ?>" 
+                   data-bs-toggle="collapse" href="#menuPembangunan" role="button"
+                   hx-boost="false">
+                    <i class="fas fa-hard-hat"></i> 
+                    <span>e-Pembangunan</span>
+                    <i class="fas fa-chevron-down toggle-icon ms-auto"></i>
+                </a>
+                <div class="collapse <?= $pembangunanActive ? 'show' : '' ?>" id="menuPembangunan">
+                    <div class="submenu">
+                        <a class="nav-link <?= (uri_string() === 'pembangunan' || uri_string() === 'pembangunan/') ? 'active' : '' ?>" href="<?= base_url('/pembangunan') ?>">
+                            <i class="fas fa-tachometer-alt"></i> Dashboard
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'pembangunan/proyek') !== false) ? 'active' : '' ?>" href="<?= base_url('/pembangunan/proyek') ?>">
+                            <i class="fas fa-project-diagram"></i> Daftar Proyek
+                        </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'pembangunan/monitoring') !== false) ? 'active' : '' ?>" href="<?= base_url('/pembangunan/monitoring') ?>">
+                            <i class="fas fa-exclamation-triangle"></i> Monitoring Deviasi
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
             <!-- LAPORAN - Collapsible -->
             <?php 
             $laporanActive = strpos(uri_string(), 'report') !== false || strpos(uri_string(), 'lpj') !== false;

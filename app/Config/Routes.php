@@ -364,6 +364,31 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         $routes->post('kader/update/(:num)', 'Posyandu::updateKader/$1');
         $routes->get('kader/delete/(:num)', 'Posyandu::deleteKader/$1');
     });
+    
+    // ===========================================
+    // e-Pembangunan - Infrastructure Monitoring
+    // ===========================================
+    $routes->group('pembangunan', function($routes) {
+        // Dashboard
+        $routes->get('/', 'Pembangunan::index');
+        
+        // Project Management
+        $routes->get('proyek', 'Pembangunan::proyek');
+        $routes->get('proyek/create', 'Pembangunan::createProyek');
+        $routes->post('proyek/save', 'Pembangunan::saveProyek');
+        $routes->get('proyek/detail/(:num)', 'Pembangunan::detailProyek/$1');
+        $routes->get('proyek/mangkrak/(:num)', 'Pembangunan::setMangkrak/$1');
+        
+        // Progress Input (TPK)
+        $routes->get('progress/(:num)', 'Pembangunan::inputProgress/$1');
+        $routes->post('progress/save', 'Pembangunan::saveProgress');
+        
+        // Monitoring & Alerts
+        $routes->get('monitoring', 'Pembangunan::monitoring');
+        
+        // GIS Data
+        $routes->get('gis', 'Pembangunan::getGisData');
+    });
 });
 
 /*
