@@ -175,26 +175,30 @@ class Pembangunan extends BaseController
         $kegiatanList = [];
         
         try {
-            // Check if ref_kegiatan table exists
+            // Check if tables exist
             $tables = $this->db->listTables();
-            if (in_array('ref_kegiatan', $tables) && in_array('apbdes', $tables)) {
-                $kegiatanList = $this->db->table('apbdes')
-                    ->select('apbdes.id, apbdes.kode_kegiatan, ref_kegiatan.uraian, apbdes.pagu_anggaran')
-                    ->join('ref_kegiatan', 'ref_kegiatan.kode_kegiatan = apbdes.kode_kegiatan', 'left')
-                    ->where('apbdes.kode_desa', $kodeDesa)
-                    ->where('apbdes.tahun_anggaran', date('Y'))
-                    ->where('apbdes.kode_kegiatan LIKE', '2.%') // Bidang Pembangunan
-                    ->get()
-                    ->getResultArray();
-            } elseif (in_array('apbdes', $tables)) {
-                // Fallback without ref_kegiatan
-                $kegiatanList = $this->db->table('apbdes')
-                    ->select('id, kode_kegiatan, kode_kegiatan as uraian, pagu_anggaran')
-                    ->where('kode_desa', $kodeDesa)
-                    ->where('tahun_anggaran', date('Y'))
-                    ->where('kode_kegiatan LIKE', '2.%')
-                    ->get()
-                    ->getResultArray();
+            
+            if (in_array('apbdes', $tables)) {
+                // Try with ref_kegiatan join first
+                if (in_array('ref_kegiatan', $tables)) {
+                    $kegiatanList = $this->db->table('apbdes')
+                        ->select('apbdes.id, apbdes.kode_kegiatan, COALESCE(ref_kegiatan.uraian, apbdes.nama_kegiatan, apbdes.kode_kegiatan) as uraian, apbdes.pagu_anggaran')
+                        ->join('ref_kegiatan', 'ref_kegiatan.kode_kegiatan = apbdes.kode_kegiatan', 'left')
+                        ->where('apbdes.kode_desa', $kodeDesa)
+                        ->where('apbdes.tahun_anggaran', date('Y'))
+                        ->orderBy('apbdes.kode_kegiatan', 'ASC')
+                        ->get()
+                        ->getResultArray();
+                } else {
+                    // Fallback: use nama_kegiatan or kode_kegiatan from apbdes
+                    $kegiatanList = $this->db->table('apbdes')
+                        ->select('id, kode_kegiatan, COALESCE(nama_kegiatan, kode_kegiatan) as uraian, pagu_anggaran')
+                        ->where('kode_desa', $kodeDesa)
+                        ->where('tahun_anggaran', date('Y'))
+                        ->orderBy('kode_kegiatan', 'ASC')
+                        ->get()
+                        ->getResultArray();
+                }
             }
         } catch (\Exception $e) {
             // Log error but continue with empty list
