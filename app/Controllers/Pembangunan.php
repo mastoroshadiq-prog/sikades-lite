@@ -179,23 +179,24 @@ class Pembangunan extends BaseController
             $tables = $this->db->listTables();
             
             if (in_array('apbdes', $tables)) {
-                // Try with ref_kegiatan join first
-                if (in_array('ref_kegiatan', $tables)) {
+                // APBDes table uses: tahun (not tahun_anggaran), uraian, anggaran
+                // Join with ref_rekening to get kode_rekening if available
+                if (in_array('ref_rekening', $tables)) {
                     $kegiatanList = $this->db->table('apbdes')
-                        ->select('apbdes.id, apbdes.kode_kegiatan, COALESCE(ref_kegiatan.uraian, apbdes.nama_kegiatan, apbdes.kode_kegiatan) as uraian, apbdes.pagu_anggaran')
-                        ->join('ref_kegiatan', 'ref_kegiatan.kode_kegiatan = apbdes.kode_kegiatan', 'left')
+                        ->select('apbdes.id, COALESCE(ref_rekening.kode_rekening, CAST(apbdes.ref_rekening_id AS CHAR)) as kode_kegiatan, apbdes.uraian, apbdes.anggaran as pagu_anggaran')
+                        ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id', 'left')
                         ->where('apbdes.kode_desa', $kodeDesa)
-                        ->where('apbdes.tahun_anggaran', date('Y'))
-                        ->orderBy('apbdes.kode_kegiatan', 'ASC')
+                        ->where('apbdes.tahun', date('Y'))
+                        ->orderBy('apbdes.id', 'ASC')
                         ->get()
                         ->getResultArray();
                 } else {
-                    // Fallback: use nama_kegiatan or kode_kegiatan from apbdes
+                    // Fallback without ref_rekening
                     $kegiatanList = $this->db->table('apbdes')
-                        ->select('id, kode_kegiatan, COALESCE(nama_kegiatan, kode_kegiatan) as uraian, pagu_anggaran')
+                        ->select('id, CAST(ref_rekening_id AS CHAR) as kode_kegiatan, uraian, anggaran as pagu_anggaran')
                         ->where('kode_desa', $kodeDesa)
-                        ->where('tahun_anggaran', date('Y'))
-                        ->orderBy('kode_kegiatan', 'ASC')
+                        ->where('tahun', date('Y'))
+                        ->orderBy('id', 'ASC')
                         ->get()
                         ->getResultArray();
                 }
