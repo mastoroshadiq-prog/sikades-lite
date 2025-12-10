@@ -76,18 +76,18 @@ class TutupBuku extends BaseController
         $db = \Config\Database::connect();
         $txCount = $db->table('bku')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->countAllResults();
         
         $sppCount = $db->table('spp')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal_spp)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal_spp)::int', $tahun)
             ->countAllResults();
         
         // Get pending SPP (not approved)
         $pendingSpp = $db->table('spp')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal_spp)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal_spp)::int', $tahun)
             ->where('status !=', 'Approved')
             ->countAllResults();
         
@@ -143,7 +143,7 @@ class TutupBuku extends BaseController
         }
         
         // Process closing
-        $result = $this->tutupBukuModel->closeYear($kodeDesa, $tahun, $userId, $catatan);
+        $result = $this->tutupBukuModel->closeEXTRACT(YEAR FROM $kodeDesa, $tahun, $userId, $catatan)::int;
         
         if ($result) {
             // Log activity
@@ -179,13 +179,13 @@ class TutupBuku extends BaseController
         $db = \Config\Database::connect();
         $monthlyData = $db->query("
             SELECT 
-                MONTH(tanggal) as bulan,
+                EXTRACT(MONTH FROM tanggal)::int as bulan,
                 SUM(debet) as total_debet,
                 SUM(kredit) as total_kredit,
                 COUNT(*) as jumlah_transaksi
             FROM bku 
-            WHERE kode_desa = ? AND YEAR(tanggal) = ?
-            GROUP BY MONTH(tanggal)
+            WHERE kode_desa = ? AND EXTRACT(YEAR FROM tanggal)::int = ?
+            GROUP BY EXTRACT(MONTH FROM tanggal)::int
             ORDER BY bulan
         ", [$kodeDesa, $tahun])->getResultArray();
         
@@ -223,7 +223,7 @@ class TutupBuku extends BaseController
         }
         
         // Reopen
-        $result = $this->tutupBukuModel->reopenYear($kodeDesa, $tahun);
+        $result = $this->tutupBukuModel->reopenEXTRACT(YEAR FROM $kodeDesa, $tahun)::int;
         
         if ($result) {
             ActivityLogModel::log('reopen_year', 'tutup_buku', "Membuka kembali tahun {$tahun}");

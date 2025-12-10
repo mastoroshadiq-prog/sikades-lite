@@ -72,14 +72,14 @@ class BumdesUnitModel extends Model
         
         return $db->query("
             SELECT 
-                MONTH(j.tanggal) as bulan,
+                EXTRACT(MONTH FROM j.tanggal)::int as bulan,
                 SUM(CASE WHEN a.tipe = 'PENDAPATAN' THEN jd.kredit - jd.debet ELSE 0 END) as pendapatan,
                 SUM(CASE WHEN a.tipe = 'BEBAN' THEN jd.debet - jd.kredit ELSE 0 END) as beban
             FROM bumdes_jurnal j
             JOIN bumdes_jurnal_detail jd ON j.id = jd.jurnal_id
             JOIN bumdes_akun a ON jd.akun_id = a.id
-            WHERE j.unit_id = ? AND YEAR(j.tanggal) = ?
-            GROUP BY MONTH(j.tanggal)
+            WHERE j.unit_id = ? AND EXTRACT(YEAR FROM j.tanggal)::int = ?
+            GROUP BY EXTRACT(MONTH FROM j.tanggal)::int
             ORDER BY bulan
         ", [$unitId, $tahun])->getResultArray();
     }

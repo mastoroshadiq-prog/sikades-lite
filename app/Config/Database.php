@@ -80,8 +80,10 @@ class Database extends Config
         
         // PostgreSQL specific settings (for Supabase)
         if ($this->default['DBDriver'] === 'Postgre') {
+            // Set PostgreSQL charset
+            $this->default['charset'] = 'utf8';
+            
             // Remove MySQL-specific settings
-            unset($this->default['charset']);
             unset($this->default['DBCollat']);
             unset($this->default['compress']);
             unset($this->default['strictOn']);

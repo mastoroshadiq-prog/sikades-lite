@@ -110,7 +110,7 @@ class TutupBukuModel extends Model
         $pendapatan = $db->table('bku')
             ->selectSum('debet')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->get()
             ->getRow();
         
@@ -118,7 +118,7 @@ class TutupBukuModel extends Model
         $belanja = $db->table('bku')
             ->selectSum('kredit')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->get()
             ->getRow();
         
@@ -137,7 +137,7 @@ class TutupBukuModel extends Model
     /**
      * Process year-end closing
      */
-    public function closeYear(string $kodeDesa, int $tahun, int $userId, string $catatan = null): bool
+    public function closeEXTRACT(YEAR FROM string $kodeDesa, int $tahun, int $userId, string $catatan = null)::int: bool
     {
         $db = \Config\Database::connect();
         $db->transStart();
@@ -164,13 +164,13 @@ class TutupBukuModel extends Model
             // Lock all BKU transactions for this year
             $db->table('bku')
                 ->where('kode_desa', $kodeDesa)
-                ->where('YEAR(tanggal)', $tahun)
+                ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
                 ->update(['is_locked' => 1]);
             
             // Lock all SPP for this year
             $db->table('spp')
                 ->where('kode_desa', $kodeDesa)
-                ->where('YEAR(tanggal_spp)', $tahun)
+                ->where('EXTRACT(YEAR FROM tanggal_spp)::int', $tahun)
                 ->update(['is_locked' => 1]);
             
             // Lock APBDes for this year
@@ -210,7 +210,7 @@ class TutupBukuModel extends Model
     /**
      * Reopen a closed year (admin only, with caution)
      */
-    public function reopenYear(string $kodeDesa, int $tahun): bool
+    public function reopenEXTRACT(YEAR FROM string $kodeDesa, int $tahun)::int: bool
     {
         $db = \Config\Database::connect();
         $db->transStart();
@@ -232,13 +232,13 @@ class TutupBukuModel extends Model
             // Unlock BKU
             $db->table('bku')
                 ->where('kode_desa', $kodeDesa)
-                ->where('YEAR(tanggal)', $tahun)
+                ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
                 ->update(['is_locked' => 0]);
             
             // Unlock SPP
             $db->table('spp')
                 ->where('kode_desa', $kodeDesa)
-                ->where('YEAR(tanggal_spp)', $tahun)
+                ->where('EXTRACT(YEAR FROM tanggal_spp)::int', $tahun)
                 ->update(['is_locked' => 0]);
             
             // Unlock APBDes
@@ -266,9 +266,9 @@ class TutupBukuModel extends Model
         
         // Get years that have transactions
         $years = $db->table('bku')
-            ->select('YEAR(tanggal) as tahun')
+            ->select('EXTRACT(YEAR FROM tanggal)::int as tahun')
             ->where('kode_desa', $kodeDesa)
-            ->groupBy('YEAR(tanggal)')
+            ->groupBy('EXTRACT(YEAR FROM tanggal)::int')
             ->orderBy('tahun', 'DESC')
             ->get()
             ->getResultArray();

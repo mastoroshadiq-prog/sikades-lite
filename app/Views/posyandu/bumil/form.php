@@ -161,8 +161,8 @@ document.getElementById('hpht').addEventListener('change', function() {
     // Calculate HPL (Naegele's rule: HPHT + 7 days - 3 months + 1 year)
     const hpl = new Date(hpht);
     hpl.setDate(hpl.getDate() + 7);
-    hpl.setMonth(hpl.getMonth() - 3);
-    hpl.setFullYear(hpl.getFullYear() + 1);
+    hpl.setEXTRACT(MONTH FROM hpl.getMonth()::int - 3);
+    hpl.setFullEXTRACT(YEAR FROM hpl.getFullYear()::int + 1);
     
     // Calculate weeks pregnant
     const today = new Date();

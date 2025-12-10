@@ -49,11 +49,11 @@ class PemeriksaanModel extends Model
             ->where('kes_pemeriksaan.posyandu_id', $posyanduId);
 
         if (!empty($filters['bulan'])) {
-            $builder->where('MONTH(kes_pemeriksaan.tanggal_periksa)', $filters['bulan']);
+            $builder->where('EXTRACT(MONTH FROM kes_pemeriksaan.tanggal_periksa)::int', $filters['bulan']);
         }
 
         if (!empty($filters['tahun'])) {
-            $builder->where('YEAR(kes_pemeriksaan.tanggal_periksa)', $filters['tahun']);
+            $builder->where('EXTRACT(YEAR FROM kes_pemeriksaan.tanggal_periksa)::int', $filters['tahun']);
         }
 
         if (!empty($filters['stunting_only'])) {
@@ -330,15 +330,15 @@ class PemeriksaanModel extends Model
         
         $result = $db->query("
             SELECT 
-                MONTH(p.tanggal_periksa) as bulan,
+                EXTRACT(MONTH FROM p.tanggal_periksa)::int as bulan,
                 COUNT(DISTINCT p.penduduk_id) as total_periksa,
                 SUM(CASE WHEN p.indikasi_stunting = 1 THEN 1 ELSE 0 END) as stunting,
                 SUM(CASE WHEN p.status_gizi = 'BURUK' THEN 1 ELSE 0 END) as gizi_buruk
             FROM kes_pemeriksaan p
             JOIN kes_posyandu pos ON pos.id = p.posyandu_id
             WHERE pos.kode_desa = ?
-            AND YEAR(p.tanggal_periksa) = ?
-            GROUP BY MONTH(p.tanggal_periksa)
+            AND EXTRACT(YEAR FROM p.tanggal_periksa)::int = ?
+            GROUP BY EXTRACT(MONTH FROM p.tanggal_periksa)::int
             ORDER BY bulan
         ", [$kodeDesa, $tahun])->getResultArray();
         

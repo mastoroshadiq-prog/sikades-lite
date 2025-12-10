@@ -65,7 +65,7 @@ class ProyekModel extends Model
         }
         
         if (!empty($filters['tahun'])) {
-            $builder->where('YEAR(tgl_mulai)', $filters['tahun']);
+            $builder->where('EXTRACT(YEAR FROM tgl_mulai)::int', $filters['tahun']);
         }
         
         return $builder->orderBy('tgl_mulai', 'DESC')->findAll();
@@ -179,7 +179,7 @@ class ProyekModel extends Model
         $tahun = $tahun ?? date('Y');
         
         $builder = $this->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tgl_mulai)', $tahun);
+            ->where('EXTRACT(YEAR FROM tgl_mulai)::int', $tahun);
         
         $projects = $builder->findAll();
         
@@ -282,10 +282,10 @@ class ProyekModel extends Model
         
         // Projects started per month
         $started = $db->table('proyek_fisik')
-            ->select('MONTH(tgl_mulai) as bulan, COUNT(*) as total, SUM(anggaran) as anggaran')
+            ->select('EXTRACT(MONTH FROM tgl_mulai)::int as bulan, COUNT(*) as total, SUM(anggaran) as anggaran')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tgl_mulai)', $tahun)
-            ->groupBy('MONTH(tgl_mulai)')
+            ->where('EXTRACT(YEAR FROM tgl_mulai)::int', $tahun)
+            ->groupBy('EXTRACT(MONTH FROM tgl_mulai)::int')
             ->get()
             ->getResultArray();
         
@@ -296,11 +296,11 @@ class ProyekModel extends Model
         
         // Projects completed per month
         $completed = $db->table('proyek_fisik')
-            ->select('MONTH(tgl_selesai_aktual) as bulan, COUNT(*) as total')
+            ->select('EXTRACT(MONTH FROM tgl_selesai_aktual)::int as bulan, COUNT(*) as total')
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tgl_selesai_aktual)', $tahun)
+            ->where('EXTRACT(YEAR FROM tgl_selesai_aktual)::int', $tahun)
             ->where('status', 'SELESAI')
-            ->groupBy('MONTH(tgl_selesai_aktual)')
+            ->groupBy('EXTRACT(MONTH FROM tgl_selesai_aktual)::int')
             ->get()
             ->getResultArray();
         

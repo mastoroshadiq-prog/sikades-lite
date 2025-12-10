@@ -31,9 +31,9 @@ class Lpj extends BaseController
         // Get available years
         $db = \Config\Database::connect();
         $years = $db->table('bku')
-            ->select('YEAR(tanggal) as tahun')
+            ->select('EXTRACT(YEAR FROM tanggal)::int as tahun')
             ->where('kode_desa', $kodeDesa)
-            ->groupBy('YEAR(tanggal)')
+            ->groupBy('EXTRACT(YEAR FROM tanggal)::int')
             ->orderBy('tahun', 'DESC')
             ->get()
             ->getResultArray();

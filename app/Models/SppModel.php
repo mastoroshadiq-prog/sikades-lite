@@ -50,7 +50,7 @@ class SppModel extends Model
         }
         
         if ($tahun) {
-            $builder->where('YEAR(tanggal_spp)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM tanggal_spp)::int', $tahun);
         }
         
         return $builder->orderBy('tanggal_spp', 'DESC')->findAll();

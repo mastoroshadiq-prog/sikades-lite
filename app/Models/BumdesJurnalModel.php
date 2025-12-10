@@ -79,13 +79,13 @@ class BumdesJurnalModel extends Model
             ->where('bumdes_jurnal.unit_id', $unitId);
         
         if (!empty($filters['bulan'])) {
-            $builder->where('MONTH(tanggal)', $filters['bulan']);
+            $builder->where('EXTRACT(MONTH FROM tanggal)::int', $filters['bulan']);
         }
         
         if (!empty($filters['tahun'])) {
-            $builder->where('YEAR(tanggal)', $filters['tahun']);
+            $builder->where('EXTRACT(YEAR FROM tanggal)::int', $filters['tahun']);
         } else {
-            $builder->where('YEAR(tanggal)', date('Y'));
+            $builder->where('EXTRACT(YEAR FROM tanggal)::int', date('Y'));
         }
         
         return $builder->orderBy('tanggal', 'DESC')->orderBy('id', 'DESC')->findAll();
@@ -196,7 +196,7 @@ class BumdesJurnalModel extends Model
                 COALESCE(SUM(jd.kredit) - SUM(jd.debet), 0) as jumlah
             FROM bumdes_akun a
             LEFT JOIN bumdes_jurnal_detail jd ON a.id = jd.akun_id
-            LEFT JOIN bumdes_jurnal j ON jd.jurnal_id = j.id AND j.unit_id = ? AND YEAR(j.tanggal) = ?
+            LEFT JOIN bumdes_jurnal j ON jd.jurnal_id = j.id AND j.unit_id = ? AND EXTRACT(YEAR FROM j.tanggal)::int = ?
             WHERE a.tipe = 'PENDAPATAN' AND a.is_header = 0
             GROUP BY a.id
             ORDER BY a.urutan
@@ -210,7 +210,7 @@ class BumdesJurnalModel extends Model
                 COALESCE(SUM(jd.debet) - SUM(jd.kredit), 0) as jumlah
             FROM bumdes_akun a
             LEFT JOIN bumdes_jurnal_detail jd ON a.id = jd.akun_id
-            LEFT JOIN bumdes_jurnal j ON jd.jurnal_id = j.id AND j.unit_id = ? AND YEAR(j.tanggal) = ?
+            LEFT JOIN bumdes_jurnal j ON jd.jurnal_id = j.id AND j.unit_id = ? AND EXTRACT(YEAR FROM j.tanggal)::int = ?
             WHERE a.tipe = 'BEBAN' AND a.is_header = 0
             GROUP BY a.id
             ORDER BY a.urutan

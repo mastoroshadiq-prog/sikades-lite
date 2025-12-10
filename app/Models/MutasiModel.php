@@ -46,11 +46,11 @@ class MutasiModel extends Model
         }
 
         if (!empty($filters['tahun'])) {
-            $builder->where('YEAR(pop_mutasi.tanggal_peristiwa)', $filters['tahun']);
+            $builder->where('EXTRACT(YEAR FROM pop_mutasi.tanggal_peristiwa)::int', $filters['tahun']);
         }
 
         if (!empty($filters['bulan'])) {
-            $builder->where('MONTH(pop_mutasi.tanggal_peristiwa)', $filters['bulan']);
+            $builder->where('EXTRACT(MONTH FROM pop_mutasi.tanggal_peristiwa)::int', $filters['bulan']);
         }
 
         return $builder
@@ -72,7 +72,7 @@ class MutasiModel extends Model
             FROM pop_mutasi m
             JOIN pop_penduduk p ON p.id = m.penduduk_id
             JOIN pop_keluarga k ON k.id = p.keluarga_id
-            WHERE k.kode_desa = ? AND YEAR(m.tanggal_peristiwa) = ?
+            WHERE k.kode_desa = ? AND EXTRACT(YEAR FROM m.tanggal_peristiwa)::int = ?
             GROUP BY jenis_mutasi
         ", [$kodeDesa, $tahun])->getResultArray();
 
@@ -100,7 +100,7 @@ class MutasiModel extends Model
         
         $result = $db->query("
             SELECT 
-                MONTH(m.tanggal_peristiwa) as bulan,
+                EXTRACT(MONTH FROM m.tanggal_peristiwa)::int as bulan,
                 SUM(CASE WHEN m.jenis_mutasi = 'KELAHIRAN' THEN 1 ELSE 0 END) as kelahiran,
                 SUM(CASE WHEN m.jenis_mutasi = 'KEMATIAN' THEN 1 ELSE 0 END) as kematian,
                 SUM(CASE WHEN m.jenis_mutasi = 'PINDAH_MASUK' THEN 1 ELSE 0 END) as pindah_masuk,
@@ -108,8 +108,8 @@ class MutasiModel extends Model
             FROM pop_mutasi m
             JOIN pop_penduduk p ON p.id = m.penduduk_id
             JOIN pop_keluarga k ON k.id = p.keluarga_id
-            WHERE k.kode_desa = ? AND YEAR(m.tanggal_peristiwa) = ?
-            GROUP BY MONTH(m.tanggal_peristiwa)
+            WHERE k.kode_desa = ? AND EXTRACT(YEAR FROM m.tanggal_peristiwa)::int = ?
+            GROUP BY EXTRACT(MONTH FROM m.tanggal_peristiwa)::int
             ORDER BY bulan
         ", [$kodeDesa, $tahun])->getResultArray();
 

@@ -44,7 +44,7 @@ class PajakModel extends Model
             ->where('bku.kode_desa', $kodeDesa);
         
         if ($tahun) {
-            $builder->where('YEAR(pajak.tanggal_pajak)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM pajak.tanggal_pajak)::int', $tahun);
         }
         
         return $builder->orderBy('pajak.tanggal_pajak', 'DESC')->findAll();
@@ -66,7 +66,7 @@ class PajakModel extends Model
             ->where('pajak.jenis_pajak', $jenisPajak);
         
         if ($tahun) {
-            $builder->where('YEAR(pajak.tanggal_pajak)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM pajak.tanggal_pajak)::int', $tahun);
         }
         
         $result = $builder->first();
@@ -88,7 +88,7 @@ class PajakModel extends Model
             ->where('pajak.status_pembayaran', 'Belum');
         
         if ($tahun) {
-            $builder->where('YEAR(pajak.tanggal_pajak)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM pajak.tanggal_pajak)::int', $tahun);
         }
         
         $result = $builder->first();
@@ -110,7 +110,7 @@ class PajakModel extends Model
             ->where('pajak.status_pembayaran', 'Sudah');
         
         if ($tahun) {
-            $builder->where('YEAR(pajak.tanggal_pajak)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM pajak.tanggal_pajak)::int', $tahun);
         }
         
         $result = $builder->first();

@@ -54,8 +54,8 @@ class Report extends BaseController
         // Get transactions
         $transactions = $this->bkuModel
             ->where('kode_desa', $kodeDesa)
-            ->where('MONTH(tanggal)', $bulan)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(MONTH FROM tanggal)::int', $bulan)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->orderBy('tanggal', 'ASC')
             ->orderBy('id', 'ASC')
             ->findAll();
@@ -160,7 +160,7 @@ class Report extends BaseController
                 COALESCE(SUM(bku.kredit), 0) as realisasi_belanja
             ')
             ->join('ref_rekening', 'apbdes.ref_rekening_id = ref_rekening.id')
-            ->join('bku', 'bku.ref_rekening_id = ref_rekening.id AND bku.kode_desa = apbdes.kode_desa AND YEAR(bku.tanggal) = apbdes.tahun', 'left')
+            ->join('bku', 'bku.ref_rekening_id = ref_rekening.id AND bku.kode_desa = apbdes.kode_desa AND EXTRACT(YEAR FROM bku.tanggal)::int = apbdes.tahun', 'left')
             ->where('apbdes.kode_desa', $kodeDesa)
             ->where('apbdes.tahun', $tahun)
             ->groupBy('apbdes.id')
@@ -254,7 +254,7 @@ class Report extends BaseController
             ->select('pajak.*, bku.tanggal, bku.uraian, bku.no_bukti as nomor_bukti')
             ->join('bku', 'pajak.bku_id = bku.id')
             ->where('bku.kode_desa', $kodeDesa)
-            ->where('YEAR(bku.tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM bku.tanggal)::int', $tahun)
             ->orderBy('bku.tanggal', 'ASC')
             ->findAll();
 
@@ -353,8 +353,8 @@ class Report extends BaseController
         $result = $builder->selectSum('debet')
                           ->selectSum('kredit')
                           ->where('kode_desa', $kodeDesa)
-                          ->where('YEAR(tanggal)', $tahun)
-                          ->where('MONTH(tanggal) <', $bulan)
+                          ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
+                          ->where('EXTRACT(MONTH FROM tanggal)::int <', $bulan)
                           ->get()
                           ->getRowArray();
 

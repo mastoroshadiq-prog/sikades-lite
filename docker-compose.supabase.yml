@@ -1,0 +1,27 @@
+version: '3.8'
+
+# Docker Compose for Sikades Lite with Supabase
+# Use this when database is hosted on Supabase
+# Run: docker-compose -f docker-compose.supabase.yml up -d
+
+services:
+  # PHP Apache Service only (no local database)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: siskeudes_app
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html
+    environment:
+      - APACHE_DOCUMENT_ROOT=/var/www/html/public
+    networks:
+      - siskeudes_network
+    restart: unless-stopped
+    # No database dependency - using Supabase instead!
+
+networks:
+  siskeudes_network:
+    driver: bridge

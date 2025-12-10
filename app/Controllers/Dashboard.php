@@ -97,7 +97,7 @@ class Dashboard extends BaseController
         // Total Realisasi (from BKU - Kredit/Belanja)
         $totalRealisasi = $this->bkuModel
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->where('jenis_transaksi', 'Belanja')
             ->selectSum('kredit')
             ->first();
@@ -106,7 +106,7 @@ class Dashboard extends BaseController
         // Total Pendapatan (from BKU - Debet)
         $totalPendapatan = $this->bkuModel
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->selectSum('debet')
             ->first();
         $stats['total_pendapatan'] = $totalPendapatan['debet'] ?? 0;
@@ -114,7 +114,7 @@ class Dashboard extends BaseController
         // Total Belanja (from BKU - Kredit)
         $totalBelanja = $this->bkuModel
             ->where('kode_desa', $kodeDesa)
-            ->where('YEAR(tanggal)', $tahun)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->selectSum('kredit')
             ->first();
         $stats['total_belanja'] = $totalBelanja['kredit'] ?? 0;
@@ -150,12 +150,12 @@ class Dashboard extends BaseController
         
         $result = $db->query("
             SELECT 
-                MONTH(tanggal) as bulan,
+                EXTRACT(MONTH FROM tanggal)::int as bulan,
                 SUM(debet) as pendapatan,
                 SUM(kredit) as belanja
             FROM bku 
-            WHERE kode_desa = ? AND YEAR(tanggal) = ?
-            GROUP BY MONTH(tanggal)
+            WHERE kode_desa = ? AND EXTRACT(YEAR FROM tanggal)::int = ?
+            GROUP BY EXTRACT(MONTH FROM tanggal)
             ORDER BY bulan
         ", [$kodeDesa, $tahun])->getResultArray();
         

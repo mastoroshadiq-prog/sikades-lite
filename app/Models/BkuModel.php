@@ -46,11 +46,11 @@ class BkuModel extends Model
             ->where('bku.kode_desa', $kodeDesa);
         
         if ($tahun) {
-            $builder->where('YEAR(bku.tanggal)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM bku.tanggal)::int', $tahun);
         }
         
         if ($bulan) {
-            $builder->where('MONTH(bku.tanggal)', $bulan);
+            $builder->where('EXTRACT(MONTH FROM bku.tanggal)::int', $bulan);
         }
         
         return $builder->orderBy('bku.tanggal', 'ASC')
@@ -91,11 +91,11 @@ class BkuModel extends Model
             ->where('kode_desa', $kodeDesa);
         
         if ($tahun) {
-            $builder->where('YEAR(tanggal)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM tanggal)::int', $tahun);
         }
         
         if ($bulan) {
-            $builder->where('MONTH(tanggal)', $bulan);
+            $builder->where('EXTRACT(MONTH FROM tanggal)::int', $bulan);
         }
         
         $result = $builder->first();
@@ -116,11 +116,11 @@ class BkuModel extends Model
             ->where('kode_desa', $kodeDesa);
         
         if ($tahun) {
-            $builder->where('YEAR(tanggal)', $tahun);
+            $builder->where('EXTRACT(YEAR FROM tanggal)::int', $tahun);
         }
         
         if ($bulan) {
-            $builder->where('MONTH(tanggal)', $bulan);
+            $builder->where('EXTRACT(MONTH FROM tanggal)::int', $bulan);
         }
         
         $result = $builder->first();
