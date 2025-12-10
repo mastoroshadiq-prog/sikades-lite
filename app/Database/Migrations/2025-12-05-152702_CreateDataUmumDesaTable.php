@@ -24,13 +24,35 @@ class CreateDataUmumDesaTable extends Migration
                 'type' => 'VARCHAR',
                 'constraint' => 255,
             ],
+            'kecamatan' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => true,
+            ],
+            'kabupaten' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => true,
+            ],
+            'provinsi' => [
+                'type' => 'VARCHAR',
+                'constraint' => 255,
+                'null' => true,
+            ],
             'nama_kepala_desa' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
+                'null' => true,
+            ],
+            'nip_kepala_desa' => [
+                'type' => 'VARCHAR',
+                'constraint' => 50,
+                'null' => true,
             ],
             'nama_bendahara' => [
                 'type' => 'VARCHAR',
                 'constraint' => 255,
+                'null' => true,
             ],
             'npwp' => [
                 'type' => 'VARCHAR',
@@ -40,6 +62,14 @@ class CreateDataUmumDesaTable extends Migration
             'tahun_anggaran' => [
                 'type' => 'YEAR',
                 'constraint' => 4,
+            ],
+            'created_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
+            ],
+            'updated_at' => [
+                'type' => 'DATETIME',
+                'null' => true,
             ],
         ]);
 

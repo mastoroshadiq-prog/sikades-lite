@@ -1,6 +1,42 @@
 <?= view('layout/header') ?>
 <?= view('layout/sidebar') ?>
 
+<style>
+/* Fullscreen map styles */
+.map-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 9999;
+}
+.map-fullscreen-overlay.active {
+    display: flex;
+    flex-direction: column;
+}
+.map-fullscreen-overlay .map-header {
+    padding: 15px 20px;
+    background: #333;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.map-fullscreen-overlay #mapFullscreen {
+    flex: 1;
+}
+.map-coords-display {
+    background: rgba(0,0,0,0.7);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-family: monospace;
+}
+</style>
+
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
@@ -129,22 +165,27 @@
                     <div class="col-lg-4">
                         <!-- Location -->
                         <div class="card border-0 shadow-sm mb-4">
-                            <div class="card-header bg-white py-3">
+                            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                                 <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2 text-danger"></i>Koordinat Lokasi</h5>
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="openFullscreenMap()">
+                                    <i class="fas fa-expand me-1"></i>Perbesar
+                                </button>
                             </div>
                             <div class="card-body">
                                 <div id="map" style="height: 200px; border-radius: 8px;" class="mb-3"></div>
                                 <div class="row">
                                     <div class="col-6">
                                         <input type="text" name="lat" id="lat" class="form-control form-control-sm" 
-                                               placeholder="Latitude">
+                                               placeholder="Latitude" readonly>
                                     </div>
                                     <div class="col-6">
                                         <input type="text" name="lng" id="lng" class="form-control form-control-sm" 
-                                               placeholder="Longitude">
+                                               placeholder="Longitude" readonly>
                                     </div>
                                 </div>
-                                <small class="text-muted mt-2 d-block">Klik peta untuk menentukan lokasi</small>
+                                <small class="text-muted mt-2 d-block">
+                                    <i class="fas fa-info-circle me-1"></i>Klik tombol <strong>Perbesar</strong> untuk memilih lokasi dengan lebih akurat
+                                </small>
                             </div>
                         </div>
 
@@ -174,6 +215,26 @@
     </div>
 </div>
 
+<!-- Fullscreen Map Overlay -->
+<div class="map-fullscreen-overlay" id="mapFullscreenOverlay">
+    <div class="map-header">
+        <div>
+            <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Pilih Lokasi Proyek</h5>
+            <small class="text-muted">Klik pada peta untuk menentukan koordinat lokasi</small>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <div class="map-coords-display" id="coordsDisplay">Lat: -, Lng: -</div>
+            <button type="button" class="btn btn-success" onclick="confirmLocation()">
+                <i class="fas fa-check me-1"></i>Konfirmasi Lokasi
+            </button>
+            <button type="button" class="btn btn-light" onclick="closeFullscreenMap()">
+                <i class="fas fa-times me-1"></i>Batal
+            </button>
+        </div>
+    </div>
+    <div id="mapFullscreen"></div>
+</div>
+
 <?= view('layout/footer') ?>
 
 <!-- Leaflet -->
@@ -181,21 +242,121 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// Map
+// Small map
 const map = L.map('map').setView([-6.9, 110.4], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
 }).addTo(map);
 
 let marker = null;
+let tempCoords = null;
+
+// Click on small map
 map.on('click', function(e) {
-    document.getElementById('lat').value = e.latlng.lat.toFixed(8);
-    document.getElementById('lng').value = e.latlng.lng.toFixed(8);
+    setCoordinates(e.latlng.lat, e.latlng.lng);
+});
+
+function setCoordinates(lat, lng) {
+    document.getElementById('lat').value = lat.toFixed(8);
+    document.getElementById('lng').value = lng.toFixed(8);
+    
     if (marker) {
-        marker.setLatLng(e.latlng);
+        marker.setLatLng([lat, lng]);
     } else {
-        marker = L.marker(e.latlng).addTo(map);
+        marker = L.marker([lat, lng]).addTo(map);
     }
+    map.setView([lat, lng], 15);
+}
+
+// Fullscreen map
+let fullscreenMap = null;
+let fullscreenMarker = null;
+
+function openFullscreenMap() {
+    document.getElementById('mapFullscreenOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Get current coords if set
+    const currentLat = document.getElementById('lat').value;
+    const currentLng = document.getElementById('lng').value;
+    const centerLat = currentLat ? parseFloat(currentLat) : -6.9;
+    const centerLng = currentLng ? parseFloat(currentLng) : 110.4;
+    const zoom = currentLat ? 16 : 12;
+    
+    if (!fullscreenMap) {
+        fullscreenMap = L.map('mapFullscreen').setView([centerLat, centerLng], zoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(fullscreenMap);
+        
+        // Add search hint
+        const searchHint = L.control({position: 'topleft'});
+        searchHint.onAdd = function() {
+            const div = L.DomUtil.create('div', 'leaflet-control');
+            div.innerHTML = '<div style="background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">' +
+                '<i class="fas fa-mouse-pointer me-2"></i><strong>Klik</strong> pada peta untuk memilih lokasi</div>';
+            return div;
+        };
+        searchHint.addTo(fullscreenMap);
+        
+        // Click handler for fullscreen map
+        fullscreenMap.on('click', function(e) {
+            tempCoords = e.latlng;
+            
+            if (fullscreenMarker) {
+                fullscreenMarker.setLatLng(e.latlng);
+            } else {
+                fullscreenMarker = L.marker(e.latlng, {
+                    draggable: true
+                }).addTo(fullscreenMap);
+                
+                fullscreenMarker.on('dragend', function(e) {
+                    tempCoords = e.target.getLatLng();
+                    updateCoordsDisplay(tempCoords.lat, tempCoords.lng);
+                });
+            }
+            
+            updateCoordsDisplay(e.latlng.lat, e.latlng.lng);
+        });
+        
+        // If already has coords, show marker
+        if (currentLat && currentLng) {
+            tempCoords = {lat: centerLat, lng: centerLng};
+            fullscreenMarker = L.marker([centerLat, centerLng], {draggable: true}).addTo(fullscreenMap);
+            fullscreenMarker.on('dragend', function(e) {
+                tempCoords = e.target.getLatLng();
+                updateCoordsDisplay(tempCoords.lat, tempCoords.lng);
+            });
+            updateCoordsDisplay(centerLat, centerLng);
+        }
+    } else {
+        fullscreenMap.setView([centerLat, centerLng], zoom);
+        setTimeout(() => fullscreenMap.invalidateSize(), 100);
+    }
+}
+
+function updateCoordsDisplay(lat, lng) {
+    document.getElementById('coordsDisplay').innerHTML = 
+        'Lat: <strong>' + lat.toFixed(6) + '</strong>, Lng: <strong>' + lng.toFixed(6) + '</strong>';
+}
+
+function confirmLocation() {
+    if (tempCoords) {
+        setCoordinates(tempCoords.lat, tempCoords.lng);
+        closeFullscreenMap();
+    } else {
+        alert('Silakan klik pada peta untuk memilih lokasi terlebih dahulu!');
+    }
+}
+
+function closeFullscreenMap() {
+    document.getElementById('mapFullscreenOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Close on ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeFullscreenMap();
 });
 
 // APBDes autofill

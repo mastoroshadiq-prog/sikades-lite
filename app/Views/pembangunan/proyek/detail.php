@@ -1,6 +1,60 @@
 <?= view('layout/header') ?>
 <?= view('layout/sidebar') ?>
 
+<style>
+/* Fullscreen map styles */
+.map-fullscreen-container {
+    position: relative;
+}
+.map-fullscreen-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    background: white;
+    border: 2px solid rgba(0,0,0,0.2);
+    border-radius: 4px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.map-fullscreen-btn:hover {
+    background: #f4f4f4;
+}
+.map-fullscreen-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.9);
+    z-index: 9999;
+}
+.map-fullscreen-overlay.active {
+    display: flex;
+    flex-direction: column;
+}
+.map-fullscreen-overlay .map-header {
+    padding: 15px 20px;
+    background: #333;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.map-fullscreen-overlay #mapFullscreen {
+    flex: 1;
+}
+/* Photo lightbox */
+.photo-lightbox {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.photo-lightbox:hover {
+    transform: scale(1.02);
+}
+</style>
+
 <div class="container-fluid py-4">
     <!-- Page Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -115,8 +169,13 @@
                     <div class="row text-center">
                         <div class="col-md-4">
                             <div class="mb-2"><strong>0% (Awal)</strong></div>
-                            <?php if ($project['foto_0']): ?>
-                                <img src="<?= base_url($project['foto_0']) ?>" class="img-fluid rounded" style="max-height: 200px;">
+                            <?php 
+                            $foto0Path = $project['foto_0'] ? '/' . ltrim($project['foto_0'], '/') : null;
+                            if ($foto0Path): ?>
+                                <a href="<?= base_url($foto0Path) ?>" target="_blank" class="photo-lightbox">
+                                    <img src="<?= base_url($foto0Path) ?>" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;" 
+                                         onerror="this.parentElement.innerHTML='<div class=\'bg-light rounded p-4\'><i class=\'fas fa-exclamation-triangle fa-3x text-warning\'></i><p class=\'text-muted mt-2 mb-0 small\'>Foto tidak ditemukan</p></div>'">
+                                </a>
                             <?php else: ?>
                                 <div class="bg-light rounded p-4">
                                     <i class="fas fa-image fa-3x text-muted"></i>
@@ -126,8 +185,13 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-2"><strong>50% (Pertengahan)</strong></div>
-                            <?php if ($project['foto_50']): ?>
-                                <img src="<?= base_url($project['foto_50']) ?>" class="img-fluid rounded" style="max-height: 200px;">
+                            <?php 
+                            $foto50Path = $project['foto_50'] ? '/' . ltrim($project['foto_50'], '/') : null;
+                            if ($foto50Path): ?>
+                                <a href="<?= base_url($foto50Path) ?>" target="_blank" class="photo-lightbox">
+                                    <img src="<?= base_url($foto50Path) ?>" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;"
+                                         onerror="this.parentElement.innerHTML='<div class=\'bg-light rounded p-4\'><i class=\'fas fa-exclamation-triangle fa-3x text-warning\'></i><p class=\'text-muted mt-2 mb-0 small\'>Foto tidak ditemukan</p></div>'">
+                                </a>
                             <?php else: ?>
                                 <div class="bg-light rounded p-4">
                                     <i class="fas fa-image fa-3x text-muted"></i>
@@ -137,8 +201,13 @@
                         </div>
                         <div class="col-md-4">
                             <div class="mb-2"><strong>100% (Selesai)</strong></div>
-                            <?php if ($project['foto_100']): ?>
-                                <img src="<?= base_url($project['foto_100']) ?>" class="img-fluid rounded" style="max-height: 200px;">
+                            <?php 
+                            $foto100Path = $project['foto_100'] ? '/' . ltrim($project['foto_100'], '/') : null;
+                            if ($foto100Path): ?>
+                                <a href="<?= base_url($foto100Path) ?>" target="_blank" class="photo-lightbox">
+                                    <img src="<?= base_url($foto100Path) ?>" class="img-fluid rounded" style="max-height: 200px; object-fit: cover;"
+                                         onerror="this.parentElement.innerHTML='<div class=\'bg-light rounded p-4\'><i class=\'fas fa-exclamation-triangle fa-3x text-warning\'></i><p class=\'text-muted mt-2 mb-0 small\'>Foto tidak ditemukan</p></div>'">
+                                </a>
                             <?php else: ?>
                                 <div class="bg-light rounded p-4">
                                     <i class="fas fa-image fa-3x text-muted"></i>
@@ -192,8 +261,10 @@
                                             <td><?= $log['volume_terealisasi'] ? $log['volume_terealisasi'] . ' ' . $project['satuan'] : '-' ?></td>
                                             <td><?= esc($log['pelapor'] ?: '-') ?></td>
                                             <td>
-                                                <?php if ($log['foto']): ?>
-                                                    <a href="<?= base_url($log['foto']) ?>" target="_blank" class="btn btn-sm btn-outline-info">
+                                                <?php if ($log['foto']): 
+                                                    $logFotoPath = '/' . ltrim($log['foto'], '/');
+                                                ?>
+                                                    <a href="<?= base_url($logFotoPath) ?>" target="_blank" class="btn btn-sm btn-outline-info">
                                                         <i class="fas fa-image"></i>
                                                     </a>
                                                 <?php endif; ?>
@@ -248,13 +319,16 @@
                 </div>
             </div>
 
-            <!-- Map -->
+            <!-- Map with Fullscreen -->
             <?php if ($project['lat'] && $project['lng']): ?>
                 <div class="card border-0 shadow-sm mb-4">
-                    <div class="card-header bg-white py-3">
+                    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2 text-danger"></i>Lokasi</h5>
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openFullscreenMap()">
+                            <i class="fas fa-expand me-1"></i>Fullscreen
+                        </button>
                     </div>
-                    <div class="card-body p-0">
+                    <div class="card-body p-0 map-fullscreen-container">
                         <div id="map" style="height: 250px;"></div>
                     </div>
                 </div>
@@ -284,17 +358,60 @@
     </div>
 </div>
 
+<!-- Fullscreen Map Overlay -->
+<?php if ($project['lat'] && $project['lng']): ?>
+<div class="map-fullscreen-overlay" id="mapFullscreenOverlay">
+    <div class="map-header">
+        <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i><?= esc($project['nama_proyek']) ?></h5>
+        <button type="button" class="btn btn-light btn-sm" onclick="closeFullscreenMap()">
+            <i class="fas fa-times me-1"></i>Tutup
+        </button>
+    </div>
+    <div id="mapFullscreen"></div>
+</div>
+<?php endif; ?>
+
 <?= view('layout/footer') ?>
 
 <?php if ($project['lat'] && $project['lng']): ?>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
+// Regular map
 const map = L.map('map').setView([<?= $project['lat'] ?>, <?= $project['lng'] ?>], 16);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 L.marker([<?= $project['lat'] ?>, <?= $project['lng'] ?>])
     .addTo(map)
     .bindPopup('<strong><?= esc($project['nama_proyek']) ?></strong>');
+
+// Fullscreen map
+let fullscreenMap = null;
+
+function openFullscreenMap() {
+    document.getElementById('mapFullscreenOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    if (!fullscreenMap) {
+        fullscreenMap = L.map('mapFullscreen').setView([<?= $project['lat'] ?>, <?= $project['lng'] ?>], 17);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(fullscreenMap);
+        L.marker([<?= $project['lat'] ?>, <?= $project['lng'] ?>])
+            .addTo(fullscreenMap)
+            .bindPopup('<strong><?= esc($project['nama_proyek']) ?></strong><br><?= esc($project['lokasi_detail']) ?>')
+            .openPopup();
+    } else {
+        setTimeout(() => fullscreenMap.invalidateSize(), 100);
+    }
+}
+
+function closeFullscreenMap() {
+    document.getElementById('mapFullscreenOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+// Close on ESC key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeFullscreenMap();
+});
 </script>
 <?php endif; ?>
 

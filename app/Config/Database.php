@@ -9,11 +9,16 @@ class Database extends Config
     public string $filesPath = APPPATH . 'Database' . DIRECTORY_SEPARATOR;
     public string $defaultGroup = 'default';
 
+    /**
+     * Default database connection
+     * Can be overridden by .env file
+     * Supports both MySQL and PostgreSQL (Supabase)
+     */
     public array $default = [
         'DSN'          => '',
-        'hostname'     => 'db',
-        'username'     => 'siskeudes_user',
-        'password'     => 'siskeudes_pass',
+        'hostname'     => 'localhost',
+        'username'     => 'root',
+        'password'     => '',
         'database'     => 'siskeudes',
         'DBDriver'     => 'MySQLi',
         'DBPrefix'     => '',
@@ -72,5 +77,20 @@ class Database extends Config
         if (env('database.default.port')) {
             $this->default['port'] = (int) env('database.default.port');
         }
+        
+        // PostgreSQL specific settings (for Supabase)
+        if ($this->default['DBDriver'] === 'Postgre') {
+            // Remove MySQL-specific settings
+            unset($this->default['charset']);
+            unset($this->default['DBCollat']);
+            unset($this->default['compress']);
+            unset($this->default['strictOn']);
+            
+            // Add PostgreSQL SSL settings for Supabase
+            if (env('database.default.sslmode')) {
+                $this->default['sslmode'] = env('database.default.sslmode');
+            }
+        }
     }
 }
+
