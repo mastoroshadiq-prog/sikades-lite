@@ -201,7 +201,7 @@ class AsetInventarisModel extends Model
         $kategoriData = $this->select('aset_kategori.nama_golongan, COUNT(*) as jumlah, SUM(harga_perolehan) as nilai')
                              ->join('aset_kategori', 'aset_kategori.id = aset_inventaris.kategori_id', 'left')
                              ->where('aset_inventaris.kode_desa', $kodeDesa)
-                             ->groupBy('aset_inventaris.kategori_id')
+                             ->groupBy('aset_kategori.nama_golongan')
                              ->findAll();
         
         $summary['by_kategori'] = $kategoriData;

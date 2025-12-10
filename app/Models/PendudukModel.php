@@ -135,8 +135,8 @@ class PendudukModel extends Model
                 COUNT(*) as total_penduduk,
                 SUM(CASE WHEN p.jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
                 SUM(CASE WHEN p.jenis_kelamin = 'P' THEN 1 ELSE 0 END) as perempuan,
-                SUM(CASE WHEN p.is_miskin = 1 THEN 1 ELSE 0 END) as warga_miskin,
-                SUM(CASE WHEN p.is_disabilitas = 1 THEN 1 ELSE 0 END) as penyandang_disabilitas,
+                SUM(CASE WHEN p.is_miskin = true THEN 1 ELSE 0 END) as warga_miskin,
+                SUM(CASE WHEN p.is_disabilitas = true THEN 1 ELSE 0 END) as penyandang_disabilitas,
                 (SELECT COUNT(*) FROM pop_keluarga WHERE kode_desa = ?) as total_kk
             FROM pop_penduduk p
             JOIN pop_keluarga k ON k.id = p.keluarga_id
@@ -163,21 +163,21 @@ class PendudukModel extends Model
         $result = $db->query("
             SELECT 
                 CASE 
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 0 AND 4 THEN '0-4'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 5 AND 9 THEN '5-9'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 10 AND 14 THEN '10-14'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 15 AND 19 THEN '15-19'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 20 AND 24 THEN '20-24'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 25 AND 29 THEN '25-29'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 30 AND 34 THEN '30-34'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 35 AND 39 THEN '35-39'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 40 AND 44 THEN '40-44'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 45 AND 49 THEN '45-49'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 50 AND 54 THEN '50-54'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 55 AND 59 THEN '55-59'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 60 AND 64 THEN '60-64'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 65 AND 69 THEN '65-69'
-                    WHEN TIMESTAMPDIFF(YEAR, tanggal_lahir, CURDATE()) BETWEEN 70 AND 74 THEN '70-74'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 0 AND 4 THEN '0-4'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 5 AND 9 THEN '5-9'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 10 AND 14 THEN '10-14'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 15 AND 19 THEN '15-19'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 20 AND 24 THEN '20-24'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 25 AND 29 THEN '25-29'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 30 AND 34 THEN '30-34'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 35 AND 39 THEN '35-39'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 40 AND 44 THEN '40-44'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 45 AND 49 THEN '45-49'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 50 AND 54 THEN '50-54'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 55 AND 59 THEN '55-59'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 60 AND 64 THEN '60-64'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 65 AND 69 THEN '65-69'
+                    WHEN EXTRACT(YEAR FROM AGE(CURRENT_DATE, tanggal_lahir))::int BETWEEN 70 AND 74 THEN '70-74'
                     ELSE '75+'
                 END as kelompok_umur,
                 SUM(CASE WHEN jenis_kelamin = 'L' THEN 1 ELSE 0 END) as laki_laki,
@@ -185,26 +185,8 @@ class PendudukModel extends Model
             FROM pop_penduduk p
             JOIN pop_keluarga k ON k.id = p.keluarga_id
             WHERE k.kode_desa = ? AND p.status_dasar = 'HIDUP' AND p.tanggal_lahir IS NOT NULL
-            GROUP BY kelompok_umur
-            ORDER BY 
-                CASE kelompok_umur
-                    WHEN '0-4' THEN 1
-                    WHEN '5-9' THEN 2
-                    WHEN '10-14' THEN 3
-                    WHEN '15-19' THEN 4
-                    WHEN '20-24' THEN 5
-                    WHEN '25-29' THEN 6
-                    WHEN '30-34' THEN 7
-                    WHEN '35-39' THEN 8
-                    WHEN '40-44' THEN 9
-                    WHEN '45-49' THEN 10
-                    WHEN '50-54' THEN 11
-                    WHEN '55-59' THEN 12
-                    WHEN '60-64' THEN 13
-                    WHEN '65-69' THEN 14
-                    WHEN '70-74' THEN 15
-                    ELSE 16
-                END
+            GROUP BY 1
+            ORDER BY 1
         ", [$kodeDesa])->getResultArray();
 
         return $result;

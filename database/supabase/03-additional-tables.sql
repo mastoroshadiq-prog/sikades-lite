@@ -29,13 +29,14 @@ CREATE TABLE IF NOT EXISTS aset_inventaris (
     bahan VARCHAR(100),
     tahun_perolehan INTEGER,
     asal_perolehan VARCHAR(100),
-    nilai_perolehan DECIMAL(15,2) DEFAULT 0,
+    harga_perolehan DECIMAL(15,2) DEFAULT 0,
     kondisi VARCHAR(50),
     lokasi VARCHAR(255),
     lat DECIMAL(10,8),
     lng DECIMAL(11,8),
     foto VARCHAR(255),
     keterangan TEXT,
+    kategori VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

@@ -30,7 +30,7 @@ class AsetKategoriModel extends Model
      */
     public function getActiveCategories(): array
     {
-        return $this->where('is_active', 1)
+        return $this->where('is_active', true)
                     ->orderBy('kode_golongan', 'ASC')
                     ->findAll();
     }
@@ -41,9 +41,9 @@ class AsetKategoriModel extends Model
     public function getCategoriesWithCount(string $kodeDesa): array
     {
         return $this->select('aset_kategori.*, COUNT(aset_inventaris.id) as jumlah_aset')
-                    ->join('aset_inventaris', 'aset_inventaris.kategori_id = aset_kategori.id AND aset_inventaris.kode_desa = "' . $kodeDesa . '"', 'left')
-                    ->where('aset_kategori.is_active', 1)
-                    ->groupBy('aset_kategori.id')
+                    ->join('aset_inventaris', "aset_inventaris.kategori_id = aset_kategori.id AND aset_inventaris.kode_desa = '" . $kodeDesa . "'", 'left')
+                    ->where('aset_kategori.is_active', true)
+                    ->groupBy('aset_kategori.id, aset_kategori.kode_golongan, aset_kategori.nama_golongan, aset_kategori.uraian, aset_kategori.masa_manfaat, aset_kategori.is_active, aset_kategori.created_at, aset_kategori.updated_at')
                     ->orderBy('kode_golongan', 'ASC')
                     ->findAll();
     }

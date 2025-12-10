@@ -332,7 +332,7 @@ class PemeriksaanModel extends Model
             SELECT 
                 EXTRACT(MONTH FROM p.tanggal_periksa)::int as bulan,
                 COUNT(DISTINCT p.penduduk_id) as total_periksa,
-                SUM(CASE WHEN p.indikasi_stunting = 1 THEN 1 ELSE 0 END) as stunting,
+                SUM(CASE WHEN p.indikasi_stunting = true THEN 1 ELSE 0 END) as stunting,
                 SUM(CASE WHEN p.status_gizi = 'BURUK' THEN 1 ELSE 0 END) as gizi_buruk
             FROM kes_pemeriksaan p
             JOIN kes_posyandu pos ON pos.id = p.posyandu_id

@@ -14,7 +14,7 @@ use CodeIgniter\Model;
  */
 class ProyekModel extends Model
 {
-    protected $table            = 'proyek_fisik';
+    protected $table            = 'proyek_pembangunan';
     protected $primaryKey       = 'id';
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
@@ -57,7 +57,7 @@ class ProyekModel extends Model
      */
     public function getWithStats(?string $kodeDesa, array $filters = []): array
     {
-        $builder = $this->select('proyek_fisik.*')
+        $builder = $this->select('proyek_pembangunan.*')
             ->where('kode_desa', $kodeDesa);
         
         if (!empty($filters['status'])) {
@@ -255,8 +255,8 @@ class ProyekModel extends Model
      */
     public function getForGis(?string $kodeDesa): array
     {
-        return $this->select('proyek_fisik.*, 
-                (SELECT foto FROM proyek_log WHERE proyek_id = proyek_fisik.id ORDER BY tanggal_laporan DESC LIMIT 1) as foto_terbaru')
+        return $this->select('proyek_pembangunan.*, 
+                (SELECT foto FROM proyek_log WHERE proyek_id = proyek_pembangunan.id ORDER BY tanggal_laporan DESC LIMIT 1) as foto_terbaru')
             ->where('kode_desa', $kodeDesa)
             ->where('lat IS NOT NULL')
             ->where('lng IS NOT NULL')
@@ -281,11 +281,11 @@ class ProyekModel extends Model
         }
         
         // Projects started per month
-        $started = $db->table('proyek_fisik')
+        $started = $db->table('proyek_pembangunan')
             ->select('EXTRACT(MONTH FROM tgl_mulai)::int as bulan, COUNT(*) as total, SUM(anggaran) as anggaran')
             ->where('kode_desa', $kodeDesa)
             ->where('EXTRACT(YEAR FROM tgl_mulai)::int', $tahun)
-            ->groupBy('EXTRACT(MONTH FROM tgl_mulai)::int')
+            ->groupBy('EXTRACT(MONTH FROM tgl_mulai)')
             ->get()
             ->getResultArray();
         
@@ -295,12 +295,12 @@ class ProyekModel extends Model
         }
         
         // Projects completed per month
-        $completed = $db->table('proyek_fisik')
+        $completed = $db->table('proyek_pembangunan')
             ->select('EXTRACT(MONTH FROM tgl_selesai_aktual)::int as bulan, COUNT(*) as total')
             ->where('kode_desa', $kodeDesa)
             ->where('EXTRACT(YEAR FROM tgl_selesai_aktual)::int', $tahun)
             ->where('status', 'SELESAI')
-            ->groupBy('EXTRACT(MONTH FROM tgl_selesai_aktual)::int')
+            ->groupBy('EXTRACT(MONTH FROM tgl_selesai_aktual)')
             ->get()
             ->getResultArray();
         
