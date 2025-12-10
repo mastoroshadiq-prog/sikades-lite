@@ -27,16 +27,36 @@
 3. Klik **Run**
 4. Data dummy akan terisi
 
-### 4. Dapatkan Connection String
+### 4. Dapatkan API Keys (PENTING!)
 
-1. Buka **Project Settings** > **Database**
-2. Scroll ke bagian **Connection string**
-3. Catat informasi berikut:
-   - **Host**: `db.xxxxxx.supabase.co`
-   - **Database**: `postgres`
-   - **Port**: `5432`
-   - **User**: `postgres`
-   - **Password**: (password saat buat project)
+1. Di Supabase Dashboard, klik icon **⚙️ Settings** (gear) di sidebar
+2. Klik **API** di submenu
+
+Anda akan melihat:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Project URL                                                 │
+│ https://abcdefghij.supabase.co                             │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│ Project API keys                                            │
+├─────────────────────────────────────────────────────────────┤
+│ anon public                                                 │
+│ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz...      │
+│ [Copy button]                                               │
+├─────────────────────────────────────────────────────────────┤
+│ service_role  ⚠️ SECRET                                     │
+│ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJz...      │
+│ [Reveal] [Copy button]                                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Catat 3 nilai ini:**
+- **Project URL**: `https://xxxxx.supabase.co`
+- **anon key**: Key dengan label "anon public"
+- **service_role key**: Klik "Reveal" untuk melihat, lalu copy
 
 ### 5. Konfigurasi .env
 
@@ -45,19 +65,19 @@
    cp .env.supabase .env
    ```
 
-2. Edit `.env` dengan nilai dari Supabase:
+2. Edit `.env` dengan API keys dari Supabase:
    ```env
    CI_ENVIRONMENT = development
    app.baseURL = 'http://localhost:8080/'
 
-   database.default.hostname = 'db.YOUR_PROJECT_ID.supabase.co'
-   database.default.database = 'postgres'
-   database.default.username = 'postgres'
-   database.default.password = 'YOUR_PASSWORD'
-   database.default.DBDriver = 'Postgre'
-   database.default.port = 5432
-   database.default.sslmode = 'require'
+   # Supabase API Configuration
+   supabase.url = 'https://YOUR_PROJECT_REF.supabase.co'
+   supabase.anon_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6...(your anon key)'
+   supabase.service_key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6...(your service_role key)'
    ```
+
+   > ⚠️ **PENTING:** Jangan pernah commit file `.env` ke git!
+   > File ini berisi service_key yang memberi akses penuh ke database.
 
 ### 6. Install Dependencies & Run
 
