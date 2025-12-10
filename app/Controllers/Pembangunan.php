@@ -38,11 +38,22 @@ class Pembangunan extends BaseController
         $this->ensureTablesExist();
     }
 
+
     private function ensureTablesExist()
     {
+        // For PostgreSQL (Supabase), tables should be created via SQL scripts
+        // This method is only for MySQL fallback
+        $driver = $this->db->getPlatform();
+        
+        if ($driver === 'Postgre') {
+            // PostgreSQL - tables created via Supabase SQL scripts
+            return;
+        }
+        
+        // MySQL fallback
         $tables = $this->db->listTables();
         
-        if (!in_array('proyek_fisik', $tables)) {
+        if (!in_array('proyek_fisik', $tables) && !in_array('proyek_pembangunan', $tables)) {
             $this->db->query("
                 CREATE TABLE IF NOT EXISTS proyek_fisik (
                     id INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,

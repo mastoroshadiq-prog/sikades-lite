@@ -24,8 +24,8 @@ curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 curl_exec($ch);
 curl_close($ch);
 
-// Test /demografi page
-$ch = curl_init($baseUrl . '/demografi');
+// Test /pembangunan/proyek page
+$ch = curl_init($baseUrl . '/pembangunan/proyek');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_COOKIEFILE, $cookieFile);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
