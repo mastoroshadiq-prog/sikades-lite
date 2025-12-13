@@ -102,7 +102,12 @@ class KeluargaModel extends Model
         $keluarga['anggota'] = $pendudukModel
             ->where('keluarga_id', $id)
             ->where('status_dasar', 'HIDUP')
-            ->orderBy("FIELD(status_hubungan, 'Kepala Keluarga', 'Istri', 'Anak', 'Famili Lain', 'Lainnya')")
+            ->orderBy("CASE status_hub_keluarga 
+                WHEN 'Kepala Keluarga' THEN 1 
+                WHEN 'Istri' THEN 2 
+                WHEN 'Anak' THEN 3 
+                WHEN 'Famili Lain' THEN 4 
+                ELSE 5 END")
             ->findAll();
 
         return $keluarga;

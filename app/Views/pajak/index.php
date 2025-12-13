@@ -153,17 +153,20 @@ function bayarPajak(id) {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
                 }
             })
             .then(response => response.json())
             .then(data => {
-                if (data.status === 'success') {
-                    showToast('success', 'Berhasil', data.message);
-                    setTimeout(() => location.reload(), 1000);
+                if (data.success) {
+                    Swal.fire('Berhasil!', data.message, 'success').then(() => location.reload());
                 } else {
-                    showToast('error', 'Gagal', data.message);
+                    Swal.fire('Gagal', data.message, 'error');
                 }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Gagal memproses pembayaran', 'error');
             });
         }
     });

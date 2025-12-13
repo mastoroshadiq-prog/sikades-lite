@@ -137,7 +137,7 @@ class TutupBukuModel extends Model
     /**
      * Process year-end closing
      */
-    public function closeEXTRACT(YEAR FROM string $kodeDesa, int $tahun, int $userId, string $catatan = null)::int: bool
+    public function closeYear(string $kodeDesa, int $tahun, int $userId, string $catatan = null): bool
     {
         $db = \Config\Database::connect();
         $db->transStart();
@@ -210,7 +210,7 @@ class TutupBukuModel extends Model
     /**
      * Reopen a closed year (admin only, with caution)
      */
-    public function reopenEXTRACT(YEAR FROM string $kodeDesa, int $tahun)::int: bool
+    public function reopenYear(string $kodeDesa, int $tahun): bool
     {
         $db = \Config\Database::connect();
         $db->transStart();

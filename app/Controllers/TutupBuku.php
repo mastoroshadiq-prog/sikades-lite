@@ -42,12 +42,12 @@ class TutupBuku extends BaseController
         // Get current year summary
         $currentSummary = $this->tutupBukuModel->calculateYearSummary($kodeDesa, $currentYear);
         
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Tutup Buku Akhir Tahun',
             'years' => $years,
             'currentYear' => $currentYear,
             'currentSummary' => $currentSummary,
-        ];
+        ]);
 
         return view('tutup_buku/index', $data);
     }
@@ -103,7 +103,7 @@ class TutupBuku extends BaseController
             $warnings[] = "Tahun berjalan belum berakhir. Tutup buku umumnya dilakukan di akhir tahun (Desember).";
         }
         
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Preview Tutup Buku Tahun ' . $tahun,
             'tahun' => $tahun,
             'summary' => $summary,
@@ -112,7 +112,7 @@ class TutupBuku extends BaseController
             'pendingSpp' => $pendingSpp,
             'prevYearClosed' => $prevYearClosed,
             'warnings' => $warnings,
-        ];
+        ]);
 
         return view('tutup_buku/preview', $data);
     }
@@ -143,7 +143,7 @@ class TutupBuku extends BaseController
         }
         
         // Process closing
-        $result = $this->tutupBukuModel->closeEXTRACT(YEAR FROM $kodeDesa, $tahun, $userId, $catatan)::int;
+        $result = $this->tutupBukuModel->closeYear($kodeDesa, $tahun, $userId, $catatan);
         
         if ($result) {
             // Log activity
@@ -189,13 +189,13 @@ class TutupBuku extends BaseController
             ORDER BY bulan
         ", [$kodeDesa, $tahun])->getResultArray();
         
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Detail Tutup Buku Tahun ' . $tahun,
             'tahun' => $tahun,
             'record' => $record,
             'closedByUser' => $closedByUser,
             'monthlyData' => $monthlyData,
-        ];
+        ]);
 
         return view('tutup_buku/detail', $data);
     }
@@ -223,7 +223,7 @@ class TutupBuku extends BaseController
         }
         
         // Reopen
-        $result = $this->tutupBukuModel->reopenEXTRACT(YEAR FROM $kodeDesa, $tahun)::int;
+        $result = $this->tutupBukuModel->reopenYear($kodeDesa, $tahun);
         
         if ($result) {
             ActivityLogModel::log('reopen_year', 'tutup_buku', "Membuka kembali tahun {$tahun}");

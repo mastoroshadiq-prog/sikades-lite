@@ -195,7 +195,10 @@ function approvePak(id) {
         if (result.isConfirmed) {
             fetch('<?= base_url('/pak/approve') ?>/' + id, {
                 method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
+                }
             })
             .then(res => res.json())
             .then(data => {
@@ -204,6 +207,9 @@ function approvePak(id) {
                 } else {
                     Swal.fire('Error', data.message, 'error');
                 }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Gagal menyetujui PAK', 'error');
             });
         }
     });
@@ -223,7 +229,10 @@ function rejectPak(id) {
         if (result.isConfirmed) {
             fetch('<?= base_url('/pak/reject') ?>/' + id, {
                 method: 'POST',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
+                }
             })
             .then(res => res.json())
             .then(data => {
@@ -232,6 +241,9 @@ function rejectPak(id) {
                 } else {
                     Swal.fire('Error', data.message, 'error');
                 }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Gagal menolak PAK', 'error');
             });
         }
     });

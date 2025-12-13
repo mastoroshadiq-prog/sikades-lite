@@ -1,0 +1,54 @@
+# GitHub Actions workflow untuk deploy ke Cloud Run
+# File: .github/workflows/deploy.yml
+
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main  # Deploy otomatis ketika push ke main
+  workflow_dispatch:  # Atau manual trigger
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: sikades-lite
+  REGION: asia-southeast1
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Google Cloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Build and Deploy to Cloud Run
+        run: |
+          gcloud run deploy $SERVICE_NAME \
+            --source . \
+            --platform managed \
+            --region $REGION \
+            --allow-unauthenticated \
+            --set-env-vars="CI_ENVIRONMENT=production" \
+            --set-env-vars="database.default.hostname=${{ secrets.DB_HOST }}" \
+            --set-env-vars="database.default.database=postgres" \
+            --set-env-vars="database.default.username=${{ secrets.DB_USER }}" \
+            --set-env-vars="database.default.password=${{ secrets.DB_PASS }}" \
+            --set-env-vars="database.default.DBDriver=Postgre" \
+            --set-env-vars="database.default.port=6543" \
+            --set-env-vars="app.baseURL=${{ secrets.APP_URL }}"
+
+      - name: Show deployed URL
+        run: |
+          echo "Deployed to:"
+          gcloud run services describe $SERVICE_NAME --region $REGION --format='value(status.url)'

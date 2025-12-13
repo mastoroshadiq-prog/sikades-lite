@@ -64,8 +64,8 @@ class PakModel extends Model
      */
     public function generateNomorPak(string $kodeDesa, int $tahun): string
     {
-        $count = $this->where('kode_desa', $kodeDesa)
-            ->where('tahun', $tahun)
+        $count = $this->where('kode_desa', (string) $kodeDesa)
+            ->where('tahun', (int) $tahun)
             ->countAllResults();
         
         $urut = str_pad($count + 1, 3, '0', STR_PAD_LEFT);

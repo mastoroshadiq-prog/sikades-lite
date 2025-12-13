@@ -1,0 +1,27 @@
+# Ignore files for Cloud Run deployment
+.git
+.gitignore
+.env
+.env.*
+*.md
+tests/
+phpunit.xml
+docker-compose*.yml
+Dockerfile
+.dockerignore
+writable/logs/*
+writable/cache/*
+writable/session/*
+writable/debugbar/*
+*.log
+*.sql
+.vscode/
+.idea/
+node_modules/
+public/debug_pak.php
+debug_*.php
+test_*.php
+full_test.php
+simple_test.php
+automated_test.php
+get_error.php

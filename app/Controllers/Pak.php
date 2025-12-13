@@ -90,56 +90,75 @@ class Pak extends BaseController
         }
 
         $kodeDesa = $this->session->get('kode_desa');
-        $tahun = $this->request->getPost('tahun');
+        $tahun = (int) $this->request->getPost('tahun');
 
-        // Create PAK header
-        $pakData = [
-            'kode_desa' => $kodeDesa,
-            'tahun' => $tahun,
-            'nomor_pak' => $this->request->getPost('nomor_pak'),
-            'tanggal_pak' => $this->request->getPost('tanggal_pak'),
-            'keterangan' => $this->request->getPost('keterangan'),
-            'status' => 'Draft',
-            'created_by' => $this->getUserId(),
-        ];
+        try {
+            // Create PAK header
+            $pakData = [
+                'kode_desa' => (string) $kodeDesa,
+                'tahun' => $tahun,
+                'nomor_pak' => (string) $this->request->getPost('nomor_pak'),
+                'tanggal_pak' => $this->request->getPost('tanggal_pak'),
+                'keterangan' => (string) ($this->request->getPost('keterangan') ?? ''),
+                'status' => 'Draft',
+                'created_by' => (int) $this->getUserId(),
+            ];
 
-        $pakId = $this->pakModel->insert($pakData);
+            $pakId = $this->pakModel->insert($pakData);
 
-        if (!$pakId) {
-            return redirect()->back()->withInput()->with('error', 'Gagal menyimpan PAK');
-        }
-
-        // Save PAK details
-        $apbdesIds = $this->request->getPost('apbdes_id') ?? [];
-        $anggaranSesudah = $this->request->getPost('anggaran_sesudah') ?? [];
-        $keteranganItems = $this->request->getPost('keterangan_item') ?? [];
-
-        foreach ($apbdesIds as $idx => $apbdesId) {
-            if (empty($apbdesId)) continue;
-            
-            // Get current anggaran
-            $apbdes = $this->apbdesModel->find($apbdesId);
-            $sebelum = $apbdes['anggaran'] ?? 0;
-            $sesudah = $anggaranSesudah[$idx] ?? $sebelum;
-            
-            // Only save if there's a change
-            if ($sebelum != $sesudah) {
-                $detailData = [
-                    'pak_id' => $pakId,
-                    'apbdes_id' => $apbdesId,
-                    'anggaran_sebelum' => $sebelum,
-                    'anggaran_sesudah' => $sesudah,
-                    'selisih' => $sesudah - $sebelum,
-                    'keterangan' => $keteranganItems[$idx] ?? '',
-                ];
-                
-                $this->pakDetailModel->insert($detailData);
+            if (!$pakId) {
+                return redirect()->back()->withInput()->with('error', 'Gagal menyimpan PAK');
             }
+
+            // Save PAK details
+            $apbdesIds = $this->request->getPost('apbdes_id');
+            $anggaranSesudah = $this->request->getPost('anggaran_sesudah');
+            $keteranganItems = $this->request->getPost('keterangan_item');
+
+            // Ensure arrays
+            if (!is_array($apbdesIds)) $apbdesIds = [];
+            if (!is_array($anggaranSesudah)) $anggaranSesudah = [];
+            if (!is_array($keteranganItems)) $keteranganItems = [];
+
+            foreach ($apbdesIds as $idx => $apbdesId) {
+                if (empty($apbdesId)) continue;
+                
+                // Ensure apbdesId is integer
+                $apbdesId = (int) $apbdesId;
+                
+                // Get current anggaran
+                $apbdes = $this->apbdesModel->find($apbdesId);
+                if (!$apbdes) continue;
+                
+                $sebelum = (float) ($apbdes['anggaran'] ?? 0);
+                $sesudah = (float) ($anggaranSesudah[$idx] ?? $sebelum);
+                
+                // Only save if there's a change
+                if (abs($sebelum - $sesudah) > 0.01) {
+                    $detailData = [
+                        'pak_id' => (int) $pakId,
+                        'apbdes_id' => (int) $apbdesId,
+                        'anggaran_sebelum' => (float) $sebelum,
+                        'anggaran_sesudah' => (float) $sesudah,
+                        'selisih' => (float) ($sesudah - $sebelum),
+                        'keterangan' => (string) ($keteranganItems[$idx] ?? ''),
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ];
+                    
+                    // Use direct db insert to avoid model issues
+                    $db = \Config\Database::connect();
+                    $db->table('pak_detail')->insert($detailData);
+                }
+            }
+
+            ActivityLogModel::log('create', 'pak', "Buat PAK: " . $pakData['nomor_pak']);
+
+            return redirect()->to('/pak')->with('success', 'PAK berhasil dibuat');
+
+        } catch (\Exception $e) {
+            log_message('error', 'PAK Save Error: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Error: ' . $e->getMessage());
         }
-
-        ActivityLogModel::log('create', 'pak', "Buat PAK: " . $pakData['nomor_pak']);
-
-        return redirect()->to('/pak')->with('success', 'PAK berhasil dibuat');
     }
 
     /**

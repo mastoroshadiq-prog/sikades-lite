@@ -124,7 +124,10 @@ function deletePak(id) {
         if (result.isConfirmed) {
             fetch('<?= base_url('/pak/delete') ?>/' + id, {
                 method: 'DELETE',
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                headers: { 
+                    'X-Requested-With': 'XMLHttpRequest',
+                    '<?= csrf_header() ?>': '<?= csrf_hash() ?>'
+                }
             })
             .then(res => res.json())
             .then(data => {
@@ -133,6 +136,9 @@ function deletePak(id) {
                 } else {
                     Swal.fire('Error', data.message, 'error');
                 }
+            })
+            .catch(err => {
+                Swal.fire('Error', 'Gagal menghapus PAK', 'error');
             });
         }
     });
