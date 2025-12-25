@@ -679,6 +679,10 @@ function initDrilldown() {
                     </div>
                     
                     <!-- Detailed Table -->
+                    <p class="small text-muted mb-2">
+                        <i class="fas fa-hand-pointer me-1"></i>
+                        Klik item <span class="badge bg-secondary">Belanja Modal (5.3.x)</span> untuk melihat detail proyek pembangunan
+                    </p>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover drilldown-table" id="anggaranDrilldownTable">
                             <thead>
@@ -691,15 +695,22 @@ function initDrilldown() {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.data.length > 0 ? data.data.map(item => `
-                                    <tr data-sumber="${item.sumber_dana}">
-                                        <td><code>${item.kode_akun || '-'}</code></td>
+                                ${data.data.length > 0 ? data.data.map(item => {
+                                    const isProyek = (item.kode_akun || '').startsWith('5.3');
+                                    return `
+                                    <tr data-sumber="${item.sumber_dana}" 
+                                        class="${isProyek ? 'proyek-row' : ''}"
+                                        ${isProyek ? `data-apbdes-id="${item.id}" data-uraian="${item.uraian}" style="cursor: pointer;" title="Klik untuk lihat detail proyek"` : ''}>
+                                        <td>
+                                            <code>${item.kode_akun || '-'}</code>
+                                            ${isProyek ? '<i class="fas fa-external-link-alt text-primary ms-1 small"></i>' : ''}
+                                        </td>
                                         <td>${item.nama_akun || '-'}</td>
                                         <td>${item.uraian}</td>
                                         <td><span class="badge sumber-badge bg-${getSumberDanaColor(item.sumber_dana)}">${item.sumber_dana}</span></td>
                                         <td class="text-end fw-bold">${formatCurrency(item.anggaran)}</td>
                                     </tr>
-                                `).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">Tidak ada data anggaran</td></tr>'}
+                                `}).join('') : '<tr><td colspan="5" class="text-center text-muted py-4">Tidak ada data anggaran</td></tr>'}
                             </tbody>
                             ${data.data.length > 0 ? `
                             <tfoot class="table-primary">
@@ -717,6 +728,11 @@ function initDrilldown() {
                 
                 // Initialize filter functionality
                 initAnggaranFilter(data);
+                
+                // Initialize proyek row click handlers after DOM update
+                setTimeout(() => {
+                    initProyekRowHandlers();
+                }, 100);
             })
             .catch(error => {
                 console.error('Error:', error);
