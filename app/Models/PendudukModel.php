@@ -85,7 +85,7 @@ class PendudukModel extends Model
         }
 
         if (!empty($filters['is_miskin'])) {
-            $builder->where('pop_penduduk.is_miskin', 1);
+            $builder->where('pop_penduduk.is_miskin', true);
         }
 
         return $builder->orderBy('pop_penduduk.nama_lengkap', 'ASC')->findAll();
@@ -274,7 +274,7 @@ class PendudukModel extends Model
             ->join('pop_keluarga', 'pop_keluarga.id = pop_penduduk.keluarga_id')
             ->where('pop_keluarga.kode_desa', $kodeDesa)
             ->where('pop_penduduk.status_dasar', 'HIDUP')
-            ->where('pop_penduduk.is_miskin', 1)
+            ->where('pop_penduduk.is_miskin', true)
             ->orderBy('pop_keluarga.dusun, pop_keluarga.rt, pop_keluarga.rw')
             ->findAll();
     }
