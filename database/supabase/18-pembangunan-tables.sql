@@ -67,11 +67,11 @@ CREATE TABLE proyek (
 );
 
 -- Create indexes
-CREATE INDEX idx_proyek_kode_desa ON proyek(kode_desa);
-CREATE INDEX idx_proyek_status ON proyek(status);
-CREATE INDEX idx_proyek_apbdes ON proyek(apbdes_id);
-CREATE INDEX idx_proyek_rkpdesa ON proyek(rkpdesa_id);
-CREATE INDEX idx_proyek_location ON proyek(latitude, longitude);
+CREATE INDEX IF NOT EXISTS idx_proyek_kode_desa ON proyek(kode_desa);
+CREATE INDEX IF NOT EXISTS idx_proyek_status ON proyek(status);
+CREATE INDEX IF NOT EXISTS idx_proyek_apbdes ON proyek(apbdes_id);
+CREATE INDEX IF NOT EXISTS idx_proyek_rkpdesa ON proyek(rkpdesa_id);
+CREATE INDEX IF NOT EXISTS idx_proyek_location ON proyek(latitude, longitude);
 
 -- Comments
 COMMENT ON TABLE proyek IS 'Tabel master proyek pembangunan fisik desa';
@@ -96,8 +96,8 @@ CREATE TABLE proyek_log (
 );
 
 -- Create indexes
-CREATE INDEX idx_proyek_log_proyek ON proyek_log(proyek_id);
-CREATE INDEX idx_proyek_log_tanggal ON proyek_log(tanggal_laporan);
+CREATE INDEX IF NOT EXISTS idx_proyek_log_proyek ON proyek_log(proyek_id);
+CREATE INDEX IF NOT EXISTS idx_proyek_log_tanggal ON proyek_log(tanggal_laporan);
 
 -- Comments
 COMMENT ON TABLE proyek_log IS 'Riwayat progress dan laporan proyek pembangunan';
