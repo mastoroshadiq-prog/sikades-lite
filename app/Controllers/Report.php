@@ -163,7 +163,7 @@ class Report extends BaseController
             ->join('bku', 'bku.ref_rekening_id = ref_rekening.id AND bku.kode_desa = apbdes.kode_desa AND EXTRACT(YEAR FROM bku.tanggal)::int = apbdes.tahun', 'left')
             ->where('apbdes.kode_desa', $kodeDesa)
             ->where('apbdes.tahun', $tahun)
-            ->groupBy('apbdes.id')
+            ->groupBy('apbdes.id, ref_rekening.id, ref_rekening.kode_akun, ref_rekening.nama_akun, ref_rekening.level')
             ->orderBy('ref_rekening.kode_akun', 'ASC');
         
         $data_lra = $builder->get()->getResultArray();
