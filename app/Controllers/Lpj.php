@@ -73,18 +73,18 @@ class Lpj extends BaseController
         // Get APBDes data (anggaran)
         $pendapatan = $this->apbdesModel
             ->select('apbdes.*, ref_rekening.kode_akun, ref_rekening.nama_akun')
-            ->join('ref_rekening', 'ref_rekening.id = apbdes.rekening_id')
+            ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id')
             ->where('apbdes.kode_desa', $kodeDesa)
             ->where('apbdes.tahun', $tahun)
-            ->where('apbdes.jenis', 'Pendapatan')
+            ->like('ref_rekening.kode_akun', '4.', 'after')
             ->findAll();
         
         $belanja = $this->apbdesModel
             ->select('apbdes.*, ref_rekening.kode_akun, ref_rekening.nama_akun')
-            ->join('ref_rekening', 'ref_rekening.id = apbdes.rekening_id')
+            ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id')
             ->where('apbdes.kode_desa', $kodeDesa)
             ->where('apbdes.tahun', $tahun)
-            ->where('apbdes.jenis', 'Belanja')
+            ->like('ref_rekening.kode_akun', '5.', 'after')
             ->findAll();
         
         // Get realisasi from BKU for semester
@@ -95,7 +95,7 @@ class Lpj extends BaseController
             $realisasi = $db->table('bku')
                 ->selectSum('debet', 'total')
                 ->where('kode_desa', $kodeDesa)
-                ->where('rekening_id', $item['rekening_id'])
+                ->where('ref_rekening_id', $item['ref_rekening_id'])
                 ->where('tanggal >=', $startDate)
                 ->where('tanggal <=', $endDate)
                 ->get()
@@ -110,7 +110,7 @@ class Lpj extends BaseController
             $realisasi = $db->table('bku')
                 ->selectSum('kredit', 'total')
                 ->where('kode_desa', $kodeDesa)
-                ->where('rekening_id', $item['rekening_id'])
+                ->where('ref_rekening_id', $item['ref_rekening_id'])
                 ->where('tanggal >=', $startDate)
                 ->where('tanggal <=', $endDate)
                 ->get()
@@ -170,18 +170,18 @@ class Lpj extends BaseController
         // Get data
         $pendapatan = $this->apbdesModel
             ->select('apbdes.*, ref_rekening.kode_akun, ref_rekening.nama_akun')
-            ->join('ref_rekening', 'ref_rekening.id = apbdes.rekening_id')
+            ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id')
             ->where('apbdes.kode_desa', $kodeDesa)
             ->where('apbdes.tahun', $tahun)
-            ->where('apbdes.jenis', 'Pendapatan')
+            ->like('ref_rekening.kode_akun', '4.', 'after')
             ->findAll();
         
         $belanja = $this->apbdesModel
             ->select('apbdes.*, ref_rekening.kode_akun, ref_rekening.nama_akun')
-            ->join('ref_rekening', 'ref_rekening.id = apbdes.rekening_id')
+            ->join('ref_rekening', 'ref_rekening.id = apbdes.ref_rekening_id')
             ->where('apbdes.kode_desa', $kodeDesa)
             ->where('apbdes.tahun', $tahun)
-            ->where('apbdes.jenis', 'Belanja')
+            ->like('ref_rekening.kode_akun', '5.', 'after')
             ->findAll();
         
         // Calculate realisasi
@@ -191,7 +191,7 @@ class Lpj extends BaseController
             $realisasi = $db->table('bku')
                 ->selectSum('debet', 'total')
                 ->where('kode_desa', $kodeDesa)
-                ->where('rekening_id', $item['rekening_id'])
+                ->where('ref_rekening_id', $item['ref_rekening_id'])
                 ->where('tanggal >=', $startDate)
                 ->where('tanggal <=', $endDate)
                 ->get()
@@ -203,7 +203,7 @@ class Lpj extends BaseController
             $realisasi = $db->table('bku')
                 ->selectSum('kredit', 'total')
                 ->where('kode_desa', $kodeDesa)
-                ->where('rekening_id', $item['rekening_id'])
+                ->where('ref_rekening_id', $item['ref_rekening_id'])
                 ->where('tanggal >=', $startDate)
                 ->where('tanggal <=', $endDate)
                 ->get()

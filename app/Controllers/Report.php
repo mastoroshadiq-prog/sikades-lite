@@ -149,24 +149,35 @@ class Report extends BaseController
         $tahun = $this->request->getGet('tahun') ?? date('Y');
         $format = $this->request->getGet('format') ?? 'html';
 
-        // Get budget with realization
-        $builder = $this->apbdesModel->builder();
-        $builder->select('
-                apbdes.*,
+        // Get budget with realization using raw query to avoid query builder escaping issues
+        $db = \Config\Database::connect();
+        $data_lra = $db->query("
+            SELECT 
+                apbdes.id,
+                apbdes.kode_desa,
+                apbdes.tahun,
+                apbdes.ref_rekening_id,
+                apbdes.uraian,
+                apbdes.anggaran,
+                apbdes.sumber_dana,
                 ref_rekening.kode_akun,
                 ref_rekening.nama_akun,
                 ref_rekening.level,
                 COALESCE(SUM(bku.debet), 0) as realisasi_pendapatan,
                 COALESCE(SUM(bku.kredit), 0) as realisasi_belanja
-            ')
-            ->join('ref_rekening', 'apbdes.ref_rekening_id = ref_rekening.id')
-            ->join('bku', 'bku.ref_rekening_id = ref_rekening.id AND bku.kode_desa = apbdes.kode_desa AND EXTRACT(YEAR FROM bku.tanggal)::int = apbdes.tahun', 'left')
-            ->where('apbdes.kode_desa', $kodeDesa)
-            ->where('apbdes.tahun', $tahun)
-            ->groupBy('apbdes.id, ref_rekening.id, ref_rekening.kode_akun, ref_rekening.nama_akun, ref_rekening.level')
-            ->orderBy('ref_rekening.kode_akun', 'ASC');
-        
-        $data_lra = $builder->get()->getResultArray();
+            FROM apbdes
+            JOIN ref_rekening ON apbdes.ref_rekening_id = ref_rekening.id
+            LEFT JOIN bku ON bku.ref_rekening_id = ref_rekening.id 
+                AND bku.kode_desa = apbdes.kode_desa 
+                AND EXTRACT(YEAR FROM bku.tanggal)::int = apbdes.tahun
+            WHERE apbdes.kode_desa = ?
+            AND apbdes.tahun = ?
+            GROUP BY apbdes.id, apbdes.kode_desa, apbdes.tahun, apbdes.ref_rekening_id,
+                     apbdes.uraian, apbdes.anggaran, apbdes.sumber_dana,
+                     ref_rekening.id, ref_rekening.kode_akun, 
+                     ref_rekening.nama_akun, ref_rekening.level
+            ORDER BY ref_rekening.kode_akun ASC
+        ", [$kodeDesa, $tahun])->getResultArray();
 
         // Calculate percentages
         foreach ($data_lra as &$item) {

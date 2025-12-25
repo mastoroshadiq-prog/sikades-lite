@@ -30,10 +30,10 @@
 
     <!-- Desa Info -->
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-header bg-gradient text-white text-center py-3" style="background: linear-gradient(135deg, <?= $semester == 1 ? '#667eea, #764ba2' : '#11998e, #38ef7d' ?>);">
-            <h4 class="mb-1">PEMERINTAH DESA <?= strtoupper($desa['nama_desa'] ?? 'NAMA DESA') ?></h4>
-            <h5 class="mb-0">LAPORAN PERTANGGUNGJAWABAN REALISASI PELAKSANAAN APBDes</h5>
-            <p class="mb-0 mt-2"><?= $semesterText ?> Tahun Anggaran <?= $tahun ?></p>
+        <div class="card-header bg-gradient text-dark text-center py-4" style="background: linear-gradient(135deg, <?= $semester == 1 ? '#e0c3fc, #8ec5fc' : '#a1c4fd, #c2e9fb' ?>);">
+            <h3 class="mb-2 fw-bold" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">PEMERINTAH DESA <?= strtoupper($desa['nama_desa'] ?? 'NAMA DESA') ?></h3>
+            <h4 class="mb-2 fw-bold" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.8);">LAPORAN PERTANGGUNGJAWABAN REALISASI PELAKSANAAN APBDes</h4>
+            <h5 class="mb-0" style="text-shadow: 1px 1px 2px rgba(255,255,255,0.8);"><?= $semesterText ?> Tahun Anggaran <?= $tahun ?></h5>
         </div>
     </div>
 
