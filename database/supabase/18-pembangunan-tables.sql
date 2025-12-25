@@ -15,9 +15,9 @@ DROP TABLE IF EXISTS proyek CASCADE;
 CREATE TABLE proyek (
     id SERIAL PRIMARY KEY,
     kode_desa VARCHAR(20) NOT NULL,
-    apbdes_id INTEGER REFERENCES apbdes(id),
-    rkpdesa_id INTEGER REFERENCES rkpdesa(id),
-    kegiatan_id INTEGER REFERENCES rkpdesa_kegiatan(id),
+    apbdes_id INTEGER, -- FK to apbdes (optional, will be set later)
+    rkpdesa_id INTEGER, -- FK to rkpdesa (optional, table may not exist yet)
+    kegiatan_id INTEGER, -- FK to rkpdesa_kegiatan (optional, table may not exist yet)
     
     -- Identitas Proyek
     nama_proyek VARCHAR(255) NOT NULL,
