@@ -1379,8 +1379,10 @@ function initDrilldown() {
                 
                 showDrilldownContent(html);
                 
-                // Initialize proyek row click handlers
-                initProyekRowHandlers();
+                // Initialize proyek row click handlers after DOM update
+                setTimeout(() => {
+                    initProyekRowHandlers();
+                }, 100);
             })
             .catch(error => {
                 console.error('Error:', error);
@@ -1390,7 +1392,15 @@ function initDrilldown() {
     
     // Initialize proyek row click handlers
     function initProyekRowHandlers() {
-        const rows = document.querySelectorAll('.proyek-row');
+        // Look for proyek rows within the drilldown modal content
+        const modalContent = document.getElementById('drilldownContent');
+        if (!modalContent) {
+            console.log('Modal content not found');
+            return;
+        }
+        
+        const rows = modalContent.querySelectorAll('.proyek-row');
+        console.log('Found proyek rows:', rows.length);
         
         rows.forEach(row => {
             // Hover effect
@@ -1402,9 +1412,12 @@ function initDrilldown() {
             });
             
             // Click handler
-            row.addEventListener('click', function() {
+            row.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
                 const apbdesId = this.dataset.apbdesId;
                 const uraian = this.dataset.uraian;
+                console.log('Clicked proyek row:', apbdesId, uraian);
                 loadProyekDetail(apbdesId, uraian);
             });
         });
