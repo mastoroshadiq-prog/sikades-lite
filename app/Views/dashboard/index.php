@@ -647,22 +647,40 @@ function initDrilldown() {
                         </div>
                     </div>
                     
-                    <!-- Summary by Sumber Dana -->
-                    <div class="row mb-4">
+                    <!-- Summary by Sumber Dana - Clickable -->
+                    <div class="row mb-3" id="anggaranFilterCards">
                         ${Object.entries(data.summary.total_by_sumber).map(([sumber, total]) => `
                             <div class="col-md-3 col-6 mb-3">
-                                <div class="drilldown-summary-card bg-${getSumberDanaColor(sumber)} bg-opacity-10 border border-${getSumberDanaColor(sumber)}">
+                                <div class="drilldown-summary-card sumber-filter-card bg-${getSumberDanaColor(sumber)} bg-opacity-10 border border-${getSumberDanaColor(sumber)}" 
+                                     data-sumber="${sumber}"
+                                     role="button"
+                                     style="cursor: pointer; transition: all 0.2s ease;"
+                                     title="Klik untuk filter ${sumber}">
                                     <span class="badge bg-${getSumberDanaColor(sumber)} mb-2">${sumber}</span>
                                     <h5 class="text-${getSumberDanaColor(sumber)} mb-0">${formatCurrency(total)}</h5>
                                     <small class="text-muted">${data.summary.grand_total > 0 ? ((total / data.summary.grand_total) * 100).toFixed(1) : 0}%</small>
+                                    <div class="mt-1"><small class="text-muted"><i class="fas fa-filter"></i> Klik untuk filter</small></div>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
                     
+                    <!-- Filter Indicator & Reset Button -->
+                    <div id="anggaranFilterIndicator" class="alert alert-info py-2 mb-3" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span>
+                                <i class="fas fa-filter me-2"></i>
+                                Menampilkan: <strong id="anggaranFilterLabel">Semua</strong>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-outline-info" onclick="resetAnggaranFilter()">
+                                <i class="fas fa-times me-1"></i>Tampilkan Semua
+                            </button>
+                        </div>
+                    </div>
+                    
                     <!-- Detailed Table -->
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover drilldown-table">
+                        <table class="table table-striped table-hover drilldown-table" id="anggaranDrilldownTable">
                             <thead>
                                 <tr>
                                     <th>Kode Akun</th>
@@ -674,7 +692,7 @@ function initDrilldown() {
                             </thead>
                             <tbody>
                                 ${data.data.length > 0 ? data.data.map(item => `
-                                    <tr>
+                                    <tr data-sumber="${item.sumber_dana}">
                                         <td><code>${item.kode_akun || '-'}</code></td>
                                         <td>${item.nama_akun || '-'}</td>
                                         <td>${item.uraian}</td>
@@ -687,7 +705,7 @@ function initDrilldown() {
                             <tfoot class="table-primary">
                                 <tr>
                                     <th colspan="4" class="text-end">Total</th>
-                                    <th class="text-end">${formatCurrency(data.summary.grand_total)}</th>
+                                    <th class="text-end" id="anggaranFilterTotal">${formatCurrency(data.summary.grand_total)}</th>
                                 </tr>
                             </tfoot>
                             ` : ''}
@@ -696,11 +714,116 @@ function initDrilldown() {
                 `;
                 
                 showDrilldownContent(html);
+                
+                // Initialize filter functionality
+                initAnggaranFilter(data);
             })
             .catch(error => {
                 console.error('Error:', error);
                 showDrilldownContent('<div class="alert alert-danger">Terjadi kesalahan saat memuat data</div>');
             });
+    }
+    
+    // Initialize Anggaran filter functionality
+    function initAnggaranFilter(drilldownData) {
+        // Store original total for reset
+        window.originalAnggaranTotal = drilldownData.summary.grand_total;
+        
+        const filterCards = document.querySelectorAll('.sumber-filter-card');
+        
+        filterCards.forEach(card => {
+            // Hover effects
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('active-filter')) {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                }
+            });
+            
+            // Click handler
+            card.addEventListener('click', function() {
+                const sumber = this.dataset.sumber;
+                filterAnggaranTable(sumber, drilldownData);
+                
+                // Update visual state
+                filterCards.forEach(c => {
+                    c.classList.remove('active-filter');
+                    c.style.opacity = '0.6';
+                    c.style.transform = 'translateY(0)';
+                    c.style.boxShadow = 'none';
+                });
+                this.classList.add('active-filter');
+                this.style.opacity = '1';
+                this.style.transform = 'scale(1.02)';
+                this.style.boxShadow = '0 8px 25px rgba(0,0,0,0.2)';
+            });
+        });
+    }
+    
+    // Filter Anggaran table by sumber dana
+    function filterAnggaranTable(sumber, drilldownData) {
+        const rows = document.querySelectorAll('#anggaranDrilldownTable tbody tr');
+        let filteredTotal = 0;
+        let visibleCount = 0;
+        
+        rows.forEach(row => {
+            if (row.dataset.sumber === sumber) {
+                row.style.display = '';
+                visibleCount++;
+                // Calculate filtered total
+                const item = drilldownData.data.find(d => d.sumber_dana === row.dataset.sumber);
+                if (item) {
+                    filteredTotal += parseFloat(item.anggaran) || 0;
+                }
+            } else {
+                row.style.display = 'none';
+            }
+        });
+        
+        // Calculate actual filtered total
+        filteredTotal = drilldownData.data
+            .filter(item => item.sumber_dana === sumber)
+            .reduce((sum, item) => sum + (parseFloat(item.anggaran) || 0), 0);
+        
+        // Update filter indicator
+        document.getElementById('anggaranFilterLabel').textContent = sumber;
+        document.getElementById('anggaranFilterIndicator').style.display = 'block';
+        
+        // Update total in footer
+        const totalCell = document.getElementById('anggaranFilterTotal');
+        if (totalCell) {
+            totalCell.textContent = formatCurrency(filteredTotal);
+        }
+    }
+    
+    // Reset Anggaran filter
+    window.resetAnggaranFilter = function() {
+        const rows = document.querySelectorAll('#anggaranDrilldownTable tbody tr');
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        
+        // Reset filter indicator
+        document.getElementById('anggaranFilterIndicator').style.display = 'none';
+        
+        // Reset card styles
+        document.querySelectorAll('.sumber-filter-card').forEach(card => {
+            card.classList.remove('active-filter');
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = 'none';
+        });
+        
+        // Reset total - reload original
+        const totalCell = document.getElementById('anggaranFilterTotal');
+        if (totalCell && window.originalAnggaranTotal) {
+            totalCell.textContent = formatCurrency(window.originalAnggaranTotal);
+        }
     }
     
     // Drilldown: Total Realisasi
@@ -731,21 +854,48 @@ function initDrilldown() {
                         </div>
                     </div>
                     
-                    <!-- Monthly Summary -->
+                    <!-- Monthly Summary - Clickable -->
                     <div class="card mb-4">
-                        <div class="card-header bg-white">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
                             <h6 class="mb-0"><i class="fas fa-calendar-alt me-2 text-primary"></i>Realisasi per Bulan</h6>
+                            <small class="text-muted"><i class="fas fa-hand-pointer me-1"></i>Klik bulan untuk detail</small>
                         </div>
                         <div class="card-body">
-                            <div class="row">
+                            <div class="row" id="monthlyRealisasiCards">
                                 ${data.data.monthly.map(item => `
                                     <div class="col-md-4 col-6 mb-3">
-                                        <div class="d-flex justify-content-between align-items-center p-2 bg-light rounded">
+                                        <div class="monthly-card d-flex justify-content-between align-items-center p-2 bg-light rounded" 
+                                             data-bulan="${item.bulan}"
+                                             data-total="${item.total_realisasi}"
+                                             role="button"
+                                             style="cursor: pointer; transition: all 0.2s ease; border: 2px solid transparent;"
+                                             title="Klik untuk lihat detail ${bulanNama[item.bulan]}">
                                             <span class="fw-medium">${bulanNama[item.bulan]}</span>
                                             <span class="badge bg-success">${formatCurrency(item.total_realisasi)}</span>
                                         </div>
                                     </div>
                                 `).join('')}
+                            </div>
+                            
+                            <!-- Monthly Detail Container (hidden by default) -->
+                            <div id="monthlyDetailContainer" style="display: none;">
+                                <hr class="my-3">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-list me-2 text-success"></i>
+                                        Detail Transaksi Bulan <strong id="selectedMonthName">-</strong>
+                                    </h6>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="hideMonthlyDetail()">
+                                        <i class="fas fa-times"></i> Tutup
+                                    </button>
+                                </div>
+                                <div id="monthlyDetailLoading" class="text-center py-4" style="display: none;">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="text-muted mt-2">Memuat data...</p>
+                                </div>
+                                <div id="monthlyDetailContent"></div>
                             </div>
                         </div>
                     </div>
@@ -816,10 +966,322 @@ function initDrilldown() {
                 `;
                 
                 showDrilldownContent(html);
+                
+                // Initialize monthly card click handlers
+                initMonthlyCardFilters();
             })
             .catch(error => {
                 console.error('Error:', error);
                 showDrilldownContent('<div class="alert alert-danger">Terjadi kesalahan saat memuat data</div>');
+            });
+    }
+    
+    // Initialize monthly card click handlers
+    function initMonthlyCardFilters() {
+        const monthlyCards = document.querySelectorAll('.monthly-card');
+        
+        monthlyCards.forEach(card => {
+            // Hover effects
+            card.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#e8f4ea';
+                this.style.borderColor = '#28a745';
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('active-month')) {
+                    this.style.backgroundColor = '#f8f9fa';
+                    this.style.borderColor = 'transparent';
+                    this.style.transform = 'translateY(0)';
+                }
+            });
+            
+            // Click handler
+            card.addEventListener('click', function() {
+                const bulan = parseInt(this.dataset.bulan);
+                loadMonthlyDetail(bulan);
+                
+                // Update visual state
+                monthlyCards.forEach(c => {
+                    c.classList.remove('active-month');
+                    c.style.backgroundColor = '#f8f9fa';
+                    c.style.borderColor = 'transparent';
+                });
+                this.classList.add('active-month');
+                this.style.backgroundColor = '#d4edda';
+                this.style.borderColor = '#28a745';
+            });
+        });
+    }
+    
+    // Load monthly detail data
+    function loadMonthlyDetail(bulan) {
+        const container = document.getElementById('monthlyDetailContainer');
+        const loading = document.getElementById('monthlyDetailLoading');
+        const content = document.getElementById('monthlyDetailContent');
+        const monthName = document.getElementById('selectedMonthName');
+        
+        // Show container and loading
+        container.style.display = 'block';
+        loading.style.display = 'block';
+        content.innerHTML = '';
+        monthName.textContent = bulanNama[bulan];
+        
+        // Scroll to detail
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        
+        // Fetch monthly data
+        fetch(`${baseUrl}/dashboard/drilldown/realisasi-bulan?tahun=${tahun}&bulan=${bulan}`)
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                if (!data.success) {
+                    content.innerHTML = '<div class="alert alert-danger">' + (data.message || 'Gagal memuat data') + '</div>';
+                    return;
+                }
+                
+                if (data.data.length === 0) {
+                    content.innerHTML = '<div class="alert alert-warning"><i class="fas fa-info-circle me-2"></i>Tidak ada transaksi di bulan ' + bulanNama[bulan] + '</div>';
+                    return;
+                }
+                
+                // Calculate total
+                const totalBulan = data.data.reduce((sum, item) => sum + (parseFloat(item.kredit) || 0), 0);
+                
+                let html = `
+                    <div class="alert alert-success py-2 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-coins me-2"></i>Total Realisasi ${bulanNama[bulan]}:</span>
+                            <strong>${formatCurrency(totalBulan)}</strong>
+                        </div>
+                    </div>
+                    <p class="small text-muted mb-2">
+                        <i class="fas fa-hand-pointer me-1"></i>
+                        Klik pada baris transaksi untuk melihat detail item belanja
+                    </p>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover" id="monthlyTransactionsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 30px;"></th>
+                                    <th>Tanggal</th>
+                                    <th>No. Bukti</th>
+                                    <th>Kode Akun</th>
+                                    <th>Uraian</th>
+                                    <th class="text-end">Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.data.map(item => `
+                                    <tr class="transaction-row" 
+                                        data-bku-id="${item.id}" 
+                                        data-uraian="${item.uraian || ''}"
+                                        style="cursor: pointer;"
+                                        title="Klik untuk lihat detail item">
+                                        <td class="text-center text-muted">
+                                            <i class="fas fa-chevron-right expand-icon" style="transition: transform 0.2s;"></i>
+                                        </td>
+                                        <td><small>${formatDate(item.tanggal)}</small></td>
+                                        <td><code class="small">${item.no_bukti || '-'}</code></td>
+                                        <td><code class="small">${item.kode_akun || '-'}</code></td>
+                                        <td><small>${(item.uraian || '').substring(0, 35)}${(item.uraian || '').length > 35 ? '...' : ''}</small></td>
+                                        <td class="text-end text-success fw-bold">${formatCurrency(item.kredit)}</td>
+                                    </tr>
+                                    <tr class="detail-row" id="detail-${item.id}" style="display: none;">
+                                        <td colspan="6" class="bg-light p-0">
+                                            <div class="p-3" id="detail-content-${item.id}">
+                                                <div class="text-center py-2">
+                                                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                                                    <small class="ms-2 text-muted">Memuat detail...</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                            <tfoot class="table-success">
+                                <tr>
+                                    <th colspan="5" class="text-end">Total</th>
+                                    <th class="text-end">${formatCurrency(totalBulan)}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                `;
+                
+                content.innerHTML = html;
+                
+                // Initialize transaction row click handlers
+                initTransactionRowHandlers();
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                content.innerHTML = '<div class="alert alert-danger">Terjadi kesalahan saat memuat data</div>';
+                console.error('Error:', error);
+            });
+    }
+    
+    // Hide monthly detail
+    window.hideMonthlyDetail = function() {
+        document.getElementById('monthlyDetailContainer').style.display = 'none';
+        
+        // Reset all card styles
+        document.querySelectorAll('.monthly-card').forEach(card => {
+            card.classList.remove('active-month');
+            card.style.backgroundColor = '#f8f9fa';
+            card.style.borderColor = 'transparent';
+        });
+    }
+    
+    // Initialize transaction row click handlers
+    function initTransactionRowHandlers() {
+        const rows = document.querySelectorAll('.transaction-row');
+        
+        rows.forEach(row => {
+            row.addEventListener('click', function() {
+                const bkuId = this.dataset.bkuId;
+                const uraian = this.dataset.uraian;
+                const detailRow = document.getElementById('detail-' + bkuId);
+                const icon = this.querySelector('.expand-icon');
+                
+                // Toggle detail row
+                if (detailRow.style.display === 'none') {
+                    // Close all other open details first
+                    document.querySelectorAll('.detail-row').forEach(r => {
+                        r.style.display = 'none';
+                    });
+                    document.querySelectorAll('.expand-icon').forEach(i => {
+                        i.style.transform = 'rotate(0deg)';
+                    });
+                    document.querySelectorAll('.transaction-row').forEach(r => {
+                        r.classList.remove('table-active');
+                    });
+                    
+                    // Open this detail
+                    detailRow.style.display = 'table-row';
+                    icon.style.transform = 'rotate(90deg)';
+                    this.classList.add('table-active');
+                    
+                    // Load detail content
+                    loadBkuDetail(bkuId, uraian);
+                } else {
+                    // Close this detail
+                    detailRow.style.display = 'none';
+                    icon.style.transform = 'rotate(0deg)';
+                    this.classList.remove('table-active');
+                }
+            });
+            
+            // Hover effect
+            row.addEventListener('mouseenter', function() {
+                this.classList.add('table-secondary');
+            });
+            row.addEventListener('mouseleave', function() {
+                if (!this.classList.contains('table-active')) {
+                    this.classList.remove('table-secondary');
+                }
+            });
+        });
+    }
+    
+    // Load BKU detail (item level)
+    function loadBkuDetail(bkuId, uraian) {
+        const contentDiv = document.getElementById('detail-content-' + bkuId);
+        
+        fetch(`${baseUrl}/dashboard/drilldown/bku-detail?bku_id=${bkuId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    contentDiv.innerHTML = `
+                        <div class="alert alert-warning py-2 mb-0">
+                            <i class="fas fa-info-circle me-2"></i>
+                            ${data.message || 'Gagal memuat data'}
+                        </div>
+                    `;
+                    return;
+                }
+                
+                if (!data.summary.has_details) {
+                    contentDiv.innerHTML = `
+                        <div class="d-flex align-items-start">
+                            <div class="flex-grow-1">
+                                <div class="alert alert-info py-2 mb-2">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Belum ada rincian item</strong> untuk transaksi ini.
+                                </div>
+                                <p class="small text-muted mb-0">
+                                    <strong>Uraian:</strong> ${uraian}<br>
+                                    <strong>Total:</strong> ${formatCurrency(data.bku.kredit)}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                // Show item details
+                let html = `
+                    <div class="border rounded">
+                        <div class="bg-primary bg-opacity-10 px-3 py-2 border-bottom">
+                            <h6 class="mb-0 text-primary">
+                                <i class="fas fa-boxes me-2"></i>
+                                Rincian Item: ${(uraian || '').substring(0, 50)}
+                            </h6>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>Nama Item</th>
+                                        <th>Spesifikasi</th>
+                                        <th class="text-center">Jumlah</th>
+                                        <th>Satuan</th>
+                                        <th class="text-end">Harga Satuan</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${data.details.map((item, index) => `
+                                        <tr>
+                                            <td class="text-center">${index + 1}</td>
+                                            <td><strong>${item.nama_item}</strong></td>
+                                            <td><small class="text-muted">${item.spesifikasi || '-'}</small></td>
+                                            <td class="text-center">${parseFloat(item.jumlah).toLocaleString('id-ID')}</td>
+                                            <td>${item.satuan || 'pcs'}</td>
+                                            <td class="text-end">${formatCurrency(item.harga_satuan)}</td>
+                                            <td class="text-end fw-bold text-success">${formatCurrency(item.subtotal)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                                <tfoot class="table-success">
+                                    <tr>
+                                        <th colspan="6" class="text-end">Total Rincian:</th>
+                                        <th class="text-end">${formatCurrency(data.summary.total_from_details)}</th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                        <div class="px-3 py-2 bg-light border-top small text-muted">
+                            <i class="fas fa-receipt me-1"></i>
+                            Total BKU: ${formatCurrency(data.bku.kredit)} | 
+                            <i class="fas fa-list me-1"></i>
+                            ${data.summary.item_count} item
+                        </div>
+                    </div>
+                `;
+                
+                contentDiv.innerHTML = html;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                contentDiv.innerHTML = `
+                    <div class="alert alert-danger py-2 mb-0">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Terjadi kesalahan saat memuat data
+                    </div>
+                `;
             });
     }
     

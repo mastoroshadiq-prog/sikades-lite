@@ -420,6 +420,121 @@ class Dashboard extends BaseController
     }
     
     /**
+     * Get drilldown data for Realisasi per Bulan (monthly detail)
+     */
+    public function drilldownRealisasiBulan()
+    {
+        $kodeDesa = $this->session->get('kode_desa');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        $bulan = $this->request->getGet('bulan');
+        
+        if (!$kodeDesa) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Kode desa tidak ditemukan']);
+        }
+        
+        if (!$bulan || $bulan < 1 || $bulan > 12) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Bulan tidak valid']);
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get all belanja transactions for the specified month
+        $transactions = $db->query("
+            SELECT 
+                b.id,
+                b.tanggal,
+                b.no_bukti,
+                b.uraian,
+                b.kredit,
+                r.kode_akun,
+                r.nama_akun
+            FROM bku b
+            LEFT JOIN ref_rekening r ON r.id = b.ref_rekening_id
+            WHERE b.kode_desa = ? 
+                AND EXTRACT(YEAR FROM b.tanggal)::int = ?
+                AND EXTRACT(MONTH FROM b.tanggal)::int = ?
+                AND b.jenis_transaksi = 'Belanja'
+            ORDER BY b.tanggal ASC, b.id ASC
+        ", [$kodeDesa, $tahun, $bulan])->getResultArray();
+        
+        $totalBulan = array_sum(array_column($transactions, 'kredit'));
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $transactions,
+            'summary' => [
+                'total' => $totalBulan,
+                'count' => count($transactions)
+            ],
+            'tahun' => $tahun,
+            'bulan' => $bulan
+        ]);
+    }
+    
+    /**
+     * Get drilldown data for BKU Detail (individual items)
+     */
+    public function drilldownBkuDetail()
+    {
+        $bkuId = $this->request->getGet('bku_id');
+        
+        if (!$bkuId) {
+            return $this->response->setJSON(['success' => false, 'message' => 'ID BKU tidak ditemukan']);
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get BKU transaction info
+        $bku = $db->query("
+            SELECT 
+                b.id,
+                b.tanggal,
+                b.no_bukti,
+                b.uraian,
+                b.kredit,
+                r.kode_akun,
+                r.nama_akun
+            FROM bku b
+            LEFT JOIN ref_rekening r ON r.id = b.ref_rekening_id
+            WHERE b.id = ?
+        ", [$bkuId])->getRowArray();
+        
+        if (!$bku) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Transaksi tidak ditemukan']);
+        }
+        
+        // Get detail items
+        $details = $db->query("
+            SELECT 
+                id,
+                nama_item,
+                spesifikasi,
+                satuan,
+                jumlah,
+                harga_satuan,
+                subtotal,
+                keterangan
+            FROM bku_detail
+            WHERE bku_id = ?
+            ORDER BY id ASC
+        ", [$bkuId])->getResultArray();
+        
+        $totalFromDetails = array_sum(array_column($details, 'subtotal'));
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'bku' => $bku,
+            'details' => $details,
+            'summary' => [
+                'item_count' => count($details),
+                'total_from_details' => $totalFromDetails,
+                'bku_amount' => $bku['kredit'],
+                'has_details' => count($details) > 0
+            ]
+        ]);
+    }
+    
+    /**
      * Get drilldown data for Anggaran per Sumber Dana
      */
     public function drilldownSumberDana()

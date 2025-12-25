@@ -35,6 +35,8 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     // Dashboard Drilldown API Routes
     $routes->get('/dashboard/drilldown/anggaran', 'Dashboard::drilldownAnggaran');
     $routes->get('/dashboard/drilldown/realisasi', 'Dashboard::drilldownRealisasi');
+    $routes->get('/dashboard/drilldown/realisasi-bulan', 'Dashboard::drilldownRealisasiBulan');
+    $routes->get('/dashboard/drilldown/bku-detail', 'Dashboard::drilldownBkuDetail');
     $routes->get('/dashboard/drilldown/sumber-dana', 'Dashboard::drilldownSumberDana');
     $routes->get('/dashboard/drilldown/pie-chart', 'Dashboard::drilldownPieChart');
     $routes->get('/dashboard/chart-data', 'Dashboard::chartData');
