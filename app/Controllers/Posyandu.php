@@ -30,8 +30,8 @@ class Posyandu extends BaseController
         $this->user = session()->get();
         $this->db = \Config\Database::connect();
         
-        // Check and create tables if not exist
-        $this->ensureTablesExist();
+        // Tables are created via migration: database/supabase/14-kesehatan-posyandu.sql
+        // Do NOT auto-create tables here - use proper PostgreSQL migration
     }
 
     /**
