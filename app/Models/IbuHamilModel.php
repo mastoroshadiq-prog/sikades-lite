@@ -134,7 +134,7 @@ class IbuHamilModel extends Model
         $risti = $db->query("
             SELECT COUNT(*) as total FROM kes_ibu_hamil h
             JOIN kes_posyandu pos ON pos.id = h.posyandu_id
-            WHERE pos.kode_desa = ? AND h.status = 'HAMIL' AND h.resiko_tinggi = 1
+            WHERE pos.kode_desa = ? AND h.status = 'HAMIL' AND h.resiko_tinggi = true
         ", [$kodeDesa])->getRow()->total;
         
         $akanMelahirkan = $db->query("
