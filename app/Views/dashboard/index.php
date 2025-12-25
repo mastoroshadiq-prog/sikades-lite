@@ -1335,6 +1335,10 @@ function initDrilldown() {
                     </div>
                     
                     <!-- Detailed Table -->
+                    <p class="small text-muted mb-2">
+                        <i class="fas fa-hand-pointer me-1"></i>
+                        Klik item <span class="badge bg-secondary">Belanja Modal (5.3.x)</span> untuk melihat detail proyek pembangunan
+                    </p>
                     <div class="table-responsive">
                         <table class="table table-striped table-hover drilldown-table">
                             <thead>
@@ -1346,14 +1350,20 @@ function initDrilldown() {
                                 </tr>
                             </thead>
                             <tbody>
-                                ${data.data.length > 0 ? data.data.map(item => `
-                                    <tr>
-                                        <td><code>${item.kode_akun || '-'}</code></td>
+                                ${data.data.length > 0 ? data.data.map(item => {
+                                    const isProyek = (item.kode_akun || '').startsWith('5.3');
+                                    return `
+                                    <tr class="${isProyek ? 'proyek-row' : ''}" 
+                                        ${isProyek ? `data-apbdes-id="${item.id}" data-uraian="${item.uraian}" style="cursor: pointer;" title="Klik untuk lihat detail proyek"` : ''}>
+                                        <td>
+                                            <code>${item.kode_akun || '-'}</code>
+                                            ${isProyek ? '<i class="fas fa-external-link-alt text-muted ms-1 small"></i>' : ''}
+                                        </td>
                                         <td>${item.nama_akun || '-'}</td>
                                         <td>${item.uraian}</td>
                                         <td class="text-end fw-bold">${formatCurrency(item.anggaran)}</td>
                                     </tr>
-                                `).join('') : '<tr><td colspan="4" class="text-center text-muted py-4">Tidak ada data</td></tr>'}
+                                `}).join('') : '<tr><td colspan="4" class="text-center text-muted py-4">Tidak ada data</td></tr>'}
                             </tbody>
                             ${data.data.length > 0 ? `
                             <tfoot class="table-${getSumberDanaColor(sumberDana)}">
@@ -1368,11 +1378,336 @@ function initDrilldown() {
                 `;
                 
                 showDrilldownContent(html);
+                
+                // Initialize proyek row click handlers
+                initProyekRowHandlers();
             })
             .catch(error => {
                 console.error('Error:', error);
                 showDrilldownContent('<div class="alert alert-danger">Terjadi kesalahan saat memuat data</div>');
             });
+    }
+    
+    // Initialize proyek row click handlers
+    function initProyekRowHandlers() {
+        const rows = document.querySelectorAll('.proyek-row');
+        
+        rows.forEach(row => {
+            // Hover effect
+            row.addEventListener('mouseenter', function() {
+                this.classList.add('table-info');
+            });
+            row.addEventListener('mouseleave', function() {
+                this.classList.remove('table-info');
+            });
+            
+            // Click handler
+            row.addEventListener('click', function() {
+                const apbdesId = this.dataset.apbdesId;
+                const uraian = this.dataset.uraian;
+                loadProyekDetail(apbdesId, uraian);
+            });
+        });
+    }
+    
+    // Load Proyek Detail (with WebGIS)
+    function loadProyekDetail(apbdesId, uraian) {
+        showDrilldownModal('Detail Proyek: ' + (uraian || '').substring(0, 40));
+        
+        fetch(`${baseUrl}/dashboard/drilldown/proyek?apbdes_id=${apbdesId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showDrilldownContent('<div class="alert alert-danger">' + (data.message || 'Gagal memuat data') + '</div>');
+                    return;
+                }
+                
+                if (!data.has_project) {
+                    // No linked project
+                    let html = `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Item anggaran ini belum terhubung dengan proyek pembangunan.</strong>
+                        </div>
+                        ${data.apbdes ? `
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h6 class="mb-0"><i class="fas fa-wallet me-2"></i>Informasi Anggaran</h6>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-borderless mb-0">
+                                    <tr><th width="150">Kode Akun</th><td><code>${data.apbdes.kode_akun}</code></td></tr>
+                                    <tr><th>Nama Akun</th><td>${data.apbdes.nama_akun}</td></tr>
+                                    <tr><th>Uraian</th><td>${data.apbdes.uraian}</td></tr>
+                                    <tr><th>Anggaran</th><td class="fw-bold text-success">${formatCurrency(data.apbdes.anggaran)}</td></tr>
+                                    <tr><th>Sumber Dana</th><td><span class="badge bg-${getSumberDanaColor(data.apbdes.sumber_dana)}">${data.apbdes.sumber_dana}</span></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                        ` : ''}
+                    `;
+                    showDrilldownContent(html);
+                    return;
+                }
+                
+                const p = data.proyek;
+                const summary = data.summary;
+                
+                // Status badge color
+                const statusColors = {
+                    'SELESAI': 'success',
+                    'PROSES': 'warning',
+                    'RENCANA': 'info',
+                    'BATAL': 'danger'
+                };
+                const statusColor = statusColors[p.status] || 'secondary';
+                
+                let html = `
+                    <!-- Project Status Banner -->
+                    <div class="alert alert-${statusColor} d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <i class="fas fa-hard-hat me-2"></i>
+                            <strong>${p.nama}</strong>
+                        </div>
+                        <span class="badge bg-${statusColor} fs-6">${p.status}</span>
+                    </div>
+                    
+                    <!-- Summary Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="drilldown-summary-card bg-primary bg-opacity-10 border border-primary">
+                                <small class="text-primary">Anggaran</small>
+                                <h5 class="mb-0">${formatCurrency(summary.anggaran)}</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="drilldown-summary-card bg-success bg-opacity-10 border border-success">
+                                <small class="text-success">Realisasi</small>
+                                <h5 class="mb-0">${formatCurrency(summary.realisasi)}</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="drilldown-summary-card bg-warning bg-opacity-10 border border-warning">
+                                <small class="text-warning">Progress Fisik</small>
+                                <h5 class="mb-0">${summary.persentase_fisik}%</h5>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-2">
+                            <div class="drilldown-summary-card bg-info bg-opacity-10 border border-info">
+                                <small class="text-info">Progress Keuangan</small>
+                                <h5 class="mb-0">${summary.persentase_keuangan}%</h5>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bars -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="fas fa-tasks me-2 text-primary"></i>Progress Pembangunan</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Progress Fisik</small>
+                                    <small class="fw-bold">${summary.persentase_fisik}%</small>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-warning progress-bar-striped ${p.status === 'PROSES' ? 'progress-bar-animated' : ''}" 
+                                         style="width: ${summary.persentase_fisik}%">${summary.persentase_fisik}%</div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="d-flex justify-content-between mb-1">
+                                    <small>Progress Keuangan</small>
+                                    <small class="fw-bold">${summary.persentase_keuangan}%</small>
+                                </div>
+                                <div class="progress" style="height: 20px;">
+                                    <div class="progress-bar bg-success" style="width: ${summary.persentase_keuangan}%">${summary.persentase_keuangan}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <!-- Project Details -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h6 class="mb-0"><i class="fas fa-info-circle me-2 text-info"></i>Detail Proyek</h6>
+                                </div>
+                                <div class="card-body">
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr><th width="40%">Lokasi</th><td>${p.lokasi || '-'}</td></tr>
+                                        <tr><th>Volume Target</th><td>${p.volume_target || '-'} ${p.satuan || ''}</td></tr>
+                                        <tr><th>Pelaksana</th><td>${p.pelaksana || '-'}</td></tr>
+                                        <tr><th>Kontraktor</th><td>${p.kontraktor || '-'}</td></tr>
+                                        <tr><th>Tgl Mulai</th><td>${p.tgl_mulai ? formatDate(p.tgl_mulai) : '-'}</td></tr>
+                                        <tr><th>Target Selesai</th><td>${p.tgl_selesai_target ? formatDate(p.tgl_selesai_target) : '-'}</td></tr>
+                                        ${p.tgl_selesai_aktual ? `<tr><th>Selesai Aktual</th><td class="text-success">${formatDate(p.tgl_selesai_aktual)}</td></tr>` : ''}
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Funding Source -->
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-white">
+                                    <h6 class="mb-0"><i class="fas fa-money-bill-wave me-2 text-success"></i>Sumber Dana</h6>
+                                </div>
+                                <div class="card-body">
+                                    ${data.apbdes ? `
+                                    <table class="table table-sm table-borderless mb-0">
+                                        <tr><th width="40%">Kode Akun</th><td><code>${data.apbdes.kode_akun}</code></td></tr>
+                                        <tr><th>Nama Akun</th><td>${data.apbdes.nama_akun}</td></tr>
+                                        <tr><th>Sumber Dana</th><td><span class="badge bg-${getSumberDanaColor(data.apbdes.sumber_dana)}">${data.apbdes.sumber_dana}</span></td></tr>
+                                        <tr><th>Anggaran</th><td class="fw-bold text-success">${formatCurrency(data.apbdes.anggaran)}</td></tr>
+                                    </table>
+                                    ` : '<p class="text-muted mb-0">Tidak ada data sumber dana</p>'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Location Map -->
+                    ${p.koordinat && p.koordinat.lat && p.koordinat.lng ? `
+                    <div class="card mb-4">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0"><i class="fas fa-map-marker-alt me-2 text-danger"></i>Lokasi Proyek</h6>
+                            <small class="text-muted">Lat: ${p.koordinat.lat}, Lng: ${p.koordinat.lng}</small>
+                        </div>
+                        <div class="card-body p-0">
+                            <div id="proyekMap" style="height: 300px; width: 100%;"></div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Progress History -->
+                    ${data.progress && data.progress.length > 0 ? `
+                    <div class="card mb-4">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="fas fa-history me-2 text-warning"></i>Riwayat Progress</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th class="text-center">Fisik</th>
+                                            <th>Volume</th>
+                                            <th class="text-end">Biaya</th>
+                                            <th>Kendala</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.progress.map(prog => `
+                                        <tr>
+                                            <td>${formatDate(prog.tanggal_laporan)}</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-${prog.persentase_fisik >= 100 ? 'success' : prog.persentase_fisik >= 50 ? 'warning' : 'info'}">${prog.persentase_fisik}%</span>
+                                            </td>
+                                            <td>${prog.volume_terealisasi || '-'}</td>
+                                            <td class="text-end">${formatCurrency(prog.biaya_terealisasi)}</td>
+                                            <td><small class="text-muted">${prog.kendala || '-'}</small></td>
+                                        </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Recent Transactions -->
+                    ${data.realisasi && data.realisasi.transactions.length > 0 ? `
+                    <div class="card">
+                        <div class="card-header bg-white">
+                            <h6 class="mb-0"><i class="fas fa-receipt me-2 text-success"></i>Transaksi Belanja Terkait</h6>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>No. Bukti</th>
+                                            <th>Uraian</th>
+                                            <th class="text-end">Jumlah</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.realisasi.transactions.map(trx => `
+                                        <tr>
+                                            <td>${formatDate(trx.tanggal)}</td>
+                                            <td><code>${trx.no_bukti || '-'}</code></td>
+                                            <td><small>${(trx.uraian || '').substring(0, 40)}</small></td>
+                                            <td class="text-end fw-bold text-success">${formatCurrency(trx.kredit)}</td>
+                                        </tr>
+                                        `).join('')}
+                                    </tbody>
+                                    <tfoot class="table-success">
+                                        <tr>
+                                            <th colspan="3" class="text-end">Total Realisasi</th>
+                                            <th class="text-end">${formatCurrency(data.realisasi.total)}</th>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    ` : ''}
+                `;
+                
+                showDrilldownContent(html);
+                
+                // Initialize map if coordinates available
+                if (p.koordinat && p.koordinat.lat && p.koordinat.lng) {
+                    setTimeout(() => {
+                        initProyekMap(p.koordinat.lat, p.koordinat.lng, p.nama, p.lokasi);
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showDrilldownContent('<div class="alert alert-danger">Terjadi kesalahan saat memuat data</div>');
+            });
+    }
+    
+    // Initialize Proyek Map (Leaflet)
+    function initProyekMap(lat, lng, nama, lokasi) {
+        const mapContainer = document.getElementById('proyekMap');
+        if (!mapContainer) return;
+        
+        // Check if Leaflet is loaded
+        if (typeof L === 'undefined') {
+            mapContainer.innerHTML = `
+                <div class="d-flex flex-column align-items-center justify-content-center h-100 bg-light">
+                    <i class="fas fa-map-marker-alt fa-3x text-danger mb-2"></i>
+                    <p class="mb-1"><strong>Koordinat:</strong></p>
+                    <code>${lat}, ${lng}</code>
+                    <a href="https://www.google.com/maps?q=${lat},${lng}" target="_blank" class="btn btn-sm btn-outline-primary mt-2">
+                        <i class="fas fa-external-link-alt me-1"></i>Buka di Google Maps
+                    </a>
+                </div>
+            `;
+            return;
+        }
+        
+        // Initialize Leaflet map
+        const map = L.map('proyekMap').setView([lat, lng], 16);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        
+        // Add marker
+        const marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup(`
+            <strong>${nama}</strong><br>
+            <small>${lokasi || ''}</small>
+        `).openPopup();
     }
     
     // Drilldown: Pie Chart (Anggaran vs Realisasi Comparison)

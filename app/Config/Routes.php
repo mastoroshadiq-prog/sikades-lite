@@ -38,6 +38,8 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     $routes->get('/dashboard/drilldown/realisasi-bulan', 'Dashboard::drilldownRealisasiBulan');
     $routes->get('/dashboard/drilldown/bku-detail', 'Dashboard::drilldownBkuDetail');
     $routes->get('/dashboard/drilldown/sumber-dana', 'Dashboard::drilldownSumberDana');
+    $routes->get('/dashboard/drilldown/proyek', 'Dashboard::drilldownProyek');
+    $routes->get('/dashboard/drilldown/proyek-list', 'Dashboard::drilldownProyekList');
     $routes->get('/dashboard/drilldown/pie-chart', 'Dashboard::drilldownPieChart');
     $routes->get('/dashboard/chart-data', 'Dashboard::chartData');
     
