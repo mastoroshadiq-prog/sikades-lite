@@ -24,67 +24,74 @@
     <div class="row g-4 mb-4">
         <!-- Stunting Stats -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow h-100" style="background: #dc3545 !important;">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="text-white mb-2" style="opacity: 0.9;">Kasus Stunting</h6>
-                            <h2 class="mb-0 fw-bold text-white"><?= $stuntingStats['stunting'] ?? 0 ?></h2>
-                            <small class="text-white" style="opacity: 0.8;">dari <?= $stuntingStats['total_balita'] ?? 0 ?> balita</small>
+            <a href="<?= base_url('/posyandu/stunting') ?>" class="text-decoration-none">
+                <div class="card border-0 shadow h-100 hover-lift" style="background: #dc3545 !important; cursor: pointer; transition: transform 0.2s;">
+                    <div class="card-body text-white">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-white mb-2" style="opacity: 0.9;">Kasus Stunting</h6>
+                                <h2 class="mb-0 fw-bold text-white"><?= $stuntingStats['stunting'] ?? 0 ?></h2>
+                                <small class="text-white" style="opacity: 0.8;">dari <?= $stuntingStats['total_balita'] ?? 0 ?> balita</small>
+                            </div>
+                            <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                                <i class="fas fa-child fa-2x text-white"></i>
+                            </div>
                         </div>
-                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
-                            <i class="fas fa-child fa-2x text-white"></i>
+                        <div class="mt-3">
+                            <div class="progress" style="height: 6px; background: rgba(255,255,255,0.3);">
+                                <div class="progress-bar bg-white" style="width: <?= $stuntingStats['percentage'] ?? 0 ?>%"></div>
+                            </div>
+                            <small class="text-white mt-1 d-block" style="opacity: 0.8;"><?= $stuntingStats['percentage'] ?? 0 ?>% prevalensi</small>
                         </div>
-                    </div>
-                    <div class="mt-3">
-                        <div class="progress" style="height: 6px; background: rgba(255,255,255,0.3);">
-                            <div class="progress-bar bg-white" style="width: <?= $stuntingStats['percentage'] ?? 0 ?>%"></div>
-                        </div>
-                        <small class="text-white mt-1 d-block" style="opacity: 0.8;"><?= $stuntingStats['percentage'] ?? 0 ?>% prevalensi</small>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Total Balita -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow h-100" style="background: #0d6efd !important;">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="text-white mb-2" style="opacity: 0.9;">Total Balita Terpantau</h6>
-                            <h2 class="mb-0 fw-bold text-white"><?= $stuntingStats['total_balita'] ?? 0 ?></h2>
-                            <small class="text-white" style="opacity: 0.8;"><i class="fas fa-check-circle me-1"></i><?= $stuntingStats['normal'] ?? 0 ?> normal</small>
-                        </div>
-                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
-                            <i class="fas fa-baby fa-2x text-white"></i>
+            <a href="<?= base_url('/posyandu/posyandu') ?>" class="text-decoration-none">
+                <div class="card border-0 shadow h-100 hover-lift" style="background: #0d6efd !important; cursor: pointer; transition: transform 0.2s;">
+                    <div class="card-body text-white">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-white mb-2" style="opacity: 0.9;">Total Balita Terpantau</h6>
+                                <h2 class="mb-0 fw-bold text-white"><?= $stuntingStats['total_balita'] ?? 0 ?></h2>
+                                <small class="text-white" style="opacity: 0.8;"><i class="fas fa-check-circle me-1"></i><?= $stuntingStats['normal'] ?? 0 ?> normal</small>
+                            </div>
+                            <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                                <i class="fas fa-baby fa-2x text-white"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- Ibu Hamil -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow h-100" style="background: #17a2b8 !important;">
-                <div class="card-body text-white">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h6 class="text-white mb-2" style="opacity: 0.9;">Ibu Hamil Aktif</h6>
-                            <h2 class="mb-0 fw-bold text-white"><?= $bumpilStats['total_hamil'] ?? 0 ?></h2>
-                            <small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i><?= $bumpilStats['resiko_tinggi'] ?? 0 ?> resiko tinggi</small>
-                        </div>
-                        <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
-                            <i class="fas fa-user-nurse fa-2x text-white"></i>
+            <a href="<?= base_url('/posyandu/bumil/risti') ?>" class="text-decoration-none">
+                <div class="card border-0 shadow h-100 hover-lift" style="background: #17a2b8 !important; cursor: pointer; transition: transform 0.2s;">
+                    <div class="card-body text-white">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="text-white mb-2" style="opacity: 0.9;">Ibu Hamil Aktif</h6>
+                                <h2 class="mb-0 fw-bold text-white"><?= $bumpilStats['total_hamil'] ?? 0 ?></h2>
+                                <small class="text-warning"><i class="fas fa-exclamation-triangle me-1"></i><?= $bumpilStats['resiko_tinggi'] ?? 0 ?> resiko tinggi</small>
+                            </div>
+                            <div class="rounded-circle p-3" style="background: rgba(255,255,255,0.2);">
+                                <i class="fas fa-user-nurse fa-2x text-white"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
         <!-- HPL dalam 30 hari -->
         <div class="col-xl-3 col-md-6">
-            <div class="card border-0 shadow h-100" style="background: #28a745 !important;">
+            <div class="card border-0 shadow h-100 <?= ($bumpilStats['akan_melahirkan_30_hari'] ?? 0) > 0 ? 'hover-lift' : '' ?>" 
+                 style="background: #28a745 !important; <?= ($bumpilStats['akan_melahirkan_30_hari'] ?? 0) > 0 ? 'cursor: pointer;' : '' ?> transition: transform 0.2s;">
                 <div class="card-body text-white">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
@@ -200,6 +207,13 @@
 </div>
 
 <?= view('layout/footer') ?>
+
+<style>
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 1rem 3rem rgba(0,0,0,.3) !important;
+}
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
