@@ -58,14 +58,26 @@ class PosyanduModel extends Model
                 ->where('status', 'HAMIL')
                 ->countAllResults();
                 
-            // Count stunting (distinct children with stunting indication)
-            $queryStunting = $db->table('kes_pemeriksaan')
-                ->select('COUNT(DISTINCT penduduk_id) as total')
-                ->where('posyandu_id', $p['id'])
-                ->where('indikasi_stunting', true)
-                ->get()
-                ->getRowArray();
-            $p['jumlah_stunting'] = $queryStunting['total'] ?? 0;
+            // Count stunting - hanya dari pemeriksaan terakhir per balita
+            // Sama seperti logika di getStuntingStats untuk konsistensi
+            $latestCheckups = $db->query("
+                SELECT p.penduduk_id, MAX(p.id) as latest_id
+                FROM kes_pemeriksaan p
+                WHERE p.posyandu_id = ?
+                GROUP BY p.penduduk_id
+            ", [$p['id']])->getResultArray();
+            
+            $latestIds = array_column($latestCheckups, 'latest_id');
+            
+            if (!empty($latestIds)) {
+                $stuntingCount = $db->table('kes_pemeriksaan')
+                    ->whereIn('id', $latestIds)
+                    ->where('indikasi_stunting', true)
+                    ->countAllResults();
+                $p['jumlah_stunting'] = $stuntingCount;
+            } else {
+                $p['jumlah_stunting'] = 0;
+            }
         }
         
         return $posyandus;
