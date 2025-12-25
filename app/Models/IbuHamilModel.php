@@ -142,7 +142,7 @@ class IbuHamilModel extends Model
             JOIN kes_posyandu pos ON pos.id = h.posyandu_id
             WHERE pos.kode_desa = ? 
             AND h.status = 'HAMIL'
-            AND h.taksiran_persalinan BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+            AND h.taksiran_persalinan BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'
         ", [$kodeDesa])->getRow()->total;
         
         // K1-K4 completion stats
