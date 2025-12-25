@@ -202,7 +202,6 @@
                         </thead>
                         <tbody>
                             <?php foreach (array_slice($projects, 0, 10) as $p): ?>
-                                <?php $deviation = \App\Models\ProyekModel::calculateDeviation((new \App\Models\ProyekModel), $p); ?>
                                 <tr>
                                     <td>
                                         <strong><?= esc($p['nama_proyek']) ?></strong>
