@@ -608,9 +608,21 @@ function initDrilldown() {
         return colors[sumber] || 'secondary';
     }
     
-    // Show modal with loading
+    // Store modal instance globally to reuse
+    let drilldownModalInstance = null;
+    
+    // Get or create modal instance
+    function getOrCreateModal() {
+        const modalEl = document.getElementById('drilldownModal');
+        if (!drilldownModalInstance) {
+            drilldownModalInstance = new bootstrap.Modal(modalEl);
+        }
+        return drilldownModalInstance;
+    }
+    
+    // Show modal with loading (reuse existing instance)
     function showDrilldownModal(title) {
-        const modal = new bootstrap.Modal(document.getElementById('drilldownModal'));
+        const modal = getOrCreateModal();
         document.getElementById('drilldownModalLabel').innerHTML = '<i class="fas fa-search me-2"></i>' + title;
         document.getElementById('drilldownLoading').style.display = 'block';
         document.getElementById('drilldownContent').style.display = 'none';
@@ -623,6 +635,17 @@ function initDrilldown() {
         document.getElementById('drilldownLoading').style.display = 'none';
         document.getElementById('drilldownContent').innerHTML = html;
         document.getElementById('drilldownContent').style.display = 'block';
+    }
+    
+    // Update modal title without closing (for sub-drilldowns)
+    function updateDrilldownTitle(title) {
+        document.getElementById('drilldownModalLabel').innerHTML = '<i class="fas fa-search me-2"></i>' + title;
+    }
+    
+    // Show loading in existing modal
+    function showDrilldownLoading() {
+        document.getElementById('drilldownLoading').style.display = 'block';
+        document.getElementById('drilldownContent').style.display = 'none';
     }
     
     // Drilldown: Total Anggaran
@@ -1439,9 +1462,11 @@ function initDrilldown() {
         });
     }
     
-    // Load Proyek Detail (with WebGIS)
+    // Load Proyek Detail (with WebGIS) - updates existing modal content
     function loadProyekDetail(apbdesId, uraian) {
-        showDrilldownModal('Detail Proyek: ' + (uraian || '').substring(0, 40));
+        // Update title and show loading without creating new modal
+        updateDrilldownTitle('Detail Proyek: ' + (uraian || '').substring(0, 40));
+        showDrilldownLoading();
         
         fetch(`${baseUrl}/dashboard/drilldown/proyek?apbdes_id=${apbdesId}`)
             .then(response => response.json())
