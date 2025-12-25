@@ -5,6 +5,13 @@
 -- ===========================================
 -- Tables for e-Posyandu module: Stunting monitoring, pregnancy tracking
 
+-- Drop existing tables to ensure clean slate (in case of malformed previous tables)
+DROP TABLE IF EXISTS kes_standar_who CASCADE;
+DROP TABLE IF EXISTS kes_ibu_hamil CASCADE;
+DROP TABLE IF EXISTS kes_pemeriksaan CASCADE;
+DROP TABLE IF EXISTS kes_kader CASCADE;
+DROP TABLE IF EXISTS kes_posyandu CASCADE;
+
 -- ===========================================
 -- 1. POSYANDU (Health Post)
 -- ===========================================
@@ -129,11 +136,10 @@ CREATE INDEX IF NOT EXISTS idx_kes_standar_who_lookup ON kes_standar_who(jenis_k
 -- ===========================================
 -- SAMPLE DATA
 -- ===========================================
--- Insert sample posyandu
+-- Insert sample posyandu (Only if clean slate)
 INSERT INTO kes_posyandu (kode_desa, nama_posyandu, alamat_dusun, rt, rw, ketua_posyandu, lat, lng)
 VALUES 
     ('3201010001', 'Posyandu Mawar', 'Dusun Krajan', '01', '01', 'Bu Siti Aminah', -6.5770, 106.8460),
-    ('3201010001', 'Posyandu Melati', 'Dusun Sukamaju', '02', '01', 'Bu Dewi Lestari', -6.5795, 106.8478)
-ON CONFLICT DO NOTHING;
+    ('3201010001', 'Posyandu Melati', 'Dusun Sukamaju', '02', '01', 'Bu Dewi Lestari', -6.5795, 106.8478);
 
-SELECT 'Kesehatan/Posyandu tables created successfully!' AS status;
+SELECT 'Kesehatan/Posyandu tables (re)created successfully!' AS status;

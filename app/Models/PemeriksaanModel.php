@@ -313,7 +313,7 @@ class PemeriksaanModel extends Model
             JOIN pop_keluarga k ON k.id = pd.keluarga_id
             JOIN kes_posyandu pos ON pos.id = p.posyandu_id
             WHERE pos.kode_desa = ?
-            AND p.indikasi_stunting = 1
+            AND p.indikasi_stunting = true
             AND p.id IN (
                 SELECT MAX(id) FROM kes_pemeriksaan GROUP BY penduduk_id
             )
