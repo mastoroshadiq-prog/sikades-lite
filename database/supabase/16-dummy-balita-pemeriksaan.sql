@@ -47,15 +47,15 @@ BEGIN
 
         -- Buat 5 dummy balita
         INSERT INTO pop_penduduk (
-            keluarga_id, nik, nama_lengkap, tempat_lahir, tanggal_lahir, 
+            kode_desa, keluarga_id, nik, nama_lengkap, tempat_lahir, tanggal_lahir, 
             jenis_kelamin, agama, status_hubungan, status_dasar, 
             created_at, updated_at
         ) VALUES
-        (v_keluarga_id, '3201010001010201', 'Anak Test 1 (Normal)', 'Jakarta', '2022-06-15', 'L', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
-        (v_keluarga_id, '3201010001010202', 'Anak Test 2 (Stunting Ringan)', 'Jakarta', '2022-06-15', 'L', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
-        (v_keluarga_id, '3201010001010203', 'Anak Test 3 (Stunting Berat)', 'Jakarta', '2021-06-15', 'L', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
-        (v_keluarga_id, '3201010001010204', 'Anak Test 4 (Gizi Lebih)', 'Jakarta', '2023-10-15', 'P', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
-        (v_keluarga_id, '3201010001010205', 'Anak Test 5 (ASI Eksklusif)', 'Jakarta', '2024-05-15', 'P', 'Islam', 'Anak', 'HIDUP', NOW(), NOW());
+        (v_kode_desa, v_keluarga_id, '3201010001010201', 'Anak Test 1 (Normal)', 'Jakarta', '2022-06-15', 'L', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
+        (v_kode_desa, v_keluarga_id, '3201010001010202', 'Anak Test 2 (Stunting Ringan)', 'Jakarta', '2022-06-15', 'L', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
+        (v_kode_desa, v_keluarga_id, '3201010001010203', 'Anak Test 3 (Stunting Berat)', 'Jakarta', '2021-06-15', 'L', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
+        (v_kode_desa, v_keluarga_id, '3201010001010204', 'Anak Test 4 (Gizi Lebih)', 'Jakarta', '2023-10-15', 'P', 'Islam', 'Anak', 'HIDUP', NOW(), NOW()),
+        (v_kode_desa, v_keluarga_id, '3201010001010205', 'Anak Test 5 (ASI Eksklusif)', 'Jakarta', '2024-05-15', 'P', 'Islam', 'Anak', 'HIDUP', NOW(), NOW());
 
         RAISE NOTICE 'Berhasil membuat 5 dummy balita';
     END IF;
