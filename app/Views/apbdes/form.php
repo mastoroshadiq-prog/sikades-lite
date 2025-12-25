@@ -49,17 +49,20 @@
                         <label for="tahun" class="form-label">
                             Tahun Anggaran <span class="text-danger">*</span>
                         </label>
+                        <?php $selectedTahun = isset($anggaran) ? $anggaran['tahun'] : ($tahun ?? date('Y')); ?>
                         <select name="tahun" 
                                 id="tahun" 
                                 class="form-select" 
                                 required>
                             <?php for ($y = date('Y') - 2; $y <= date('Y') + 2; $y++): ?>
-                                <option value="<?= $y ?>" 
-                                        <?= (isset($anggaran) && $anggaran['tahun'] == $y) || (!isset($anggaran) && $y == date('Y')) ? 'selected' : '' ?>>
+                                <option value="<?= $y ?>" <?= $y == $selectedTahun ? 'selected' : '' ?>>
                                     <?= $y ?>
                                 </option>
                             <?php endfor; ?>
                         </select>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle me-1"></i>Tahun anggaran yang dipilih: <strong><?= $selectedTahun ?></strong>
+                        </small>
                     </div>
                     
                     <!-- Rekening -->
@@ -123,7 +126,7 @@
                     </div>
                     
                     <!-- Sumber Dana -->
-                    <div class="mb-4">
+                    <div class="mb-3">
                         <label for="sumber_dana" class="form-label">
                             Sumber Dana <span class="text-danger">*</span>
                         </label>
@@ -146,6 +149,56 @@
                             </option>
                         </select>
                     </div>
+                    
+                    <!-- Optional: Link to RKP Desa -->
+                    <?php if (isset($rkp) && $rkp): ?>
+                    <div class="card bg-light border-info mb-3">
+                        <div class="card-header bg-info text-white py-2">
+                            <small class="mb-0"><i class="fas fa-link me-2"></i>Hubungkan dengan RKP Desa (Opsional)</small>
+                        </div>
+                        <div class="card-body py-3">
+                            <p class="small text-muted mb-2">
+                                <i class="fas fa-info-circle me-1"></i>
+                                RKP Desa Tahun <?= $rkp['tahun'] ?> tersedia. Anda dapat menghubungkan anggaran ini dengan kegiatan dari RKP.
+                            </p>
+                            
+                            <input type="hidden" name="rkpdesa_id" value="<?= $rkp['id'] ?>">
+                            
+                            <div class="mb-0">
+                                <label for="kegiatan_id" class="form-label small mb-1">
+                                    Kegiatan dari RKP <span class="badge bg-secondary">Opsional</span>
+                                </label>
+                                <select name="kegiatan_id" id="kegiatan_id" class="form-select form-select-sm">
+                                    <option value="">-- Tidak terhubung dengan kegiatan --</option>
+                                    <?php if (!empty($kegiatanList)): ?>
+                                        <?php foreach ($kegiatanList as $keg): ?>
+                                        <option value="<?= $keg['id'] ?>" 
+                                                data-pagu="<?= $keg['pagu_anggaran'] ?? 0 ?>"
+                                                <?= (isset($anggaran) && ($anggaran['kegiatan_id'] ?? null) == $keg['id']) ? 'selected' : '' ?>>
+                                            <?= esc($keg['nama_kegiatan']) ?> 
+                                            (Pagu: Rp <?= number_format($keg['pagu_anggaran'] ?? 0, 0, ',', '.') ?>)
+                                        </option>
+                                        <?php endforeach; ?>
+                                    <?php else: ?>
+                                        <option value="" disabled>Belum ada kegiatan di RKP ini</option>
+                                    <?php endif; ?>
+                                </select>
+                                <small class="form-text text-muted">
+                                    Pilih kegiatan jika anggaran ini merupakan penjabaran dari kegiatan RKP
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <?php else: ?>
+                    <div class="alert alert-warning py-2 mb-3">
+                        <small>
+                            <i class="fas fa-exclamation-triangle me-1"></i>
+                            <strong>Perhatian:</strong> Belum ada RKP Desa untuk tahun <?= $tahun ?? date('Y') ?>. 
+                            Anggaran akan dibuat tanpa hubungan ke RKP Desa.
+                            <a href="<?= base_url('/perencanaan/rkp/create') ?>" class="alert-link">Buat RKP Desa</a>
+                        </small>
+                    </div>
+                    <?php endif; ?>
                     
                     <hr>
                     

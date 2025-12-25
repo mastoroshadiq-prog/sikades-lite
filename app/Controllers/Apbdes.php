@@ -55,12 +55,32 @@ class Apbdes extends BaseController
             return redirect()->to('/dashboard')->with('error', 'Akses ditolak.');
         }
 
+        $kodeDesa = $this->session->get('kode_desa');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        
         // Get all rekening for dropdown
         $rekening = $this->rekeningModel->orderBy('kode_akun', 'ASC')->findAll();
+        
+        // Get RKP for selected year (optional link)
+        $rkp = $this->rkpModel->where('kode_desa', $kodeDesa)
+                              ->where('tahun', $tahun)
+                              ->first();
+        
+        // Get kegiatan from RKP if exists
+        $kegiatanList = [];
+        if ($rkp) {
+            $kegiatanList = $this->kegiatanModel
+                ->where('rkpdesa_id', $rkp['id'])
+                ->orderBy('nama_kegiatan', 'ASC')
+                ->findAll();
+        }
 
         $data = array_merge($this->data, [
             'title' => 'Tambah Anggaran',
             'rekening' => $rekening,
+            'rkp' => $rkp,
+            'kegiatanList' => $kegiatanList,
+            'tahun' => $tahun,
         ]);
 
         return view('apbdes/form', $data);
@@ -85,14 +105,31 @@ class Apbdes extends BaseController
         if (!$this->validate($rules)) {
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
+        
+        $tahun = $this->request->getPost('tahun') ?? date('Y');
+        $kodeDesa = $this->session->get('kode_desa');
+        
+        // Get RKP for this year if exists
+        $rkpdesaId = $this->request->getPost('rkpdesa_id') ?: null;
+        $kegiatanId = $this->request->getPost('kegiatan_id') ?: null;
+        
+        // If no RKP linked but RKP exists for this year, show info message
+        if (!$rkpdesaId) {
+            $rkpExists = $this->rkpModel->where('kode_desa', $kodeDesa)->where('tahun', $tahun)->first();
+            if ($rkpExists) {
+                // Just informational - keep $rkpdesaId as null
+            }
+        }
 
         $data = [
-            'kode_desa' => $this->session->get('kode_desa'),
-            'tahun' => $this->request->getPost('tahun') ?? date('Y'),
+            'kode_desa' => $kodeDesa,
+            'tahun' => $tahun,
             'ref_rekening_id' => $this->request->getPost('ref_rekening_id'),
             'uraian' => $this->request->getPost('uraian'),
             'anggaran' => $this->request->getPost('anggaran'),
             'sumber_dana' => $this->request->getPost('sumber_dana'),
+            'rkpdesa_id' => $rkpdesaId,
+            'kegiatan_id' => $kegiatanId,
         ];
 
         // Validasi: Anggaran tidak boleh minus

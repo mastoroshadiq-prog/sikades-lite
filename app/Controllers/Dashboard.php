@@ -25,17 +25,31 @@ class Dashboard extends BaseController
     {
         $kodeDesa = $this->session->get('kode_desa');
         $role = $this->getUserRole();
-        $tahun = date('Y');
+        
+        // Get selected year from request or default to current year
+        $tahun = (int)($this->request->getGet('tahun') ?? date('Y'));
+        
+        // Get available years from APBDes and BKU for dropdown
+        $availableYears = $this->getAvailableYears($kodeDesa);
+        if (!in_array($tahun, $availableYears) && !empty($availableYears)) {
+            // If selected year not in list, add it
+            $availableYears[] = $tahun;
+            sort($availableYears);
+        }
+        if (empty($availableYears)) {
+            $availableYears = [date('Y')];
+        }
 
-        // Get dashboard statistics
-        $stats = $this->getDashboardStats($kodeDesa);
+        // Get dashboard statistics for selected year
+        $stats = $this->getDashboardStats($kodeDesa, $tahun);
         
         // Get monthly chart data
         $monthlyData = $this->getMonthlyChartData($kodeDesa, $tahun);
         
-        // Get recent transactions
+        // Get recent transactions (for selected year)
         $recentTransactions = $this->bkuModel
             ->where('kode_desa', $kodeDesa)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
             ->orderBy('tanggal', 'DESC')
             ->limit(5)
             ->findAll();
@@ -56,6 +70,7 @@ class Dashboard extends BaseController
             'stats' => $stats,
             'role' => $role,
             'tahun' => $tahun,
+            'availableYears' => $availableYears,
             'monthlyData' => $monthlyData,
             'recentTransactions' => $recentTransactions,
             'pendingSpp' => $pendingSpp,
@@ -64,12 +79,53 @@ class Dashboard extends BaseController
 
         return view('dashboard/index', $data);
     }
+    
+    /**
+     * Get available years from APBDes and BKU
+     */
+    private function getAvailableYears(?string $kodeDesa): array
+    {
+        if (!$kodeDesa) {
+            return [date('Y')];
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get years from APBDes
+        $apbdesYears = $db->query("
+            SELECT DISTINCT tahun FROM apbdes 
+            WHERE kode_desa = ? 
+            ORDER BY tahun DESC
+        ", [$kodeDesa])->getResultArray();
+        
+        // Get years from BKU
+        $bkuYears = $db->query("
+            SELECT DISTINCT EXTRACT(YEAR FROM tanggal)::int as tahun 
+            FROM bku 
+            WHERE kode_desa = ? 
+            ORDER BY tahun DESC
+        ", [$kodeDesa])->getResultArray();
+        
+        $years = array_merge(
+            array_column($apbdesYears, 'tahun'),
+            array_column($bkuYears, 'tahun')
+        );
+        
+        $years = array_unique($years);
+        rsort($years); // Descending order
+        
+        return array_values($years);
+    }
 
     /**
      * Get dashboard statistics
      */
-    private function getDashboardStats(?string $kodeDesa): array
+    private function getDashboardStats(?string $kodeDesa, int $tahun = null): array
     {
+        if ($tahun === null) {
+            $tahun = (int)date('Y');
+        }
+        
         $stats = [
             'total_anggaran' => 0,
             'total_realisasi' => 0,
@@ -83,8 +139,6 @@ class Dashboard extends BaseController
         if (!$kodeDesa) {
             return $stats;
         }
-
-        $tahun = date('Y');
 
         // Total Anggaran (from APBDes)
         $totalAnggaran = $this->apbdesModel
@@ -229,6 +283,330 @@ class Dashboard extends BaseController
         return $this->response->setJSON([
             'success' => true,
             'data' => $monthlyData
+        ]);
+    }
+    
+    /**
+     * Get drilldown data for Total Anggaran
+     */
+    public function drilldownAnggaran()
+    {
+        $kodeDesa = $this->session->get('kode_desa');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        
+        if (!$kodeDesa) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Kode desa tidak ditemukan']);
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get detailed anggaran breakdown by rekening
+        $result = $db->query("
+            SELECT 
+                a.id,
+                a.uraian,
+                a.anggaran,
+                a.sumber_dana,
+                r.kode_akun,
+                r.nama_akun,
+                r.level
+            FROM apbdes a
+            LEFT JOIN ref_rekening r ON r.id = a.ref_rekening_id
+            WHERE a.kode_desa = ? AND a.tahun = ?
+            ORDER BY r.kode_akun ASC
+        ", [$kodeDesa, $tahun])->getResultArray();
+        
+        // Calculate totals by sumber dana
+        $totalBySumber = [];
+        $grandTotal = 0;
+        foreach ($result as $row) {
+            $sumber = $row['sumber_dana'] ?? 'Lainnya';
+            if (!isset($totalBySumber[$sumber])) {
+                $totalBySumber[$sumber] = 0;
+            }
+            $totalBySumber[$sumber] += (float)$row['anggaran'];
+            $grandTotal += (float)$row['anggaran'];
+        }
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $result,
+            'summary' => [
+                'total_by_sumber' => $totalBySumber,
+                'grand_total' => $grandTotal
+            ],
+            'tahun' => $tahun
+        ]);
+    }
+    
+    /**
+     * Get drilldown data for Total Realisasi
+     */
+    public function drilldownRealisasi()
+    {
+        $kodeDesa = $this->session->get('kode_desa');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        
+        if (!$kodeDesa) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Kode desa tidak ditemukan']);
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get realisasi grouped by month
+        $monthlyRealisasi = $db->query("
+            SELECT 
+                EXTRACT(MONTH FROM tanggal)::int as bulan,
+                SUM(kredit) as total_realisasi,
+                COUNT(*) as jumlah_transaksi
+            FROM bku 
+            WHERE kode_desa = ? 
+                AND EXTRACT(YEAR FROM tanggal)::int = ?
+                AND jenis_transaksi = 'Belanja'
+            GROUP BY EXTRACT(MONTH FROM tanggal)
+            ORDER BY bulan
+        ", [$kodeDesa, $tahun])->getResultArray();
+        
+        // Get realisasi by rekening
+        $byRekening = $db->query("
+            SELECT 
+                r.kode_akun,
+                r.nama_akun,
+                SUM(b.kredit) as total_realisasi,
+                COUNT(*) as jumlah_transaksi
+            FROM bku b
+            LEFT JOIN ref_rekening r ON r.id = b.ref_rekening_id
+            WHERE b.kode_desa = ? 
+                AND EXTRACT(YEAR FROM b.tanggal)::int = ?
+                AND b.jenis_transaksi = 'Belanja'
+            GROUP BY r.kode_akun, r.nama_akun
+            ORDER BY r.kode_akun ASC
+        ", [$kodeDesa, $tahun])->getResultArray();
+        
+        // Get recent belanja transactions
+        $recentTransactions = $db->query("
+            SELECT 
+                b.id,
+                b.tanggal,
+                b.no_bukti,
+                b.uraian,
+                b.kredit,
+                r.kode_akun,
+                r.nama_akun
+            FROM bku b
+            LEFT JOIN ref_rekening r ON r.id = b.ref_rekening_id
+            WHERE b.kode_desa = ? 
+                AND EXTRACT(YEAR FROM b.tanggal)::int = ?
+                AND b.jenis_transaksi = 'Belanja'
+            ORDER BY b.tanggal DESC, b.id DESC
+            LIMIT 20
+        ", [$kodeDesa, $tahun])->getResultArray();
+        
+        $grandTotal = array_sum(array_column($monthlyRealisasi, 'total_realisasi'));
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'monthly' => $monthlyRealisasi,
+                'by_rekening' => $byRekening,
+                'recent_transactions' => $recentTransactions
+            ],
+            'summary' => [
+                'grand_total' => $grandTotal,
+                'total_transactions' => array_sum(array_column($monthlyRealisasi, 'jumlah_transaksi'))
+            ],
+            'tahun' => $tahun
+        ]);
+    }
+    
+    /**
+     * Get drilldown data for Anggaran per Sumber Dana
+     */
+    public function drilldownSumberDana()
+    {
+        $kodeDesa = $this->session->get('kode_desa');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        $sumberDana = $this->request->getGet('sumber_dana');
+        
+        if (!$kodeDesa) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Kode desa tidak ditemukan']);
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get detail by specific sumber dana
+        $query = "
+            SELECT 
+                a.id,
+                a.uraian,
+                a.anggaran,
+                a.sumber_dana,
+                r.kode_akun,
+                r.nama_akun,
+                r.level
+            FROM apbdes a
+            LEFT JOIN ref_rekening r ON r.id = a.ref_rekening_id
+            WHERE a.kode_desa = ? AND a.tahun = ?
+        ";
+        
+        $params = [$kodeDesa, $tahun];
+        
+        if ($sumberDana) {
+            $query .= " AND a.sumber_dana = ?";
+            $params[] = $sumberDana;
+        }
+        
+        $query .= " ORDER BY a.sumber_dana, r.kode_akun ASC";
+        
+        $result = $db->query($query, $params)->getResultArray();
+        
+        // Get realisasi per sumber dana
+        $realisasiQuery = "
+            SELECT 
+                a.sumber_dana,
+                SUM(a.anggaran) as total_anggaran,
+                COALESCE(SUM(b.total_realisasi), 0) as total_realisasi
+            FROM apbdes a
+            LEFT JOIN (
+                SELECT 
+                    ref_rekening_id,
+                    SUM(kredit) as total_realisasi
+                FROM bku
+                WHERE kode_desa = ? 
+                    AND EXTRACT(YEAR FROM tanggal)::int = ?
+                    AND jenis_transaksi = 'Belanja'
+                GROUP BY ref_rekening_id
+            ) b ON b.ref_rekening_id = a.ref_rekening_id
+            WHERE a.kode_desa = ? AND a.tahun = ?
+        ";
+        
+        $realisasiParams = [$kodeDesa, $tahun, $kodeDesa, $tahun];
+        
+        if ($sumberDana) {
+            $realisasiQuery .= " AND a.sumber_dana = ?";
+            $realisasiParams[] = $sumberDana;
+        }
+        
+        $realisasiQuery .= " GROUP BY a.sumber_dana ORDER BY a.sumber_dana";
+        
+        $realisasiSummary = $db->query($realisasiQuery, $realisasiParams)->getResultArray();
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => $result,
+            'realisasi_summary' => $realisasiSummary,
+            'sumber_dana' => $sumberDana,
+            'tahun' => $tahun
+        ]);
+    }
+    
+    /**
+     * Get drilldown data for Pie Chart comparison (Anggaran vs Realisasi)
+     */
+    public function drilldownPieChart()
+    {
+        $kodeDesa = $this->session->get('kode_desa');
+        $tahun = $this->request->getGet('tahun') ?? date('Y');
+        
+        if (!$kodeDesa) {
+            return $this->response->setJSON(['success' => false, 'message' => 'Kode desa tidak ditemukan']);
+        }
+        
+        $db = \Config\Database::connect();
+        
+        // Get total anggaran
+        $totalAnggaran = $this->apbdesModel
+            ->where('kode_desa', $kodeDesa)
+            ->where('tahun', $tahun)
+            ->selectSum('anggaran')
+            ->first();
+        $anggaran = (float)($totalAnggaran['anggaran'] ?? 0);
+        
+        // Get total realisasi
+        $totalRealisasi = $this->bkuModel
+            ->where('kode_desa', $kodeDesa)
+            ->where('EXTRACT(YEAR FROM tanggal)::int', $tahun)
+            ->where('jenis_transaksi', 'Belanja')
+            ->selectSum('kredit')
+            ->first();
+        $realisasi = (float)($totalRealisasi['kredit'] ?? 0);
+        
+        // Get comparison by sumber dana
+        $comparisonBySumber = $db->query("
+            SELECT 
+                a.sumber_dana,
+                SUM(a.anggaran) as total_anggaran,
+                COALESCE(SUM(b.total_realisasi), 0) as total_realisasi
+            FROM apbdes a
+            LEFT JOIN (
+                SELECT 
+                    ref_rekening_id,
+                    SUM(kredit) as total_realisasi
+                FROM bku
+                WHERE kode_desa = ? 
+                    AND EXTRACT(YEAR FROM tanggal)::int = ?
+                    AND jenis_transaksi = 'Belanja'
+                GROUP BY ref_rekening_id
+            ) b ON b.ref_rekening_id = a.ref_rekening_id
+            WHERE a.kode_desa = ? AND a.tahun = ?
+            GROUP BY a.sumber_dana
+            ORDER BY a.sumber_dana
+        ", [$kodeDesa, $tahun, $kodeDesa, $tahun])->getResultArray();
+        
+        // Get monthly comparison
+        $monthlyComparison = $db->query("
+            WITH monthly_anggaran AS (
+                SELECT 
+                    SUM(anggaran) / 12 as monthly_target
+                FROM apbdes
+                WHERE kode_desa = ? AND tahun = ?
+            ),
+            monthly_realisasi AS (
+                SELECT 
+                    EXTRACT(MONTH FROM tanggal)::int as bulan,
+                    SUM(kredit) as realisasi
+                FROM bku
+                WHERE kode_desa = ? 
+                    AND EXTRACT(YEAR FROM tanggal)::int = ?
+                    AND jenis_transaksi = 'Belanja'
+                GROUP BY EXTRACT(MONTH FROM tanggal)
+            )
+            SELECT 
+                mr.bulan,
+                ma.monthly_target as target,
+                COALESCE(mr.realisasi, 0) as realisasi
+            FROM monthly_realisasi mr
+            CROSS JOIN monthly_anggaran ma
+            ORDER BY mr.bulan
+        ", [$kodeDesa, $tahun, $kodeDesa, $tahun])->getResultArray();
+        
+        // Calculate percentages and additional metrics
+        $persentase = $anggaran > 0 ? round(($realisasi / $anggaran) * 100, 2) : 0;
+        $sisaAnggaran = $anggaran - $realisasi;
+        
+        // Process comparison by sumber for percentages
+        foreach ($comparisonBySumber as &$item) {
+            $item['total_anggaran'] = (float)$item['total_anggaran'];
+            $item['total_realisasi'] = (float)$item['total_realisasi'];
+            $item['sisa'] = $item['total_anggaran'] - $item['total_realisasi'];
+            $item['persentase'] = $item['total_anggaran'] > 0 
+                ? round(($item['total_realisasi'] / $item['total_anggaran']) * 100, 2) 
+                : 0;
+        }
+        
+        return $this->response->setJSON([
+            'success' => true,
+            'data' => [
+                'summary' => [
+                    'total_anggaran' => $anggaran,
+                    'total_realisasi' => $realisasi,
+                    'sisa_anggaran' => $sisaAnggaran,
+                    'persentase_realisasi' => $persentase
+                ],
+                'by_sumber_dana' => $comparisonBySumber,
+                'monthly_comparison' => $monthlyComparison
+            ],
+            'tahun' => $tahun
         ]);
     }
 }

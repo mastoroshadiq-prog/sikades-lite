@@ -32,6 +32,13 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
     // Dashboard
     $routes->get('/dashboard', 'Dashboard::index');
     
+    // Dashboard Drilldown API Routes
+    $routes->get('/dashboard/drilldown/anggaran', 'Dashboard::drilldownAnggaran');
+    $routes->get('/dashboard/drilldown/realisasi', 'Dashboard::drilldownRealisasi');
+    $routes->get('/dashboard/drilldown/sumber-dana', 'Dashboard::drilldownSumberDana');
+    $routes->get('/dashboard/drilldown/pie-chart', 'Dashboard::drilldownPieChart');
+    $routes->get('/dashboard/chart-data', 'Dashboard::chartData');
+    
     // Perencanaan Routes (NEW - Planning Module)
     $routes->group('perencanaan', function($routes) {
         $routes->get('/', 'Perencanaan::index');

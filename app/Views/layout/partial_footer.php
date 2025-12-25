@@ -8,10 +8,21 @@
 <script>
 // Re-initialize DataTables if present
 if (typeof $.fn.DataTable !== 'undefined') {
-    $('table.datatable').DataTable({
+    // Destroy existing DataTables first
+    $('.data-table').each(function() {
+        if ($.fn.DataTable.isDataTable(this)) {
+            $(this).DataTable().destroy();
+        }
+    });
+    
+    // Reinitialize
+    $('.data-table').DataTable({
         language: {
             url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
-        }
+        },
+        pageLength: 25,
+        responsive: true,
+        destroy: true
     });
 }
 
@@ -20,3 +31,4 @@ if (typeof Chart !== 'undefined' && window.initCharts) {
     window.initCharts();
 }
 </script>
+

@@ -48,7 +48,7 @@ class Perencanaan extends BaseController
             ->where('kode_desa', $kodeDesa)
             ->first()['pagu_anggaran'] ?? 0;
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Modul Perencanaan',
             'rpjmAktif' => $rpjmAktif,
             'rkpList' => $rkpList,
@@ -56,7 +56,7 @@ class Perencanaan extends BaseController
             'totalRkp' => $totalRkp,
             'totalKegiatan' => $totalKegiatan,
             'totalPagu' => $totalPagu,
-        ];
+        ]);
 
         return view('perencanaan/index', $data);
     }
@@ -73,10 +73,10 @@ class Perencanaan extends BaseController
         $kodeDesa = session()->get('kode_desa');
         $rpjmList = $this->rpjmModel->getWithRkpCount($kodeDesa);
         
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'RPJM Desa',
             'rpjmList' => $rpjmList,
-        ];
+        ]);
 
         return view('perencanaan/rpjm/index', $data);
     }
@@ -86,10 +86,10 @@ class Perencanaan extends BaseController
      */
     public function rpjmCreate()
     {
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Tambah RPJM Desa',
             'tahunSekarang' => date('Y'),
-        ];
+        ]);
 
         return view('perencanaan/rpjm/form', $data);
     }
@@ -141,10 +141,10 @@ class Perencanaan extends BaseController
             return redirect()->to('/perencanaan/rpjm')->with('error', 'Data tidak ditemukan');
         }
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Edit RPJM Desa',
             'rpjm' => $rpjm,
-        ];
+        ]);
 
         return view('perencanaan/rpjm/form', $data);
     }
@@ -206,11 +206,11 @@ class Perencanaan extends BaseController
 
         $rkpList = $this->rkpModel->where('rpjmdesa_id', $id)->orderBy('tahun', 'ASC')->findAll();
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Detail RPJM Desa',
             'rpjm' => $rpjm,
             'rkpList' => $rkpList,
-        ];
+        ]);
 
         return view('perencanaan/rpjm/detail', $data);
     }
@@ -247,10 +247,10 @@ class Perencanaan extends BaseController
         $kodeDesa = session()->get('kode_desa');
         $rkpList = $this->rkpModel->getWithKegiatanCount($kodeDesa);
         
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'RKP Desa',
             'rkpList' => $rkpList,
-        ];
+        ]);
 
         return view('perencanaan/rkp/index', $data);
     }
@@ -265,11 +265,11 @@ class Perencanaan extends BaseController
                                     ->whereIn('status', ['Draft', 'Aktif'])
                                     ->findAll();
         
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Tambah RKP Desa',
             'rpjmList' => $rpjmList,
             'tahunSekarang' => date('Y'),
-        ];
+        ]);
 
         return view('perencanaan/rkp/form', $data);
     }
@@ -288,9 +288,23 @@ class Perencanaan extends BaseController
             return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
+        $rpjmId = $this->request->getPost('rpjmdesa_id');
+        $tahunRkp = (int)$this->request->getPost('tahun');
+        
+        // Validate RKP year is within RPJM range
+        $rpjm = $this->rpjmModel->find($rpjmId);
+        if (!$rpjm) {
+            return redirect()->back()->withInput()->with('error', 'RPJM Desa tidak ditemukan');
+        }
+        
+        if ($tahunRkp < (int)$rpjm['tahun_awal'] || $tahunRkp > (int)$rpjm['tahun_akhir']) {
+            return redirect()->back()->withInput()->with('error', 
+                'Tahun RKP harus dalam rentang RPJM Desa (' . $rpjm['tahun_awal'] . ' - ' . $rpjm['tahun_akhir'] . ')');
+        }
+
         // Check if RKP for this year already exists
         $existing = $this->rkpModel->where('kode_desa', session()->get('kode_desa'))
-                                   ->where('tahun', $this->request->getPost('tahun'))
+                                   ->where('tahun', $tahunRkp)
                                    ->first();
         if ($existing) {
             return redirect()->back()->withInput()->with('error', 'RKP untuk tahun tersebut sudah ada');
@@ -332,7 +346,7 @@ class Perencanaan extends BaseController
         $summaryStatus = $this->kegiatanModel->getSummaryByStatus($id);
         $bidangList = $this->bidangModel->getAllOrdered();
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'RKP Desa Tahun ' . $rkp['tahun'],
             'rkp' => $rkp,
             'rpjm' => $rpjm,
@@ -340,7 +354,7 @@ class Perencanaan extends BaseController
             'summaryDana' => $summaryDana,
             'summaryStatus' => $summaryStatus,
             'bidangList' => $bidangList,
-        ];
+        ]);
 
         return view('perencanaan/rkp/detail', $data);
     }
@@ -359,11 +373,11 @@ class Perencanaan extends BaseController
 
         $rpjmList = $this->rpjmModel->where('kode_desa', $kodeDesa)->findAll();
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Edit RKP Desa',
             'rkp' => $rkp,
             'rpjmList' => $rpjmList,
-        ];
+        ]);
 
         return view('perencanaan/rkp/form', $data);
     }
@@ -428,11 +442,11 @@ class Perencanaan extends BaseController
 
         $bidangList = $this->bidangModel->getAllOrdered();
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Tambah Kegiatan',
             'rkp' => $rkp,
             'bidangList' => $bidangList,
-        ];
+        ]);
 
         return view('perencanaan/kegiatan/form', $data);
     }
@@ -496,12 +510,12 @@ class Perencanaan extends BaseController
         $rkp = $this->rkpModel->find($kegiatan['rkpdesa_id']);
         $bidangList = $this->bidangModel->getAllOrdered();
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Edit Kegiatan',
             'kegiatan' => $kegiatan,
             'rkp' => $rkp,
             'bidangList' => $bidangList,
-        ];
+        ]);
 
         return view('perencanaan/kegiatan/form', $data);
     }

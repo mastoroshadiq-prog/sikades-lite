@@ -49,14 +49,23 @@
             }
         });
         
-        // DataTables initialization
+        // DataTables initialization with destroy check
         $(document).ready(function() {
+            // Destroy existing DataTables before reinitializing
+            $('.data-table').each(function() {
+                if ($.fn.DataTable.isDataTable(this)) {
+                    $(this).DataTable().destroy();
+                }
+            });
+            
+            // Initialize DataTables
             $('.data-table').DataTable({
                 language: {
                     url: '//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json'
                 },
                 pageLength: 25,
-                responsive: true
+                responsive: true,
+                destroy: true  // Allow re-initialization
             });
             
             // Initialize Select2 for all searchable dropdowns
