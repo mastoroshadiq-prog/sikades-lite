@@ -74,6 +74,7 @@ class Report extends BaseController
 
         $data = [
             'title' => 'Laporan Buku Kas Umum',
+            'user' => session()->get('user'),
             'desa' => $desa,
             'bulan' => $bulan,
             'tahun' => $tahun,
@@ -122,6 +123,7 @@ class Report extends BaseController
 
         $data = [
             'title' => 'Laporan APBDes',
+            'user' => session()->get('user'),
             'desa' => $desa,
             'tahun' => $tahun,
             'pendapatan' => $pendapatan,
@@ -197,6 +199,7 @@ class Report extends BaseController
 
         $data = [
             'title' => 'Laporan Realisasi Anggaran',
+            'user' => session()->get('user'),
             'desa' => $desa,
             'tahun' => $tahun,
             'data_lra' => $data_lra
@@ -239,6 +242,7 @@ class Report extends BaseController
 
         $data = [
             'title' => 'SPP - ' . $spp['nomor_spp'],
+            'user' => session()->get('user'),
             'desa' => $desa,
             'spp' => $spp,
             'rincian' => $rincian
@@ -278,6 +282,7 @@ class Report extends BaseController
 
         $data = [
             'title' => 'Laporan Pajak',
+            'user' => session()->get('user'),
             'desa' => $desa,
             'tahun' => $tahun,
             'pajak' => $pajak,

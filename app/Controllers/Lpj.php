@@ -40,6 +40,7 @@ class Lpj extends BaseController
         
         $data = [
             'title' => 'Laporan Pertanggungjawaban (LPJ)',
+            'user' => session()->get('user'),
             'years' => $years,
             'currentYear' => $tahun,
         ];
@@ -129,6 +130,7 @@ class Lpj extends BaseController
         
         $data = [
             'title' => 'LPJ ' . $semesterText . ' ' . $tahun,
+            'user' => session()->get('user'),
             'desa' => $desa,
             'tahun' => $tahun,
             'semester' => $semester,
