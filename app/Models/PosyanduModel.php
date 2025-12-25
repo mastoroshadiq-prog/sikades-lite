@@ -44,11 +44,13 @@ class PosyanduModel extends Model
                 ->where('status', 'AKTIF')
                 ->countAllResults();
             
-            // Count balita yang dimonitor (sudah pernah periksa)
-            $p['jumlah_balita'] = $db->table('kes_pemeriksaan')
+            // Count balita yang dimonitor (sudah pernah periksa - distinct children)
+            $queryBalita = $db->table('kes_pemeriksaan')
+                ->select('COUNT(DISTINCT penduduk_id) as total')
                 ->where('posyandu_id', $p['id'])
-                ->groupBy('penduduk_id')
-                ->countAllResults();
+                ->get()
+                ->getRowArray();
+            $p['jumlah_balita'] = $queryBalita['total'] ?? 0;
             
             // Count ibu hamil aktif
             $p['jumlah_bumil'] = $db->table('kes_ibu_hamil')
@@ -56,13 +58,14 @@ class PosyanduModel extends Model
                 ->where('status', 'HAMIL')
                 ->countAllResults();
                 
-            // Count stunting
-            $p['jumlah_stunting'] = $db->table('kes_pemeriksaan')
-                ->select('penduduk_id')
+            // Count stunting (distinct children with stunting indication)
+            $queryStunting = $db->table('kes_pemeriksaan')
+                ->select('COUNT(DISTINCT penduduk_id) as total')
                 ->where('posyandu_id', $p['id'])
                 ->where('indikasi_stunting', true)
-                ->groupBy('penduduk_id')
-                ->countAllResults();
+                ->get()
+                ->getRowArray();
+            $p['jumlah_stunting'] = $queryStunting['total'] ?? 0;
         }
         
         return $posyandus;
