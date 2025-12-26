@@ -281,32 +281,114 @@ npm install @nestjs/typeorm typeorm pg
 npm install @nestjs/config
 ```
 
-### 5.2 Create .env File
+### 5.2 Database Configuration (Supabase)
+
+**⚠️ IMPORTANT:** SIKADES uses **Supabase PostgreSQL** (cloud-hosted), NOT local PostgreSQL!
+
+#### 5.2.1 Get Supabase Credentials
+
+Before proceeding, you need to fill in the **SUPABASE_CONFIG_TEMPLATE.md** file:
+
+1. Open `SUPABASE_CONFIG_TEMPLATE.md` in this repository
+2. Login to your Supabase dashboard: https://app.supabase.com
+3. Find your SIKADES project
+4. Follow instructions in the template to get:
+   - Database host, password, connection string
+   - API keys (anon and service_role)
+5. Fill in all values in the template
+6. Copy the completed config to `.env` file
+
+#### 5.2.2 Create .env File
 
 ```bash
 # .env
 NODE_ENV=development
 PORT=3000
 
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=sikades123
-DB_DATABASE=sikades_api
+# ===================================================
+# SUPABASE DATABASE CONNECTION (PostgreSQL)
+# ===================================================
+# ⚠️ Fill these from SUPABASE_CONFIG_TEMPLATE.md!
 
-# JWT
+# Database Host (Supabase)
+DB_HOST=db.xxxxxxxxxxxxxxxxxxxxx.supabase.co
+# Find in: Supabase Dashboard → Settings → Database → Connection string
+
+# Database Port (Always 5432 for direct connection)
+DB_PORT=5432
+
+# Database Username (Always 'postgres')
+DB_USERNAME=postgres
+
+# Database Password
+DB_PASSWORD=[YOUR_SUPABASE_DB_PASSWORD]
+# Find in: Settings → Database → Database Password
+
+# Database Name (Always 'postgres')
+DB_DATABASE=postgres
+
+# SSL Configuration (REQUIRED for Supabase!)
+DB_SSL=true
+DB_SSL_REJECT_UNAUTHORIZED=false
+
+# Connection Pool Settings
+DB_POOL_MIN=2
+DB_POOL_MAX=10
+DB_POOL_IDLE_TIMEOUT=10000
+DB_POOL_CONNECTION_TIMEOUT=30000
+
+# Alternative: Full Connection String (Optional)
+# DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres?sslmode=require
+
+# ===================================================
+# SUPABASE API (Optional - for Supabase features)
+# ===================================================
+SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxxx.supabase.co
+SUPABASE_ANON_KEY=[anon_key_from_supabase]
+SUPABASE_SERVICE_ROLE_KEY=[service_role_key_from_supabase]
+
+# ===================================================
+# JWT (Application Tokens)
+# ===================================================
 JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
 JWT_EXPIRATION=15m
 JWT_REFRESH_SECRET=your-super-secret-refresh-key
 JWT_REFRESH_EXPIRATION=7d
 
-# API
+# ===================================================
+# API CONFIGURATION
+# ===================================================
 API_PREFIX=api/v1
 API_RATE_LIMIT=1000
 
-# CORS
-CORS_ORIGIN=http://localhost:3000,http://localhost:5173
+# CORS (Allow Flutter apps & web dashboard)
+CORS_ORIGIN=http://localhost:3000,http://localhost:5173,http://localhost:8080
+
+# ===================================================
+# SHARED DATABASE WARNING!
+# ===================================================
+# ⚠️ This API Gateway shares the SAME database with sikades-lite (CodeIgniter)
+# ⚠️ DO NOT drop or alter existing tables without coordination
+# ⚠️ Use migrations for new tables with prefix 'api_*' to avoid conflicts
+```
+
+#### 5.2.3 Create .env.example (for Git)
+
+```bash
+# Copy .env to .env.example (with placeholders, no sensitive data)
+cp .env .env.example
+
+# Edit .env.example to replace actual values with placeholders
+# Example: DB_PASSWORD=[YOUR_SUPABASE_DB_PASSWORD]
+```
+
+**Add to .gitignore:**
+```bash
+# .gitignore (already should have these)
+.env
+.env.local
+.env.production
+SUPABASE_CONFIG.md  # After filling the template
 ```
 
 ### 5.3 Create Database Config
@@ -318,20 +400,61 @@ import { ConfigService } from '@nestjs/config';
 
 export const getDatabaseConfig = (
   configService: ConfigService,
-): TypeOrmModuleOptions => ({
-  type: 'postgres',
-  host: configService.get('DB_HOST'),
-  port: configService.get('DB_PORT'),
-  username: configService.get('DB_USERNAME'),
-  password: configService.get('DB_PASSWORD'),
-  database: configService.get('DB_DATABASE'),
-  entities: [__dirname + '/../**/*.entity{.ts,.js}'],
-  synchronize: configService.get('NODE_ENV') === 'development', // NEVER true in production!
-  logging: configService.get('NODE_ENV') === 'development',
-  migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
-  migrationsRun: true,
-});
+): TypeOrmModuleOptions => {
+  const isProduction = configService.get('NODE_ENV') === 'production';
+  const useSsl = configService.get('DB_SSL', 'true') === 'true';
+
+  return {
+    type: 'postgres',
+    host: configService.get('DB_HOST'),
+    port: parseInt(configService.get('DB_PORT', '5432')),
+    username: configService.get('DB_USERNAME'),
+    password: configService.get('DB_PASSWORD'),
+    database: configService.get('DB_DATABASE'),
+    
+    // SSL Configuration (Required for Supabase)
+    ssl: useSsl
+      ? {
+          rejectUnauthorized: configService.get('DB_SSL_REJECT_UNAUTHORIZED', 'false') === 'true',
+        }
+      : false,
+    
+    // Connection Pool Settings
+    extra: {
+      min: parseInt(configService.get('DB_POOL_MIN', '2')),
+      max: parseInt(configService.get('DB_POOL_MAX', '10')),
+      idleTimeoutMillis: parseInt(configService.get('DB_POOL_IDLE_TIMEOUT', '10000')),
+      connectionTimeoutMillis: parseInt(configService.get('DB_POOL_CONNECTION_TIMEOUT', '30000')),
+    },
+    
+    // Entity & Migration Settings
+    entities: [__dirname + '/../**/*.entity{.ts,.js}'],
+    
+    // ⚠️ IMPORTANT: Set to false in production!
+    // Supabase database is shared with sikades-lite (CodeIgniter)
+    synchronize: false, // NEVER use synchronize with shared database!
+    
+    logging: !isProduction,
+    
+    // Migrations
+    migrations: [__dirname + '/../database/migrations/*{.ts,.js}'],
+    migrationsRun: false, // Run migrations manually with npm run migration:run
+    migrationsTableName: 'typeorm_migrations', // Separate from CodeIgniter migrations
+  };
+};
 ```
+
+**⚠️ IMPORTANT NOTES:**
+
+1. **`synchronize: false`** - NEVER set to true when sharing database! This will auto-create/modify tables and can break sikades-lite.
+
+2. **Manual Migrations** - Always create and run migrations manually:
+   ```bash
+   npm run typeorm migration:create -- src/database/migrations/CreateApiTables
+   npm run typeorm migration:run
+   ```
+
+3. **SSL Required** - Supabase requires SSL connection. The config handles this automatically.
 
 ### 5.4 Update app.module.ts
 
