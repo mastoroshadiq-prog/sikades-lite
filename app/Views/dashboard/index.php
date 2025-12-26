@@ -33,12 +33,12 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
 <div class="row g-4 mb-4">
     <!-- Total Anggaran -->
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card border-0 bg-primary text-white drilldown-card" 
+        <div class="card stat-card border-0 bg-primary text-white drilldown-card h-100" 
              data-drilldown="anggaran" 
              role="button" 
              title="Klik untuk melihat detail anggaran">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
                     <div>
                         <p class="mb-1 opacity-75">Total Anggaran</p>
                         <h3 class="mb-0 fw-bold" id="totalAnggaran">
@@ -49,19 +49,19 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
                         <i class="fas fa-wallet"></i>
                     </div>
                 </div>
-                <small class="opacity-75 mt-2 d-block"><i class="fas fa-search me-1"></i>Klik untuk detail</small>
+                <small class="opacity-75 mt-2"><i class="fas fa-search me-1"></i>Klik untuk detail</small>
             </div>
         </div>
     </div>
     
     <!-- Total Realisasi -->
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card border-0 bg-success text-white drilldown-card" 
+        <div class="card stat-card border-0 bg-success text-white drilldown-card h-100" 
              data-drilldown="realisasi" 
              role="button" 
              title="Klik untuk melihat detail realisasi">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
                     <div>
                         <p class="mb-1 opacity-75">Total Realisasi</p>
                         <h3 class="mb-0 fw-bold" id="totalRealisasi">
@@ -73,16 +73,16 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
                         <i class="fas fa-chart-line"></i>
                     </div>
                 </div>
-                <small class="opacity-75 mt-2 d-block"><i class="fas fa-search me-1"></i>Klik untuk detail</small>
+                <small class="opacity-75 mt-2"><i class="fas fa-search me-1"></i>Klik untuk detail</small>
             </div>
         </div>
     </div>
     
     <!-- Saldo Kas -->
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card border-0 bg-info text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
+        <div class="card stat-card border-0 bg-info text-white h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
                     <div>
                         <p class="mb-1 opacity-75">Saldo Kas</p>
                         <h3 class="mb-0 fw-bold" id="saldoKas">
@@ -99,9 +99,9 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
     
     <!-- SPP Pending -->
     <div class="col-md-6 col-lg-3">
-        <div class="card stat-card border-0 bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
+        <div class="card stat-card border-0 bg-warning text-white h-100">
+            <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-start flex-grow-1">
                     <div>
                         <p class="mb-1 opacity-75">SPP Pending</p>
                         <h3 class="mb-0 fw-bold" id="sppPending">
