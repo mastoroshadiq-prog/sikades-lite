@@ -54,6 +54,7 @@ class ActivityLog extends BaseController
 
         $data = [
             'title' => 'Activity Log',
+            'user' => session()->get('user'),
             'logs' => $logs,
             'modules' => array_column($modules, 'module'),
             'total' => $total,
