@@ -52,9 +52,8 @@ class ActivityLog extends BaseController
                                   ->get()
                                   ->getResultArray();
 
-        $data = [
+        $data = array_merge($this->data, [
             'title' => 'Activity Log',
-            'user' => session()->get('user'),
             'logs' => $logs,
             'modules' => array_column($modules, 'module'),
             'total' => $total,
@@ -64,7 +63,7 @@ class ActivityLog extends BaseController
             'filter' => $filter,
             'selectedModule' => $module,
             'selectedDate' => $date
-        ];
+        ]);
 
         return view('activity_log/index', $data);
     }

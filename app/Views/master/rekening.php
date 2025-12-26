@@ -10,14 +10,14 @@
 <!-- Filter & Info Cards -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card text-white bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="card text-white shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 3px solid rgba(255,255,255,0.3);">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h6 class="text-white-50 mb-1">Total Rekening</h6>
-                        <h3 class="mb-0"><?= count($rekening) ?></h3>
+                        <h6 class="text-white mb-1 fw-bold">Total Rekening</h6>
+                        <h2 class="mb-0 fw-bold"><?= count($rekening) ?></h2>
                     </div>
-                    <div class="fs-1 opacity-50">
+                    <div class="fs-1 opacity-75">
                         <i class="fas fa-list-alt"></i>
                     </div>
                 </div>

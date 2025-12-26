@@ -310,6 +310,9 @@
                         <a class="nav-link <?= (strpos(uri_string(), 'master/rekening') !== false) ? 'active' : '' ?>" href="<?= base_url('/master/rekening') ?>">
                             <i class="fas fa-list-alt"></i> Ref. Rekening
                         </a>
+                        <a class="nav-link <?= (strpos(uri_string(), 'master/organisasi') !== false) ? 'active' : '' ?>" href="<?= base_url('/master/organisasi') ?>">
+                            <i class="fas fa-sitemap"></i> Struktur Organisasi
+                        </a>
                         <?php if ($user['role'] == 'Administrator'): ?>
                         <a class="nav-link <?= (strpos(uri_string(), 'master/users') !== false) ? 'active' : '' ?>" href="<?= base_url('/master/users') ?>">
                             <i class="fas fa-users"></i> Manajemen User

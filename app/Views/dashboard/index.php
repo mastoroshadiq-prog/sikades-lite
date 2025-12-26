@@ -333,18 +333,18 @@ $sidebarView = ($isHtmxRequest ?? false) ? 'layout/partial_sidebar' : 'layout/si
         </div>
         
         <!-- Info Card -->
-        <div class="card mt-4 border-0 shadow-sm bg-gradient" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="card mt-4 border-0 shadow-lg" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 3px solid rgba(255,255,255,0.3) !important;">
             <div class="card-body text-white">
-                <h6 class="text-white-50"><i class="fas fa-info-circle me-2"></i>Informasi Login</h6>
-                <p class="small mb-2">
-                    <strong>User:</strong> <?= esc($user['username'] ?? 'User') ?>
+                <h6 class="text-white mb-3 fw-bold"><i class="fas fa-info-circle me-2"></i>Informasi Login</h6>
+                <p class="mb-2">
+                    <strong class="fw-bold">User:</strong> <span class="fw-bold"><?= esc($user['username'] ?? 'User') ?></span>
                 </p>
-                <p class="small mb-2">
-                    <strong>Role:</strong> 
-                    <span class="badge bg-light text-dark"><?= esc($user['role'] ?? '-') ?></span>
+                <p class="mb-2">
+                    <strong class="fw-bold">Role:</strong> 
+                    <span class="badge bg-white text-primary fw-bold"><?= esc($user['role'] ?? '-') ?></span>
                 </p>
-                <p class="small mb-0">
-                    <strong>Kode Desa:</strong> <?= esc($user['kode_desa'] ?? '-') ?>
+                <p class="mb-0">
+                    <strong class="fw-bold">Kode Desa:</strong> <span class="fw-bold"><?= esc($user['kode_desa'] ?? '-') ?></span>
                 </p>
             </div>
         </div>

@@ -90,6 +90,15 @@ $routes->group('', ['filter' => 'auth'], function($routes) {
         // Rekening (Chart of Accounts)
         $routes->get('rekening', 'Master::rekening');
         $routes->post('rekening/import', 'Master::importRekening');
+        
+        // Struktur Organisasi
+        $routes->get('organisasi', 'Organisasi::index');
+        $routes->get('organisasi/create', 'Organisasi::create');
+        $routes->post('organisasi/store', 'Organisasi::store');
+        $routes->get('organisasi/edit/(:num)', 'Organisasi::edit/$1');
+        $routes->post('organisasi/update/(:num)', 'Organisasi::update/$1');
+        $routes->get('organisasi/delete/(:num)', 'Organisasi::delete/$1');
+        $routes->post('organisasi/toggle/(:num)', 'Organisasi::toggleStatus/$1');
     });
     
     // APBDes Routes (Budgeting)
