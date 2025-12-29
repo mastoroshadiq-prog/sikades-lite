@@ -1,50 +1,73 @@
 FROM php:8.2-apache
 
-# Install system dependencies
+# Install system dependencies and PHP extensions
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
+    libpq-dev \
+    libzip-dev \
+    libicu-dev \
     libpng-dev \
     libonig-dev \
-    libxml2-dev \
     zip \
     unzip \
-    libicu-dev \
-    libzip-dev \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install intl mysqli pdo pdo_mysql mbstring exif pcntl bcmath gd zip \
-    && a2enmod rewrite \
+    git \
+    && docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    pgsql \
+    intl \
+    zip \
+    gd \
+    mbstring \
+    opcache \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Enable Apache modules
+RUN a2enmod rewrite
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Configure Apache document root
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+# Copy composer files first for caching
+COPY composer.json ./
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs
 
-# Update Apache configuration for AllowOverride All
-RUN sed -i 's|/var/www/html|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/sites-available/000-default.conf \
-    && sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf \
-    && sed -i 's|/var/www/|${APACHE_DOCUMENT_ROOT}|g' /etc/apache2/apache2.conf
+# Copy application code
+COPY . .
 
-# Create writable directories
-RUN mkdir -p /var/www/html/writable/logs \
-    /var/www/html/writable/cache \
-    /var/www/html/writable/session \
-    /var/www/html/writable/uploads
+# Set permissions for writable directory
+RUN mkdir -p /tmp/writable/cache /tmp/writable/logs /tmp/writable/session /tmp/writable/uploads /tmp/writable/debugbar \
+    && chmod -R 777 /tmp/writable
 
-# Copy entrypoint script
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Configure Apache DIRECTLY without .htaccess
+RUN echo '<VirtualHost *:8080>\n\
+    DocumentRoot /var/www/html/public\n\
+    <Directory /var/www/html/public>\n\
+    Options -Indexes +FollowSymLinks\n\
+    AllowOverride None\n\
+    Require all granted\n\
+    \n\
+    # Direct Apache config for CI4 routing (no .htaccess)\n\
+    RewriteEngine On\n\
+    RewriteCond %{REQUEST_FILENAME} !-f\n\
+    RewriteCond %{REQUEST_FILENAME} !-d\n\
+    RewriteRule ^(.*)$ index.php?/$1 [L,QSA]\n\
+    </Directory>\n\
+    ErrorLog ${APACHE_LOG_DIR}/error.log\n\
+    CustomLog ${APACHE_LOG_DIR}/access.log combined\n\
+    </VirtualHost>' > /etc/apache2/sites-available/000-default.conf
 
-# Expose port 80
-EXPOSE 80
+# Create startup script that handles PORT dynamically
+RUN echo '#!/bin/bash\n\
+    set -e\n\
+    PORT=${PORT:-8080}\n\
+    # Update port in Apache config\n\
+    sed -i "s/:8080/:$PORT/" /etc/apache2/sites-available/000-default.conf\n\
+    echo "Listen $PORT" > /etc/apache2/ports.conf\n\
+    exec apache2-foreground' > /usr/local/bin/start-apache.sh \
+    && chmod +x /usr/local/bin/start-apache.sh
 
-# Use custom entrypoint
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+EXPOSE 8080
+
+CMD ["/usr/local/bin/start-apache.sh"]

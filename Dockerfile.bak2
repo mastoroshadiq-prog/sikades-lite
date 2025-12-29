@@ -1,0 +1,59 @@
+FROM php:8.2-apache
+
+# 1. Install dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libzip-dev \
+    libicu-dev \
+    libpng-dev \
+    libonig-dev \
+    zip \
+    unzip \
+    git \
+    && docker-php-ext-install \
+    pdo \
+    pdo_pgsql \
+    pgsql \
+    intl \
+    zip \
+    gd \
+    mbstring \
+    opcache \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# 2. Enable Apache Rewrite
+RUN a2enmod rewrite
+
+# 3. Setup App Directory
+WORKDIR /var/www/html
+
+# 4. Install Composer config first (Caching)
+COPY composer.json composer.lock ./
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN composer install --no-dev --no-scripts --no-autoloader
+
+# 5. Copy App Code
+COPY . .
+
+# 6. Finish Composer
+RUN composer dump-autoload --optimize
+
+# 7. Permissions (CRITICAL)
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/writable
+
+# 8. Configure Apache Document Root to /public
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
+
+# 9. Configure Apache to accept PORT env var
+# We replace 80 with ${PORT} in the config files
+# This allows Apache to listen to whatever PORT Cloud Run injects
+RUN sed -i 's/80/${PORT}/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf
+
+# 10. Runtime Environment
+# Start Apache directly, no intermediate shell scripts
+# Cloud Run injects PORT automatically
+CMD ["apache2-foreground"]

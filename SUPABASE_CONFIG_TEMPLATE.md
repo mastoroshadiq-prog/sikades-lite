@@ -30,7 +30,7 @@
 
 ```bash
 # Host
-DB_HOST=db.xxxxxxxxxxxxxxxxxxxxx.supabase.co
+DB_HOST=postgresql://postgres:[YOUR-PASSWORD]@db.tyhwxgggqzwjkbvgibut.supabase.co:5432/postgres
 # ☝️ Find in: Settings → Database → Connection string → Direct connection
 # Format: db.[PROJECT_REF].supabase.co
 # Example: db.abcdefghijklmnopqrs.supabase.co
@@ -42,7 +42,7 @@ DB_PORT=5432
 DB_USERNAME=postgres
 
 # Password
-DB_PASSWORD=[YOUR_DATABASE_PASSWORD]
+DB_PASSWORD=TpUf7RozU1NSTIKH
 # ☝️ Find in: Settings → Database → Database Password
 # Note: This was set when you created the project
 # If forgotten, you can reset it (but will break existing connections!)
@@ -60,7 +60,7 @@ DB_SSL_REJECT_UNAUTHORIZED=false
 
 ```bash
 # Pooler Host (Uses PgBouncer - port 6543)
-DB_POOLER_HOST=db.xxxxxxxxxxxxxxxxxxxxx.supabase.co
+DB_POOLER_HOST=postgresql://postgres.tyhwxgggqzwjkbvgibut:[YOUR-PASSWORD]@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres
 DB_POOLER_PORT=6543
 DB_POOLER_MODE=transaction
 # ☝️ Find in: Settings → Database → Connection string → Connection pooling
@@ -94,7 +94,7 @@ DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/
 ### 1. Project URL
 
 ```bash
-SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxxx.supabase.co
+SUPABASE_URL=https://tyhwxgggqzwjkbvgibut.supabase.co
 # ☝️ Find in: Settings → API → Project URL
 # Format: https://[PROJECT_REF].supabase.co
 # Example: https://abcdefghijklmnopqrs.supabase.co
@@ -103,7 +103,7 @@ SUPABASE_URL=https://xxxxxxxxxxxxxxxxxxxxx.supabase.co
 ### 2. Anon (Public) Key
 
 ```bash
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I...
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5aHd4Z2dncXp3amtidmdpYnV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMzM1MDMsImV4cCI6MjA4MDkwOTUwM30.xR6GhrlLW2wDydB58VZvV4EaeLozOXEcSOL69mtpvGE
 # ☝️ Find in: Settings → API → Project API keys → anon public
 # This key is safe to use in browsers (has Row Level Security restrictions)
 # Used for: Flutter app, public website
@@ -112,7 +112,7 @@ SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsI
 ### 3. Service Role Key (Secret!)
 
 ```bash
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6I...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR5aHd4Z2dncXp3amtidmdpYnV0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTMzMzUwMywiZXhwIjoyMDgwOTA5NTAzfQ.5rOHwNIx-0OLizM02A3iGe3yN45YxD5TnQlZQRKBSqs
 # ☝️ Find in: Settings → API → Project API keys → service_role secret
 # ⚠️ NEVER expose this key in client-side code!
 # This bypasses Row Level Security (RLS)

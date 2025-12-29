@@ -1,0 +1,42 @@
+# Standard Cloud Run Dockerfile for PHP/CodeIgniter 4
+FROM php:8.2-apache
+
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libzip-dev \
+    libpng-dev \
+    && docker-php-ext-install pdo pdo_pgsql pgsql zip gd \
+    && apt-get clean
+
+# Enable Apache modules  
+RUN a2enmod rewrite
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy application
+COPY . .
+
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Set permissions
+RUN chmod -R 777 writable
+
+# Configure Apache 
+RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+
+# Allow .htaccess
+RUN echo '<Directory /var/www/html/public>\n\
+    AllowOverride All\n\
+    Require all granted\n\
+    </Directory>' >> /etc/apache2/apache2.conf
+
+ENV CI_ENVIRONMENT=production
+
+# Cloud Run will inject PORT
+CMD sed -i "s/80/$PORT/g" /etc/apache2/sites-available/000-default.conf /etc/apache2/ports.conf && apache2-foreground

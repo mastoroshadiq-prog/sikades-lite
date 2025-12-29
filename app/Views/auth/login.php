@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Siskeudes Lite</title>
+    <title>Login - SiKaDes</title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -140,8 +140,8 @@
         <div class="login-card">
             <div class="login-header">
                 <i class="fas fa-landmark"></i>
-                <h3>Siskeudes Lite</h3>
-                <p>Sistem Keuangan Desa</p>
+                <h3>SiKaDes</h3>
+                <p>Sistem Informasi Kawal Desa</p>
             </div>
             
             <div class="login-body">
@@ -225,7 +225,7 @@
         
         <div class="text-center mt-4 text-white">
             <p class="mb-0">
-                <small>&copy; <?= date('Y') ?> Siskeudes Lite</small>
+                <small>&copy; <?= date('Y') ?> SiKaDes - Sistem Informasi Kawal Desa</small>
             </p>
             <p>
                 <small>Sesuai Permendagri No. 20 Tahun 2018</small>

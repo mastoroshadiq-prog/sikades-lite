@@ -4,7 +4,7 @@
     <footer class="text-center py-4 mt-5" style="margin-left: 250px;">
         <div class="container-fluid">
             <p class="text-muted mb-0">
-                &copy; <?= date('Y') ?> Siskeudes Lite - Sistem Keuangan Desa
+                &copy; <?= date('Y') ?> SiKaDes - Sistem Informasi Kawal Desa
                 <span class="mx-2">|</span>
                 <small>Sesuai Permendagri No. 20 Tahun 2018</small>
             </p>

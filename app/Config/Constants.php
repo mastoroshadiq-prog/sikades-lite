@@ -13,6 +13,24 @@
  | NOTE: changing this will require manually modifying the
  | existing namespaces of App\* namespaced-classes.
  */
+/*
+ | --------------------------------------------------------------------
+ | Cloud Run Writable Path Override
+ | --------------------------------------------------------------------
+ */
+if (getenv('K_SERVICE')) {
+    $tempWritable = '/tmp/writable';
+    if (!is_dir($tempWritable)) {
+        @mkdir($tempWritable, 0777, true);
+        @mkdir($tempWritable . '/cache', 0777, true);
+        @mkdir($tempWritable . '/logs', 0777, true);
+        @mkdir($tempWritable . '/session', 0777, true);
+        @mkdir($tempWritable . '/uploads', 0777, true);
+        @mkdir($tempWritable . '/debugbar', 0777, true);
+    }
+    defined('WRITEPATH') || define('WRITEPATH', $tempWritable . DIRECTORY_SEPARATOR);
+}
+
 defined('APP_NAMESPACE') || define('APP_NAMESPACE', 'App');
 
 /*

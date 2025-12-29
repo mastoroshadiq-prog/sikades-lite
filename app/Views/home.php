@@ -146,8 +146,8 @@
                         <div class="mb-4">
                             <i class="fas fa-landmark fa-3x floating"></i>
                         </div>
-                        <h1>Siskeudes Lite</h1>
-                        <p>Sistem Keuangan Desa Berbasis Web yang Modern, Transparan, dan Akuntabel</p>
+                        <h1>SiKaDes</h1>
+                        <p>Sistem Informasi Kawal Desa Berbasis Web yang Modern, Transparan, dan Akuntabel</p>
                         <a href="<?= base_url('/login') ?>" class="btn btn-hero">
                             <i class="fas fa-sign-in-alt me-2"></i>Login ke Sistem
                         </a>

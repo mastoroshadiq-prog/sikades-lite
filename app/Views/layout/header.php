@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= esc($title ?? 'Siskeudes Lite') ?></title>
+    <title><?= esc($title ?? 'SiKaDes') ?></title>
     
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -273,7 +273,7 @@
                 <i class="fas fa-bars"></i>
             </button>
             <a class="navbar-brand fw-bold" href="<?= base_url('/dashboard') ?>">
-                <i class="fas fa-landmark"></i> Siskeudes Lite
+                <i class="fas fa-landmark"></i> SiKaDes
             </a>
             <div class="ms-auto d-flex align-items-center">
                 <div class="dropdown">
